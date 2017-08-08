@@ -16,7 +16,7 @@ The GPU fitter requires:
   - CUDA capable graphics card, minimum Compute Capability 3.0
   - CUDA 8 compatible graphics driver (for GeForce products 378.66 or later)
 
-The CPU version also runs on macOS 
+The CPU version runs on macOS and Microsoft Windows 7 or newer, 64-bit
   
 # How to run
 Example code is avalible in file **example_3D_fit.m**. The required 3D image stacks for
