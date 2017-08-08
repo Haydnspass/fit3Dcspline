@@ -8,17 +8,19 @@ are included. The softare package also includes tools to robustly model beads ba
 experimental PSFs of different modality and correct for depth induce aberrations. 
 
 # Requirements
-  - Microsoft Windows 7 or newer, 64-bit
   - Matlab R2016a or newer  
+The GPU fitter requires:  
+  - Microsoft Windows 7 or newer, 64-bit
   - CUDA capable graphics card, minimum Compute Capability 3.0
   - CUDA 8 compatible graphics driver (for GeForce products 378.66 or later)
+The CPU version also runs on macOS 
   
 # How to run
 Example code is avalible in file **example_3D_fit.m**. The required 3D image stacks for
 the demo code can be found in the folder **data**.
 
 # Contact
-For any questions / comments about this software, please contact [Ries Lab](http://rieslab.de/).
+For any questions / comments about this software, please contact [Ries Lab](https://www.embl.de/research/units/cbb/ries/index.html).
 
 # Copyright and Software License
 Copyright (c) 2017 Ries Lab, European Molecular Biology Laboratory, Heidelberg. 
