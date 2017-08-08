@@ -9,10 +9,13 @@ experimental PSFs of different modality and correct for depth induce aberrations
 
 # Requirements
   - Matlab R2016a or newer  
-The GPU fitter requires:  
+
+The GPU fitter requires:
+  
   - Microsoft Windows 7 or newer, 64-bit
   - CUDA capable graphics card, minimum Compute Capability 3.0
   - CUDA 8 compatible graphics driver (for GeForce products 378.66 or later)
+
 The CPU version also runs on macOS 
   
 # How to run
