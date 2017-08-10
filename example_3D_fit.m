@@ -44,7 +44,7 @@ addpath('shared')
 %For fitting 2D datasets, create 3D calibration from 2D PSF stack (e.g. data/beadstacks_2D)
 % save e.g. as data/bead2D_3dcal.mat
 
-calibrate3D_GUI
+calibrate3D_GUI  %look at the tooltips for explanantions of the parameters
 
 %% load bead calibration
 cal=load('data/bead_3dcal.mat'); %load bead calibration
