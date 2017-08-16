@@ -39,6 +39,8 @@ function calibrate3D(p)
 % p.filter;
 % p.zcorrframes
 % p.gaussroi
+% p.fov =[x1 y1 x2 y2] 
+% p.mindistance
 
 %get bead positions
 p.status.String='load files and segmet beads';drawnow
@@ -46,6 +48,33 @@ f=figure('Name','Bead calibration');
 p.tabgroup=uitabgroup(f);
 %get beads from images
 [beads,p]=images2beads_so(p);
+
+%if only to take beads in a certain range, remove others
+if isfield(p,'fov')&&~isempty(p.fov)
+    indgood=true(length(beads),1);
+    for k=1:length(beads)
+        if beads(k).pos(1)<p.fov(1)||beads(k).pos(1)>p.fov(3)||beads(k).pos(2)<p.fov(2)||beads(k).pos(2)>p.fov(4)
+            indgood(k)=false;
+        end
+    end
+    beads=beads(indgood);
+end
+
+
+%remove beads that are closer together than mindistance
+if isfield(p,'mindistance')&&~isempty(p.mindistance)
+    indgood=true(length(beads),1);
+    for k=1:length(beads)
+        for l=k+1:length(beads)
+            if sum((beads(k).pos-beads(l).pos).^2)<p.mindistance^2
+                indgood(k)=false;
+                indgood(l)=false;
+            end
+        end
+    end 
+    beads=beads(indgood); 
+end  
+
 p.midpoint=round(size(beads(1).stack.image,3)/2); %reference for beads
 p.ploton=false;
 
@@ -113,6 +142,8 @@ else
     indgoodc=true(size(beads));
     gausscal=[];
 end
+
+
 % get cspline calibration
 p.status.String='get cspline calibration';drawnow
 [csplinecal,indgoods]=getstackcal_so(beads(indgoodc),p);
