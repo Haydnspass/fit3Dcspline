@@ -4,7 +4,7 @@ isastig=contains(p.modality,'astig')||contains(p.modality,'2D');
 alignzastig=isastig&contains(p.zcorr,'astig');
 zcorr=contains(p.zcorr,'corr');
 sstack=size(beads(1).stack.image);
-    halfstoreframes=(size(beads(1).stack.image,3)-1)/2;
+    halfstoreframes=round((size(beads(1).stack.image,3)-1)/2);
     if isastig    
         for B=length(beads):-1:1
             if  halfstoreframes<length(beads(B).stack.framerange)
