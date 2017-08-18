@@ -12,6 +12,7 @@ ht=uitab(p.tabgroup,'Title','Files');
 tg=uitabgroup(ht);
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
+    p.fileax(k)=ax;
     imstack=readfile_ome(filelist{k});
     imstack=imstack-min(imstack(:)); %fast fix for offset;
   
@@ -42,9 +43,13 @@ for k=1:length(filelist)
         maxima=maxima(indm,:);
     end
     
+    if isfield(p,'beadpos') %passed on externally
+        maxima=round(p.beadpos{k});
+    end
+    
     
     hold (ax,'on')
-    plot(ax,maxima(:,1),maxima(:,2),'mo')
+    plot(ax,maxima(:,1),maxima(:,2),'ko')
     hold (ax,'off')
     drawnow
     numframes=size(imstack,3);

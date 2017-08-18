@@ -41,7 +41,17 @@ function calibrate3D(p)
 % p.gaussroi
 % p.fov =[x1 y1 x2 y2] 
 % p.mindistance
-
+% p.emgain
+% p.xrange
+% p.yrange
+% p.positions (get beads only here)
+% p.smap (called from SMAP: extended functionality)
+if ~isfield(p,'smap')
+    p.smap=false;
+end
+if ~isfield(p,'xrange')
+    p.xrange=[-inf inf]; p.yrange=[-inf inf]; 
+end
 %get bead positions
 p.status.String='load files and segmet beads';drawnow
 f=figure('Name','Bead calibration');
@@ -49,15 +59,16 @@ p.tabgroup=uitabgroup(f);
 %get beads from images
 [beads,p]=images2beads_so(p);
 
+%get positions of beads
+for k=length(beads):-1:1
+    beadposx(k)=beads(k).pos(1);
+    beadposy(k)=beads(k).pos(2);
+end
+
 %if only to take beads in a certain range, remove others
 if isfield(p,'fov')&&~isempty(p.fov)
-    indgood=true(length(beads),1);
-    for k=1:length(beads)
-        if beads(k).pos(1)<p.fov(1)||beads(k).pos(1)>p.fov(3)||beads(k).pos(2)<p.fov(2)||beads(k).pos(2)>p.fov(4)
-            indgood(k)=false;
-        end
-    end
-    beads=beads(indgood);
+    indbad=beadposx<p.fov(1)| beadposx>p.fov(3)|beadposy<p.fov(2)|beadposy>p.fov(4);
+    beads=beads(~indbad);
 end
 
 
@@ -131,59 +142,95 @@ else
         beads(k).f0=f0g;
     end
 end
-if contains(p.modality,'astig')
-    %get calibration for Gaussian fit
-    p.status.String='get spline approximation';drawnow
-    p.ax_z=axes(uitab(p.tabgroup,'Title','sx(z), sy(z)'));
-    [spline_curves,indgoodc,curves]=getspline_so(beads,p); 
-    gausscal.spline_curves=spline_curves;
-    drawnow
-else
-    indgoodc=true(size(beads));
-    gausscal=[];
+
+%get positions of beads
+for k=length(beads):-1:1
+    beadposxs(k)=beads(k).pos(1);
+    beadposys(k)=beads(k).pos(2);
 end
 
+%spatially dependent calibration
+tgmain=p.tabgroup;
+for X=1:length(p.xrange)-1
+    for Y=1:length(p.yrange)-1
+        if length(p.xrange)>2||length(p.yrange)>2
+            ht=uitab(tgmain,'Title',['X' num2str(X) 'Y' num2str(Y)]);
+            p.tabgroup=uitabgroup(ht);
+        end
+        
+        indgood=beadposxs< p.xrange(X+1) & beadposxs>p.xrange(X) & beadposys<p.yrange(Y+1) & beadposys>p.yrange(Y);
+        beadsh=beads(indgood);
+        p.fileax(k).NextPlot='add';
+        scatter(p.fileax(k),beadposxs(indgood),beadposys(indgood),60,[1 1 1])
+        scatter(p.fileax(k),beadposxs(indgood),beadposys(indgood),50)
+        if isempty(beadsh)
+            disp(['no beads found in part' num2str(p.xrange(X:X+1)) ', ' num2str(p.yrange(Y:Y+1))])
+            continue
+        end
 
-% get cspline calibration
-p.status.String='get cspline calibration';drawnow
-[csplinecal,indgoods]=getstackcal_so(beads(indgoodc),p);
-icf=find(indgoodc);
-icfs=icf(indgoods);
-cspline.coeff=single(csplinecal.cspline.coeff);
-cspline.dz=csplinecal.cspline.dz;
-cspline.z0=csplinecal.cspline.z0;
-cspline.x0=csplinecal.cspline.x0;
+        if contains(p.modality,'astig')
+            %get calibration for Gaussian fit
+            p.status.String='get spline approximation';drawnow
+            p.ax_z=axes(uitab(p.tabgroup,'Title','sx(z), sy(z)'));
+            [spline_curves,indgoodc,curves]=getspline_so(beadsh,p); 
+            gausscal.spline_curves=spline_curves;
+            drawnow
+        else
+            indgoodc=true(size(beadsh));
+            gausscal=[];
+        end
 
-if contains(p.modality,'astig')
-    photbead=10^5; %corr PSF normalized to 1. As MLE is used, this screws up statistics totally. Thus assign bright signal to bead.
-    stackb=csplinecal.PSF;
-    stackb=(stackb)*photbead;
-    mp=ceil(size(stackb,1)/2);dx=floor(p.gaussroi/2);
-    
-    stack=single(stackb(mp-dx:mp+dx,mp-dx:mp+dx,:));
-    P=mleFit_LM(stack,4,200,1,0,1);
-    ch.sx=double(P(:,5));
-    ch.sy=double(P(:,6));
-    f0m=median([beads(icfs).f0]);
-    ch.z=double(((1:size(stack,3))'-f0m)*p.dz);
-    
-    p.ax_sxsy=axes(uitab(p.tabgroup,'Title','sx^2-sy^2'));
-    p.ax_z.NextPlot='add';
-    p.status.String='get Gauss model calibration';drawnow
-    gausscalh=getgausscal_so(ch,p); 
-    legend(p.ax_z,'bad bead data','good bead data','spline fit sx','spline fit sy','average PSF','average PSF','Gauss zfit','Gauss zfit')
 
-    gausscal=copyfields(gausscal,gausscalh);
-    gauss_zfit=single(gausscal.fitzpar);
-    gauss_sx2_sy2=gausscal.Sx2_Sy2;
-else
-    gausscal=[];
-    gauss_sx2_sy2=[];
-    gauss_zfit=[];
+        % get cspline calibration
+        p.status.String='get cspline calibration';drawnow
+        [csplinecal,indgoods]=getstackcal_so(beadsh(indgoodc),p);
+        icf=find(indgoodc);
+        icfs=icf(indgoods);
+        cspline.coeff=single(csplinecal.cspline.coeff);
+        cspline.dz=csplinecal.cspline.dz;
+        cspline.z0=csplinecal.cspline.z0;
+        cspline.x0=csplinecal.cspline.x0;
+
+        if contains(p.modality,'astig')
+            photbead=10^5; %corr PSF normalized to 1. As MLE is used, this screws up statistics totally. Thus assign bright signal to bead.
+            stackb=csplinecal.PSF;
+            stackb=(stackb)*photbead;
+            mp=ceil(size(stackb,1)/2);dx=floor(p.gaussroi/2);
+
+            stack=single(stackb(mp-dx:mp+dx,mp-dx:mp+dx,:));
+            P=mleFit_LM(stack,4,200,1,0,1);
+            ch.sx=double(P(:,5));
+            ch.sy=double(P(:,6));
+            f0m=median([beadsh(icfs).f0]);
+            ch.z=double(((1:size(stack,3))'-f0m)*p.dz);
+
+            p.ax_sxsy=axes(uitab(p.tabgroup,'Title','sx^2-sy^2'));
+            p.ax_z.NextPlot='add';
+            p.status.String='get Gauss model calibration';drawnow
+            gausscalh=getgausscal_so(ch,p); 
+            legend(p.ax_z,'bad bead data','good bead data','spline fit sx','spline fit sy','average PSF','average PSF','Gauss zfit','Gauss zfit')
+
+            gausscal=copyfields(gausscal,gausscalh);
+            gauss_zfit=single(gausscal.fitzpar);
+            gauss_sx2_sy2=gausscal.Sx2_Sy2;
+        else
+            gausscal=[];
+            gauss_sx2_sy2=[];
+            gauss_zfit=[];
+        end
+        cspline_all=csplinecal;
+        SXY(X,Y)=struct('gausscal',gausscal,'cspline_all',cspline_all,'gauss_sx2_sy2',gauss_sx2_sy2,'gauss_zfit',gauss_zfit,...
+            'cspline',cspline,'Xrangeall',p.xrange,'Yrangeall',p.yrange,'Xrange',p.xrange([X X+1]),'Yrange',p.yrange([Y Y+1]),'posind',[X,Y],'EMon',p.emgain);
+    end
 end
-cspline_all=csplinecal;
+    
+    
 p.status.String='save calibration';drawnow
-save(p.outputfile,'gausscal','cspline_all','gauss_sx2_sy2','gauss_zfit','cspline');
+if p.smap
+    save(p.outputfile,'SXY');
+else
+    save(p.outputfile,'gausscal','cspline_all','gauss_sx2_sy2','gauss_zfit','cspline');
+end
 p.status.String='Calibration done';drawnow
 end
 
