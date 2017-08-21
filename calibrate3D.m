@@ -48,6 +48,9 @@ function calibrate3D(p)
 % p.smap (called from SMAP: extended functionality)
 if ~isfield(p,'smap')
     p.smap=false;
+    imageRoi=zeros(2,1); 
+else
+    imageRoi=p.imageRoi; %position of image on Chip. This is important, if the calibration file used a different ROI than the actual measurement
 end
 if ~isfield(p,'xrange')
     p.xrange=[-inf inf]; p.yrange=[-inf inf]; 
@@ -220,7 +223,8 @@ for X=1:length(p.xrange)-1
         end
         cspline_all=csplinecal;
         SXY(X,Y)=struct('gausscal',gausscal,'cspline_all',cspline_all,'gauss_sx2_sy2',gauss_sx2_sy2,'gauss_zfit',gauss_zfit,...
-            'cspline',cspline,'Xrangeall',p.xrange,'Yrangeall',p.yrange,'Xrange',p.xrange([X X+1]),'Yrange',p.yrange([Y Y+1]),'posind',[X,Y],'EMon',p.emgain);
+            'cspline',cspline,'Xrangeall',p.xrange+imageRoi(1),'Yrangeall',p.yrange+imageRoi(2),'Xrange',p.xrange([X X+1])+imageRoi(1),...
+            'Yrange',p.yrange([Y Y+1])+imageRoi(2),'posind',[X,Y],'EMon',p.emgain);
     end
 end
     

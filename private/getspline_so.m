@@ -89,7 +89,9 @@ for k=1:length(curves)
         x2a=[x2a; curves(k).sx; curves(k).sy];
     end
 end
-
+    if isempty(z2a) %only good curves: still plot a bad point in order to have legend correct.
+        z2a=0;x2a=0;
+    end
     plot(p.ax,z2a,x2a,'g.')
     hold(p.ax ,'on')
     plot(p.ax,z1a,x1a,'r.')

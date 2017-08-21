@@ -233,8 +233,9 @@ classdef calibrate3D_GUI<handle
             
             if ~isempty(obj.smappos) %called from SMAP
                 p.smap=true;
+                p.imageRoi=obj.smappos.imageROI;
                 if obj.guihandles.posfromsmap.Value %use positions passed on from SMAP
-                    p.beadpos=obj.smappos;
+                    p.beadpos=obj.smappos.positions;
                 end
                 %determine xrange, yrange for spatial calibration
                 switch obj.guihandles.spatialmode.Value
