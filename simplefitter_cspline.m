@@ -115,7 +115,7 @@ end
 results(:,3)=Pcspline(:,1)-p.dx+peakcoordinates(:,2); %x,y in pixels 
 results(:,4)=(Pcspline(:,5)-p.z0)*p.dz;
 results(:,5:6)=Pcspline(:,3:4);
-results(:,7:8)=CRLB(:,1:2);
+results(:,7:8)=CRLB(:,[2 1]);
 results(:,9)=CRLB(:,5)*p.dz;
 results(:,10:11)=CRLB(:,3:4);
 results(:,12)=LL;
