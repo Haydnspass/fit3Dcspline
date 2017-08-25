@@ -80,7 +80,7 @@ if isfield(p,'mindistance')&&~isempty(p.mindistance)
     indgood=true(length(beads),1);
     for k=1:length(beads)
         for l=k+1:length(beads)
-            if sum((beads(k).pos-beads(l).pos).^2)<p.mindistance^2
+            if beads(k).filenumber == beads(l).filenumber && sum((beads(k).pos-beads(l).pos).^2)<p.mindistance^2
                 indgood(k)=false;
                 indgood(l)=false;
             end
@@ -150,6 +150,7 @@ end
 for k=length(beads):-1:1
     beadposxs(k)=beads(k).pos(1);
     beadposys(k)=beads(k).pos(2);
+    beadfilenumber(k)=beads(k).filenumber;
 end
 
 %spatially dependent calibration
@@ -163,9 +164,13 @@ for X=1:length(p.xrange)-1
         
         indgood=beadposxs< p.xrange(X+1) & beadposxs>p.xrange(X) & beadposys<p.yrange(Y+1) & beadposys>p.yrange(Y);
         beadsh=beads(indgood);
-        p.fileax(k).NextPlot='add';
-        scatter(p.fileax(k),beadposxs(indgood),beadposys(indgood),60,[1 1 1])
-        scatter(p.fileax(k),beadposxs(indgood),beadposys(indgood),50)
+        
+        for k=1:max(beadfilenumber)
+            indfile=(beadfilenumber==k)&indgood;
+            p.fileax(k).NextPlot='add';
+            scatter(p.fileax(k),beadposxs(indfile),beadposys(indfile),60,[1 1 1])
+            scatter(p.fileax(k),beadposxs(indfile),beadposys(indfile),50)
+        end
         if isempty(beadsh)
             disp(['no beads found in part' num2str(p.xrange(X:X+1)) ', ' num2str(p.yrange(Y:Y+1))])
             continue

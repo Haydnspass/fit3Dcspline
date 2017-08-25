@@ -15,7 +15,7 @@ p.z0=cal.cspline.z0;
 p.coeff=cal.cspline.coeff;
 p.dx=floor(p.roifit/2);
 
-reader=bfGetReader(p.imagefile);
+reader=bfGetReader(p.imagefile,true);
 numframes=reader.getImageCount();
 if p.preview
     frames=min(p.previewframe,numframes);
@@ -35,19 +35,25 @@ for F=frames
     maxima=maximumfindcall(impf);
     maxgood=maxima(maxima(:,3)>p.peakcutoff,:);
     
+    if p.preview && size(maxgood,1)>2000
+        p.status.String=('increase cutoff');
+        break
+    end
+    
     %cut out images
     for k=1:size(maxgood,1)
         if maxgood(k,1)>p.dx && maxgood(k,2)>p.dx && maxgood(k,1)<= sim(2)-p.dx && maxgood(k,2)<=sim(1)-p.dx 
             indstack=indstack+1;
             if p.mirror
-                imstack(:,:,indstack)=image(maxgood(k,2)-p.dx:maxgood(k,2)+p.dx,maxgood(k,1)+p.dx:-1:maxgood(k,1)-p.dx);
+                imstack(:,:,indstack)=imphot(maxgood(k,2)-p.dx:maxgood(k,2)+p.dx,maxgood(k,1)+p.dx:-1:maxgood(k,1)-p.dx);
             else
-                imstack(:,:,indstack)=image(maxgood(k,2)-p.dx:maxgood(k,2)+p.dx,maxgood(k,1)-p.dx:maxgood(k,1)+p.dx);
+                imstack(:,:,indstack)=imphot(maxgood(k,2)-p.dx:maxgood(k,2)+p.dx,maxgood(k,1)-p.dx:maxgood(k,1)+p.dx);
             end
             peakcoordinates(indstack,1:2)=maxgood(k,1:2);
             peakcoordinates(indstack,3)=F;
    
             if indstack==fitsperblock
+                p.status.String=['Fitting...' ]; drawnow
                 t=tic;
                 resultsh=fitspline(imstack,peakcoordinates,p);
                 fittime=fittime+toc(t);
@@ -62,7 +68,7 @@ for F=frames
     end
     if toc(tshow)>1
         tshow=tic;
-        p.status.String=['Fitting frame ' num2str(F) ' of ' num2str(numframes)]; drawnow
+        p.status.String=['Loading frame ' num2str(F) ' of ' num2str(numframes)]; drawnow
     end
               
 end
@@ -81,11 +87,12 @@ if p.preview
     hold off
     colorbar
 end
-p.status.String=['Fitting done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations.'];
+p.status.String=['Fitting done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saving now.']; drawnow
 
 resultstable=array2table(results,'VariableNames',{'frame','x_pix','y_pix','z_nm','photons','background',' crlb_x','crlb_y','crlb_z','crlb_photons','crlb_background','logLikelyhood'});
 
 writetable(resultstable,p.outputfile);
+p.status.String=['Fitting done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saved.']; drawnow
 end
 
 function results=fitspline(imstack,peakcoordinates,p)
@@ -99,13 +106,13 @@ end
 results=zeros(size(imstack,3),12);
 results(:,1)=peakcoordinates(:,3);
 if  p.mirror
-    results(:,2)=p.dx-Pcspline(:,1)+peakcoordinates(:,1);
+    results(:,2)=p.dx-Pcspline(:,2)+peakcoordinates(:,1);
 else
-    results(:,2)=Pcspline(:,1)-p.dx+peakcoordinates(:,1);
+    results(:,2)=Pcspline(:,2)-p.dx+peakcoordinates(:,1);
     
 end
 % frame, x,y,z,phot,bg, errx,erry, errz,errphot, errbg,logLikelihood
-results(:,3)=Pcspline(:,2)-p.dx+peakcoordinates(:,2); %x,y in pixels 
+results(:,3)=Pcspline(:,1)-p.dx+peakcoordinates(:,2); %x,y in pixels 
 results(:,4)=(Pcspline(:,5)-p.z0)*p.dz;
 results(:,5:6)=Pcspline(:,3:4);
 results(:,7:8)=CRLB(:,1:2);

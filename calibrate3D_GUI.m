@@ -263,6 +263,8 @@ classdef calibrate3D_GUI<handle
                         p.yrange=str2num(obj.guihandles.spatial_yval.String);
                 end
                 p.emgain=obj.guihandles.emgain.Value;
+            else
+                p.emgain=false;
             end
             calibrate3D(p);
         end    
