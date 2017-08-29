@@ -108,7 +108,7 @@ if nargin == 0 || exist(id, 'file') == 0
 end
 
 % Initialize logging
-bfInitLogging();
+% bfInitLogging();
 
 % Get the channel filler
 r = bfGetReader(id, stitchFiles);
