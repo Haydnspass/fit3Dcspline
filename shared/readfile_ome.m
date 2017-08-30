@@ -1,7 +1,8 @@
 function img=readfile_ome(file)
 try
 imgall=bfopen(file);
-catch
+catch ME
+    disp(ME);
     disp(['could not open file ' file])
     img=[];
     return
