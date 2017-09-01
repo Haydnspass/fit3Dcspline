@@ -122,6 +122,7 @@ dx=floor(size(imstack,1)/2);
 cspline.x=Pcspline(:,1)-dx;cspline.y=Pcspline(:,2)-dx; %x,y in pixels 
 cspline.z=(Pcspline(:,5)-cal.cspline.z0)*cal.cspline.dz;
 
+z_err=sqrt(CRLB(:,5))*cal.cspline.dz; %CRLB is the variance of the parameters, to obtain a localization precision we have to take the square root
 
 % calculate error for all fits. 
 zrange=400; %Only take into accoutn central part. Focus +/- zrange
@@ -225,7 +226,7 @@ for i = 1: length(ztruth)
     
     
     z=(P(:,5)-z0).*dz;
-    locprecz=CRLB(:,5)*dz;
+    locprecz=sqrt(CRLB(:,5))*dz;
     %determine fraction of misassigned localizations
     misassigned=sign(ztruth(i))~=sign(z) & abs(z)> locprecz; %those close to the focus cannot be distinguished and scatter around zero. By excluding only those within their localization precision, we probably overestimate the misassignments.
     fractionmisassigned(i)=sum(misassigned)/length(misassigned);
@@ -247,9 +248,9 @@ for i = 1: length(ztruth)
     Cspline2DF.s_y_found(i,1) = std( Cspline2DF.y-coordsxy(~misassigned,2));
     Cspline2DF.s_z_found(i,1) = std( Cspline2DF.z-ztruth(i));
     
-    Cspline2DF.meanCRLBx(i,1) = mean(sqrt(Cspline2DF.CRLBx));
-    Cspline2DF.meanCRLBy(i,1) = mean(sqrt(Cspline2DF.CRLBy));
-    Cspline2DF.meanCRLBz(i,1) = mean(sqrt(Cspline2DF.CRLBz))*dz;
+    Cspline2DF.meansqrtCRLBx(i,1) = mean(sqrt(Cspline2DF.CRLBx));
+    Cspline2DF.meansqrtCRLBy(i,1) = mean(sqrt(Cspline2DF.CRLBy));
+    Cspline2DF.meansqrtCRLBz(i,1) = mean(sqrt(Cspline2DF.CRLBz))*dz;
     
     
     Cspline2DF.RMSEX(i,1) = sqrt(mean((Cspline2DF.x-coordsxy(~misassigned,1)).^2));
@@ -261,10 +262,10 @@ end
 %Plot localization precision and fraction of misassigned localizations
     figure(103);subplot(1,2,1)
     hold off
-    plot(ztruth,Cspline2DF.meanCRLBx*dx,'-');
+    plot(ztruth,Cspline2DF.meansqrtCRLBx*dx,'-');
     hold on
-    plot(ztruth,Cspline2DF.meanCRLBy*dy,'-');
-    plot(ztruth,Cspline2DF.meanCRLBz,'-');
+    plot(ztruth,Cspline2DF.meansqrtCRLBy*dy,'-');
+    plot(ztruth,Cspline2DF.meansqrtCRLBz,'-');
     plot(ztruth,Cspline2DF.s_x_found*dx,'o');
     plot(ztruth,Cspline2DF.s_y_found*dy,'o');
     plot(ztruth,Cspline2DF.s_z_found,'o');
