@@ -105,7 +105,12 @@ classdef simplefitter_GUI<handle
 %             obj.guihandles.dzt.TooltipString=obj.guihandles.dz.TooltipString;
             obj.guihandles.previewframe=uicontrol('style','edit','String','1','Position',[xpos1+1.5*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.localize=uicontrol('style','pushbutton','String','Localize','Position',[xpos1+2.5*xw,top-16*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.localize_callback,'FontWeight','bold');
-            obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,top-18*vsep,xw*4,vsep],'FontSize',fontsize);
+            
+%             obj.guihandles.openexternal=uicontrol('style','edit','String','1','Position',[xpos1+1.5*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+%             obj.guihandles.openexternal=uicontrol('style','pushbutton','String','Open in','Position',[xpos1,top-18*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.openexternal_callback,'FontWeight','bold');
+%                        
+%             
+            obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,top-20*vsep,xw*4,vsep],'FontSize',fontsize);
             
       
         end
