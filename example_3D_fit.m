@@ -33,7 +33,7 @@
 
 
 %% add path to helper functions
-addpath('bfmatlab')
+% addpath('bfmatlab') %now replaced by own tiff reader mytiffread.m
 addpath('shared')
 
 %% make bead calibration
@@ -75,7 +75,7 @@ if mode ==1 % simulate data
 else %experimental data
     
     file='data/single_bead.tif'; %experimental astgmatic bead stack.
-    imstackadu=readfile_ome(file); % Stack of ROIs in photons.
+    imstackadu=readfile_tif(file); % Stack of ROIs in photons.
     p.offset=400;p.conversion=.1;
     imstack=(single(imstackadu)-p.offset)/p.conversion;% if necessary, convert ADU into photons.
     ground_truth.z=((1:size(imstack,3))'-size(imstack,3)/2+1)*10; %dz=10 nm; convert frame to nm   

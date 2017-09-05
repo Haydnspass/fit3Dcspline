@@ -97,14 +97,18 @@ classdef simplefitter_GUI<handle
             
             obj.guihandles.selectoutput=uicontrol('style','pushbutton','String','set output','Position',[xpos1,top-14*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutput_callback);
             obj.guihandles.selectoutput.TooltipString='Select image files with bead stacks. You can select several files from different locations with the file select dialog box opend';
-            obj.guihandles.outputfile=uicontrol('style','edit','String','','Position',[xpos1+1.5*xw,top-14*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.outputfile=uicontrol('style','edit','String','','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize);
             obj.guihandles.outputfile.TooltipString='List of image files used for calibration. To change this list, use select camera files';
             
-            obj.guihandles.preview=uicontrol('style','pushbutton','String','Preview frame:','Position',[xpos1,top-16*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.preview_callback);
+            obj.guihandles.outputformat=uicontrol('style','popupmenu','String',{'csv','pointcloud-loader'},'Position',[xpos1+1.5*xw,top-14*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.outputformat.TooltipString='Choose output format. CSV saves all fit parameters';
+            
+            
+            obj.guihandles.preview=uicontrol('style','pushbutton','String','Preview frame:','Position',[xpos1,top-17*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.preview_callback);
 %             obj.guihandles.dz.TooltipString=sprintf('Distance in nm between frames. By convention, these are objective positions (not corrected for refractive index mismatch). \n A spacing between 10 nm and 50 nm works well ');
 %             obj.guihandles.dzt.TooltipString=obj.guihandles.dz.TooltipString;
-            obj.guihandles.previewframe=uicontrol('style','edit','String','1','Position',[xpos1+1.5*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.localize=uicontrol('style','pushbutton','String','Localize','Position',[xpos1+2.5*xw,top-16*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.localize_callback,'FontWeight','bold');
+            obj.guihandles.previewframe=uicontrol('style','edit','String','1','Position',[xpos1+1.5*xw,top-17*vsep,xw*.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.localize=uicontrol('style','pushbutton','String','Localize','Position',[xpos1+2.5*xw,top-17*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.localize_callback,'FontWeight','bold');
             
 %             obj.guihandles.openexternal=uicontrol('style','edit','String','1','Position',[xpos1+1.5*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
 %             obj.guihandles.openexternal=uicontrol('style','pushbutton','String','Open in','Position',[xpos1,top-18*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.openexternal_callback,'FontWeight','bold');
@@ -178,6 +182,7 @@ classdef simplefitter_GUI<handle
             p.mirror=(obj.guihandles.mirror.Value);
             p.status=obj.guihandles.status;
              p.outputfile=obj.guihandles.outputfile.String;
+             p.outputformat=obj.guihandles.outputformat.String{obj.guihandles.outputformat.Value};
         end
        
     end

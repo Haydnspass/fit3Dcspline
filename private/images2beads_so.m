@@ -1,5 +1,5 @@
 function [b,p]=images2beads_so(p)
-addpath('bfmatlab')
+% addpath('bfmatlab')
 fs=p.filtersize;
 h=fspecial('gaussian',2*round(fs*3/2)+1,fs);
 fmax=0;
@@ -13,7 +13,8 @@ tg=uitabgroup(ht);
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
     p.fileax(k)=ax;
-    imstack=readfile_ome(filelist{k});
+    imstack=readfile_tif(filelist{k});
+%     imstack=readfile_ome(filelist{k});
     imstack=imstack-min(imstack(:)); %fast fix for offset;
   
     mim=max(imstack,[],3);

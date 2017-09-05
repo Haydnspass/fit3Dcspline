@@ -14,9 +14,9 @@ p.dz=cal.cspline.dz;  %coordinate system of spline PSF is corner based and in un
 p.z0=cal.cspline.z0;
 p.coeff=cal.cspline.coeff;
 p.dx=floor(p.roifit/2);
-
-reader=bfGetReader(p.imagefile,true);
-numframes=reader.getImageCount();
+% readerome=bfGetReader(p.imagefile);
+reader=mytiffreader(p.imagefile);
+numframes=reader.info.numberOfFrames;
 if p.preview
     frames=min(p.previewframe,numframes);
 else
@@ -27,7 +27,8 @@ end
 h=fspecial('gaussian',ceil(3*p.peakfilter+1),p.peakfilter);
 tshow=tic;
 for F=frames
-    image=bfGetPlane(reader,F);
+    image=reader.read(F);
+%      image2=bfGetPlane(readerome,F);
     sim=size(image);
     imphot=(single(image)-p.offset)*p.conversion;
     bg=mywaveletfilter(imphot,3,false,true);
@@ -72,7 +73,7 @@ for F=frames
     end
               
 end
-
+p.status.String=['Fitting...' ]; drawnow
 t=tic;
 resultsh=fitspline(imstack(:,:,1:indstack),peakcoordinates(1:indstack,:),p); %fit all the rest
 fittime=fittime+toc(t);
@@ -86,13 +87,23 @@ if p.preview
     plot(results(:,2),results(:,3),'k+')
     hold off
     colorbar
+    p.status.String=['Preview done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saved.']; drawnow
+else
+    p.status.String=['Fitting done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saving now.']; drawnow
+
+    resultstable=array2table(results,'VariableNames',{'frame','x_pix','y_pix','z_nm','photons','background',' crlb_x','crlb_y','crlb_z','crlb_photons','crlb_background','logLikelyhood'});
+    % 
+    if contains(p.outputformat,'pointcloud')
+        resultstable=resultstable(:,[1 2 3 4 7 9]); %for pointcloud-loader
+        del='\t';
+        disp('Load in http://www.cake23.de/pointcloud-loader/. Set the x,y scale to 10 or similar to convert from pixels to nm. Increase alpha.')
+    else
+        del=',\t';
+    end
+
+    writetable(resultstable,p.outputfile,'Delimiter',del);
+    p.status.String=['Fitting done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saved.']; drawnow
 end
-p.status.String=['Fitting done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saving now.']; drawnow
-
-resultstable=array2table(results,'VariableNames',{'frame','x_pix','y_pix','z_nm','photons','background',' crlb_x','crlb_y','crlb_z','crlb_photons','crlb_background','logLikelyhood'});
-
-writetable(resultstable,p.outputfile);
-p.status.String=['Fitting done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saved.']; drawnow
 end
 
 function results=fitspline(imstack,peakcoordinates,p)
