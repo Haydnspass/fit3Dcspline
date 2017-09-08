@@ -90,18 +90,28 @@ if p.preview
     p.status.String=['Preview done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saved.']; drawnow
 else
     p.status.String=['Fitting done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saving now.']; drawnow
-
-    resultstable=array2table(results,'VariableNames',{'frame','x_pix','y_pix','z_nm','photons','background',' crlb_x','crlb_y','crlb_z','crlb_photons','crlb_background','logLikelyhood'});
+    results(:,[13,15])=results(:,[2, 7])*p.pixelsize(1);
+    results(:,[14,16])=results(:,[3, 8])*p.pixelsize(end);
+    
+    resultstable=array2table(results,'VariableNames',{'frame','x_pix','y_pix','z_nm','photons','background',' crlb_x','crlb_y','crlb_z','crlb_photons','crlb_background','logLikelyhood','x_nm','y_nm','crlb_xnm','crlb_ynm'});
     % 
+    writenames=true;
     if contains(p.outputformat,'pointcloud')
-        resultstable=resultstable(:,[1 2 3 4 7 9]); %for pointcloud-loader
+        resultstable=resultstable(:,[1 13 14 4 15 9]); %for pointcloud-loader
         del='\t';
-        disp('Load in http://www.cake23.de/pointcloud-loader/. Set the x,y scale to 10 or similar to convert from pixels to nm. Increase alpha.')
+        disp('Load in http://www.cake23.de/pointcloud-loader/')
+    elseif contains(p.outputformat,'ViSP')
+        writenames=false;
+        del='\t';
+         resultstable=resultstable(:,[13 14 4 15 16 9 5 1]);
+         [path,file]=fileparts(p.outputfile);
+         p.outputfile=fullfile(path, [file '.3dlp']);
+         disp('Load in Visp: https://science.institut-curie.org/research/multiscale-physics-biology-chemistry/umr168-physical-chemistry/team-dahan/softwares/visp-software-2/')
     else
         del=',\t';
     end
 
-    writetable(resultstable,p.outputfile,'Delimiter',del);
+    writetable(resultstable,p.outputfile,'Delimiter',del,'FileType','text','WriteVariableNames',writenames);
     p.status.String=['Fitting done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saved.']; drawnow
 end
 end
