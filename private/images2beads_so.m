@@ -13,8 +13,13 @@ tg=uitabgroup(ht);
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
     p.fileax(k)=ax;
-    imstack=readfile_tif(filelist{k});
-%     imstack=readfile_ome(filelist{k});
+    if isfield(p,'smap') && p.smap
+        imstack=readfile_ome(filelist{k});
+    else
+        imstack=readfile_tif(filelist{k});
+    end
+    
+     
     imstack=imstack-min(imstack(:)); %fast fix for offset;
   
     mim=max(imstack,[],3);
