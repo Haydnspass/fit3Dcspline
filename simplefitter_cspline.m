@@ -1,5 +1,24 @@
 function simplefitter_cspline(p)
-%p.filename
+
+%parameters:
+% p.imagefile: fiename of data (char);
+% p.calfile: filename of calibration data (char);
+% p.offset=ADU offset of data;
+% p.conversion=conversion e-/ADU;
+% p.preview: true if preview mode (fit only current image and display
+% results).
+% p.previewframe=frame to preview;
+% p.peakfilter=filtersize (sigma, Gaussian filter) for peak finding;
+% p.peakcutoff=cutoff for peak finding
+% p.roifit=size of the ROI in pixels
+% p.bidirectional= use bi-directional fitting for 2D data
+% p.mirror=mirror images if bead calibration was taken without EM gain
+% p.status=handle to a GUI object to display the status;
+% p.outputfile=file to write the localization table to;
+% p.outputformat=Format of file;
+% p.pixelsize=pixel size in nm;
+
+
 fittime=0;
 fitsperblock=50000;
 imstack=zeros(p.roifit,p.roifit,fitsperblock,'single');
