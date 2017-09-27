@@ -38,6 +38,7 @@ classdef mytiffreader<handle
         end
         function getinfo(obj)
             warning('off','MATLAB:imagesci:tiffmexutils:libtiffWarning')
+            obj.reader.setDirectory(1);
             while ~obj.reader.lastDirectory
                 obj.reader.nextDirectory;
             end

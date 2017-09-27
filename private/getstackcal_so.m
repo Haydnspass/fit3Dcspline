@@ -48,11 +48,13 @@ sstack=size(beads(1).stack.image);
     devs=(dpsfx.^2+dpsfy.^2+dstack)./goodvs;
 
     if zcorr
+        
         fw2=round((p.zcorrframes-1)/2);
+        
     else
         fw2=2;
     end
-    
+   
 %     ax=axes('Parent',uitab(p.tabgroup,'Title','scatter'));
 
     [~,sortinddev]=sort(devs);
@@ -66,9 +68,10 @@ sstack=size(beads(1).stack.image);
     
 %     focusreference=round(median(dframe));
     midrange=halfstoreframes+1-round(median(dframe));
+     framerange=max(1,midrange-fw2):min(midrange+fw2,size(stackh,3));
     p.status.String='calculate shift of individual PSFs';drawnow
     filenumber=[beads(:).filenumber];
-    [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_so(allrois,struct('framerange',midrange-fw2:midrange+fw2,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false),{},filenumber(sortinddev));
+    [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_so(allrois,struct('framerange',framerange,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false),{},filenumber(sortinddev));
     
     
     %undo sorting by deviation to associate beads again to their

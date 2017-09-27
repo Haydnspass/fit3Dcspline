@@ -15,8 +15,11 @@ p.z0=cal.cspline.z0;
 p.coeff=cal.cspline.coeff;
 p.dx=floor(p.roifit/2);
 % readerome=bfGetReader(p.imagefile);
+ p.status.String=['Open tiff file' ]; drawnow
 reader=mytiffreader(p.imagefile);
+% reader=bfGetReader(p.imagefile);
 numframes=reader.info.numberOfFrames;
+
 if p.preview
     frames=min(p.previewframe,numframes);
 else
@@ -73,21 +76,28 @@ for F=frames
     end
               
 end
-p.status.String=['Fitting...' ]; drawnow
+reader.close;
+p.status.String=['Fitting last stack...' ]; drawnow
+if indstack<1
+    p.status.String=['No localizations found. Increase cutoff?' ]; drawnow
+else
+
 t=tic;
 resultsh=fitspline(imstack(:,:,1:indstack),peakcoordinates(1:indstack,:),p); %fit all the rest
 fittime=fittime+toc(t);
-results(resultsind:resultsind+indstack-1,:)=resultsh;
 
+results(resultsind:resultsind+indstack-1,:)=resultsh;
+end
 if p.preview
     figure(201)
     imagesc(impf);
+     colorbar
     hold on
     plot(maxgood(:,1),maxgood(:,2),'wo')
     plot(results(:,2),results(:,3),'k+')
     hold off
-    colorbar
-    p.status.String=['Preview done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saved.']; drawnow
+   
+    p.status.String=['Preview done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations.']; drawnow
 else
     p.status.String=['Fitting done. ' num2str(size(results,1)/fittime,'%3.0f') ' fits/s. ' num2str(size(results,1),'%3.0f') ' localizations. Saving now.']; drawnow
     results(:,[13,15])=results(:,[2, 7])*p.pixelsize(1);
@@ -108,7 +118,7 @@ else
          p.outputfile=fullfile(path, [file '.3dlp']);
          disp('Load in Visp: https://science.institut-curie.org/research/multiscale-physics-biology-chemistry/umr168-physical-chemistry/team-dahan/softwares/visp-software-2/')
     else
-        del=',\t';
+        del=',';
     end
 
     writetable(resultstable,p.outputfile,'Delimiter',del,'FileType','text','WriteVariableNames',writenames);
