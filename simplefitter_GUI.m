@@ -138,16 +138,16 @@ classdef simplefitter_GUI<handle
                             end
                             handle='imagefile';
                         case 3 %Fiji
-                            if exist('settings.mat','file')
-                                l=load('settings.mat');
-                                fijipath=l.fijipath;
-                            end
-                            if ~exist('fijipath','var')
-                                [file,fijipath]=uigetfile('Image*.exe','Select the ImageJ executable in the Fiji.app directory')
-                                obj.fijipath=fijipath;
-                                save('settings.mat','fijipath')
-                            end
-%                             fijipath='ImageJ';
+%                             if exist('settings.mat','file')
+%                                 l=load('settings.mat');
+%                                 fijipath=l.fijipath;
+%                             end
+%                             if ~exist('fijipath','var')
+%                                 [file,fijipath]=uigetfile('Image*.exe','Select the ImageJ executable in the Fiji.app directory')
+%                                 obj.fijipath=fijipath;
+%                                 save('settings.mat','fijipath')
+%                             end
+                            fijipath='ImageJ';
                             if ~isempty(obj.mij)
                                 try
                                 obj.mij.exit;
