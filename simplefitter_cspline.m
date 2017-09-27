@@ -9,16 +9,37 @@ resultsind=1;
 %results
 % frame, x,y,z,phot,bg, errx,erry, errz,errphot, errbg,logLikelihood
 %load calibration
-cal=load(p.calfile);
+if exist(p.calfile,'file')
+    cal=load(p.calfile);
+else
+    errordlg('please select 3D calibration file')
+end
 p.dz=cal.cspline.dz;  %coordinate system of spline PSF is corner based and in units pixels / planes
 p.z0=cal.cspline.z0;
 p.coeff=cal.cspline.coeff;
 p.dx=floor(p.roifit/2);
 % readerome=bfGetReader(p.imagefile);
  p.status.String=['Open tiff file' ]; drawnow
-reader=mytiffreader(p.imagefile);
-% reader=bfGetReader(p.imagefile);
-numframes=reader.info.numberOfFrames;
+
+ switch p.loader
+     case 1
+        reader=mytiffreader(p.imagefile);
+        numframes=reader.info.numberOfFrames;
+     case 2
+        reader=bfGetReader(p.imagefile);
+        numframes=reader.getImageCount;
+     case 3 %fiji
+          ij=p.mij.imagej;
+          ijframes=ij.getFrames;
+          for k=1:length(ijframes)
+            if strcmp(ijframes(k).class,'ij.gui.StackWindow')&&~isempty(ijframes(k).getImagePlus)    
+                reader=ijframes(k).getImagePlus.getStack;
+                break
+            end
+          end
+          numframes=reader.size;
+ end
+
 
 if p.preview
     frames=min(p.previewframe,numframes);
@@ -30,7 +51,8 @@ end
 h=fspecial('gaussian',ceil(3*p.peakfilter+1),p.peakfilter);
 tshow=tic;
 for F=frames
-    image=reader.read(F);
+    image=getimage(F,reader,p);
+%     image=reader.read(F);
 %      image2=bfGetPlane(readerome,F);
     sim=size(image);
     imphot=(single(image)-p.offset)*p.conversion;
@@ -76,7 +98,7 @@ for F=frames
     end
               
 end
-reader.close;
+closereader(reader,p);
 p.status.String=['Fitting last stack...' ]; drawnow
 if indstack<1
     p.status.String=['No localizations found. Increase cutoff?' ]; drawnow
@@ -150,5 +172,34 @@ results(:,7:8)=sqrt(CRLB(:,[2 1]));
 results(:,9)=sqrt(CRLB(:,5)*p.dz);
 results(:,10:11)=sqrt(CRLB(:,3:4));
 results(:,12)=LL;
+
+end
+
+function img=getimage(F,reader,p)
+switch p.loader
+     case 1
+         img=reader.read(F);
+    case 2
+        img=bfGetPlane(reader,F);
+    case 3        
+        ss=[reader.getWidth reader.getHeight reader.getSize];
+        if F>0&&F<=ss(3)
+            pixel=reader.getPixels(F);
+            img=reshape(pixel,ss(1),ss(2))';
+        else
+            img=[];
+        end
+end
+
+end
+
+function closereader(reader,p)
+switch p.loader
+     case 1
+         reader.close;
+    case 2
+    case 3        
+
+end
 
 end
