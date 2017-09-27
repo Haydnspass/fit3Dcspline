@@ -20,7 +20,7 @@ function [mij] = Miji(open_imagej,fiji_directory)
     
     add_to_classpath(classpath, fullfile(fiji_directory,'jars'));
     add_to_classpath(classpath, fullfile(fiji_directory,'plugins'));
-    
+    add_to_classpath(classpath, fiji_directory);
     % Switch warning back to initial settings
     warning(warning_state)
 

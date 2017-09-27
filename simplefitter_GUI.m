@@ -147,6 +147,7 @@ classdef simplefitter_GUI<handle
                                 obj.fijipath=fijipath;
                                 save('settings.mat','fijipath')
                             end
+%                             fijipath='ImageJ';
                             if ~isempty(obj.mij)
                                 try
                                 obj.mij.exit;
