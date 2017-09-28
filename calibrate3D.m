@@ -233,12 +233,13 @@ for X=1:length(p.xrange)-1
     end
 end
     
+parameters=rmfield(p,{'tabgroup','status','ax_z','ax_sxsy','fileax'});
     
 p.status.String='save calibration';drawnow
 if p.smap
-    save(p.outputfile,'SXY');
+    save(p.outputfile,'SXY','parameters');
 else
-    save(p.outputfile,'gausscal','cspline_all','gauss_sx2_sy2','gauss_zfit','cspline');
+    save(p.outputfile,'gausscal','cspline_all','gauss_sx2_sy2','gauss_zfit','cspline','parameters');
 end
 p.status.String='Calibration done';drawnow
 end
