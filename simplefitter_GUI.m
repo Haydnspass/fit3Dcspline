@@ -30,6 +30,8 @@ classdef simplefitter_GUI<handle
     properties
         guihandles
         smappos
+        fijipath
+        mij
     end
     methods
         function obj=simplefitter_GUI(varargin)  
@@ -49,101 +51,149 @@ classdef simplefitter_GUI<handle
                 fontsize=14;
             end
             xpos1=10;
-            xw=100;
+            xw=105;
             hatitle='left';
             obj.guihandles.handle=h;
             obj.guihandles.title=uicontrol('style','text','String','Fit image stack with experimental PSF model. (c) 2017 Ries lab','Position',[xpos1,top-vsep+10,xw*4.5,vsep],'FontSize',10,'HorizontalAlignment',hatitle,'FontWeight','bold');
             
              obj.guihandles.filetxt=uicontrol('style','text','String','Data and calibration files:','Position',[xpos1,top-2*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
-            
-            obj.guihandles.selectfiles=uicontrol('style','pushbutton','String','Load raw images','Position',[xpos1,top-3*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',{@obj.selectfiles_callback,1});
+            obj.guihandles.loadert=uicontrol('style','text','String','Loader','Position',[xpos1,top-3*vsep,xw*1.5,vsep],'FontSize',fontsize);
+            obj.guihandles.loader=uicontrol('style','popupmenu','String',{'simple tif','ome loader','ImageJ'},'Position',[xpos1+1.5*xw,top-3*vsep,xw*2.5,vsep],'FontSize',fontsize,'Callback',@obj.changeloader_callback,'Value',3);
+                                  
+            obj.guihandles.selectfiles=uicontrol('style','pushbutton','String','Load raw images','Position',[xpos1,top-4*vsep,xw*2,vsep],'FontSize',fontsize,'Callback',{@obj.selectfiles_callback,1});
              obj.guihandles.selectfiles.TooltipString='Select raw image file (tiff stack).';
-            obj.guihandles.imagefile=uicontrol('style','edit','String','','Position',[xpos1+1.5*xw,top-3*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.imagefile=uicontrol('style','edit','String','','Position',[xpos1+2*xw,top-4*vsep,xw*2,vsep],'FontSize',fontsize);
             obj.guihandles.imagefile.TooltipString='Tiff stack containing the single-molecule data.';
             
-            obj.guihandles.selectcoeff=uicontrol('style','pushbutton','String','Load calibration','Position',[xpos1,top-4*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',{@obj.selectfiles_callback,2});
+            obj.guihandles.selectcoeff=uicontrol('style','pushbutton','String','Load calibration','Position',[xpos1,top-5*vsep,xw*2,vsep],'FontSize',fontsize,'Callback',{@obj.selectfiles_callback,2});
             obj.guihandles.selectcoeff.TooltipString='Select 3D calibration file generated with the tool calibrat3D_GUI.';
-            obj.guihandles.calfile=uicontrol('style','edit','String','','Position',[xpos1+1.5*xw,top-4*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.calfile=uicontrol('style','edit','String','','Position',[xpos1+2*xw,top-5*vsep,xw*2,vsep],'FontSize',fontsize);
             obj.guihandles.calfile.TooltipString='File containing the 3D calibration. *_3dcal.mat.';
+             
+            obj.guihandles.isscmos=uicontrol('style','checkbox','String','sCMOS','Position',[xpos1,top-6*vsep,xw,vsep],'FontSize',fontsize);   
+            obj.guihandles.selectscmos=uicontrol('style','pushbutton','String','Load var map','Position',[xpos1+xw,top-6*vsep,xw*1,vsep],'FontSize',fontsize,'Callback',{@obj.selectfiles_callback,3});   
+            obj.guihandles.selectscmos.TooltipString='Select sCMOS variance map (in photons) of same size ROI on chip as image stack';
+            obj.guihandles.scmosfile=uicontrol('style','edit','String','','Position',[xpos1+2*xw,top-6*vsep,xw*2,vsep],'FontSize',fontsize);
+            obj.guihandles.scmosfile.TooltipString='Tiff image containing sCMOS variance map (same ROI on camera as tiff).';
             
-            obj.guihandles.camtext=uicontrol('style','text','String','Acquisition parameters:','Position',[xpos1,top-6*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+
+
+            obj.guihandles.camtext=uicontrol('style','text','String','Acquisition parameters:','Position',[xpos1,top-8*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             
             ha='right';
             
-            obj.guihandles.conversiont=uicontrol('style','text','String','conversion (e-/ADU)','Position',[xpos1,top-7*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.conversion=uicontrol('style','edit','String','0.1','Position',[xpos1+xw*1.5,top-7*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.conversiont=uicontrol('style','text','String','conversion (e-/ADU)','Position',[xpos1,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.conversion=uicontrol('style','edit','String','0.1','Position',[xpos1+xw*1.5,top-9*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.conversion.TooltipString=sprintf('conversion factor = conv/EMgain. conv is the gain stated in the camera spec sheet (e-/ADU)');
+
             obj.guihandles.conversiont.TooltipString=obj.guihandles.conversion.TooltipString;
              
-            obj.guihandles.offsett=uicontrol('style','text','String','offset (ADU)','Position',[xpos1+2*xw,top-7*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.offset=uicontrol('style','edit','String','100','Position',[xpos1+xw*3.5,top-7*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.offsett=uicontrol('style','text','String','offset (ADU)','Position',[xpos1+2*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.offset=uicontrol('style','edit','String','100','Position',[xpos1+xw*3.5,top-9*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.offset.TooltipString=sprintf('Offset (ADU).');
             obj.guihandles.offsett.TooltipString=obj.guihandles.offset.TooltipString;
              
-            obj.guihandles.peaktext=uicontrol('style','text','String','Peak candidate finding:','Position',[xpos1,top-9*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.peaktext=uicontrol('style','text','String','Peak candidate finding:','Position',[xpos1,top-11*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
 
-            obj.guihandles.peakfiltert=uicontrol('style','text','String','Filter size (pixel)','Position',[xpos1,top-10*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.peakfilter=uicontrol('style','edit','String','1.2','Position',[xpos1+xw*1.5,top-10*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.peakfiltert=uicontrol('style','text','String','Filter size (pixel)','Position',[xpos1,top-12*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.peakfilter=uicontrol('style','edit','String','1.2','Position',[xpos1+xw*1.5,top-12*vsep,xw*.5,vsep],'FontSize',fontsize);
+
             obj.guihandles.peakfilter.TooltipString=sprintf('After background subtraction, the image is filtered with a Gaussain filter prior to peak finding. \n Specify here the width of the Gaussian filter (sigma) in pixels.');
             obj.guihandles.peakfiltert.TooltipString=obj.guihandles.peakfilter.TooltipString;
             
-            obj.guihandles.peakcutofft=uicontrol('style','text','String','cutoff (photons)','Position',[xpos1+2*xw,top-10*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.peakcutoff=uicontrol('style','edit','String','1','Position',[xpos1+xw*3.5,top-10*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.peakcutofft=uicontrol('style','text','String','cutoff (photons)','Position',[xpos1+2*xw,top-12*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.peakcutoff=uicontrol('style','edit','String','1','Position',[xpos1+xw*3.5,top-12*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.peakcutoff.TooltipString=sprintf('Cutoff value to distinguish background from real localizations. \n Units are maximum pixel values of the photon-converted, filtered and background-subtracted image. \n Use the preview function to test several values to find the optimal one.');
             obj.guihandles.peakcutofft.TooltipString=obj.guihandles.peakcutoff.TooltipString;
                       
-            obj.guihandles.fittxt=uicontrol('style','text','String','Fitting paramters:','Position',[xpos1,top-12*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.fittxt=uicontrol('style','text','String','Fitting paramters:','Position',[xpos1,top-14*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
 
-            obj.guihandles.roifitt=uicontrol('style','text','String','ROI size (pixel)','Position',[xpos1,top-13*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.roifit=uicontrol('style','edit','String','13','Position',[xpos1+xw*1.5,top-13*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.roifitt=uicontrol('style','text','String','ROI size (pixel)','Position',[xpos1,top-15*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.roifit=uicontrol('style','edit','String','13','Position',[xpos1+xw*1.5,top-15*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roifit.TooltipString=sprintf('Size of the fitting region (pixels).'); 
             obj.guihandles.roifitt.TooltipString=obj.guihandles.roifit.TooltipString;
             
-            obj.guihandles.bidirectional=uicontrol('style','checkbox','String','2D','Position',[xpos1+2*xw,top-13*vsep,xw*1,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.bidirectional=uicontrol('style','checkbox','String','2D','Position',[xpos1+2*xw,top-15*vsep,xw*1,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.bidirectional.TooltipString=sprintf('Check this option for a 2D dataset to enable bi-directional fitting.'); 
-            obj.guihandles.mirror=uicontrol('style','checkbox','String','mirror','Position',[xpos1+xw*3,top-13*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.mirror=uicontrol('style','checkbox','String','mirror','Position',[xpos1+xw*3,top-15*vsep,xw*1,vsep],'FontSize',fontsize);
             obj.guihandles.mirror.TooltipString=sprintf('EMCCD cameras mirror the image if in EM mode. \n Thus, if the bead stack calibration is taken with conventional gain (recommended for better SNR), calibration and experiment do not match. \n In this case, check the mirror option to mirror the single-molcule images prior to fitting.');             
             
-            obj.guihandles.outputtxt=uicontrol('style','text','String','Output file:','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.outputtxt=uicontrol('style','text','String','Output file:','Position',[xpos1,top-17*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
           
-            obj.guihandles.selectoutput=uicontrol('style','pushbutton','String','Set output file','Position',[xpos1,top-16*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutput_callback);
+            obj.guihandles.selectoutput=uicontrol('style','pushbutton','String','Set output file','Position',[xpos1,top-18*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutput_callback);
             obj.guihandles.selectoutput.TooltipString='Select output file in which to write the localization table.';
-            obj.guihandles.outputfile=uicontrol('style','edit','String','','Position',[xpos1,top-17*vsep,xw*4,vsep],'FontSize',fontsize);
+            obj.guihandles.outputfile=uicontrol('style','edit','String','','Position',[xpos1,top-19*vsep,xw*4,vsep],'FontSize',fontsize);
             obj.guihandles.outputfile.TooltipString='Output file that contains the localization table.';
             
-            obj.guihandles.outputformat=uicontrol('style','popupmenu','String',{'csv','pointcloud-loader','ViSP'},'Position',[xpos1+1.5*xw,top-16*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.outputformat=uicontrol('style','popupmenu','String',{'csv','pointcloud-loader','ViSP'},'Position',[xpos1+1.5*xw,top-18*vsep,xw*2.5,vsep],'FontSize',fontsize);
             obj.guihandles.outputformat.TooltipString='Choose output format. CSV saves all fit parameters. Pointcloud-loader and ViSP are popular 3D viewers for localization data.';
                 
-            obj.guihandles.pixelsizet=uicontrol('style','text','String','pixel size (nm)','Position',[xpos1,top-18*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.pixelsize=uicontrol('style','edit','String','100','Position',[xpos1+xw*1.5,top-18*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.pixelsizet=uicontrol('style','text','String','pixel size (nm)','Position',[xpos1,top-20*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.pixelsize=uicontrol('style','edit','String','100','Position',[xpos1+xw*1.5,top-20*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.pixelsize.TooltipString='Pixelsize (nm). Required for some output formats that require all units in nm.';
             obj.guihandles.pixelsizet.TooltipString=obj.guihandles.pixelsize.TooltipString;
             
-            obj.guihandles.preview=uicontrol('style','pushbutton','String','Preview frame:','Position',[xpos1,top-20*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.preview_callback);
+            obj.guihandles.preview=uicontrol('style','pushbutton','String','Preview frame:','Position',[xpos1,top-22*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.preview_callback);
             obj.guihandles.preview.TooltipString='Localize the frame with the number specified here to check all fitting parameters.';
             
-            obj.guihandles.previewframe=uicontrol('style','edit','String','1','Position',[xpos1+1.5*xw,top-20*vsep,xw*.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.previewframe=uicontrol('style','edit','String','1','Position',[xpos1+1.5*xw,top-22*vsep,xw*.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.previewframe.TooltipString='Frame used for preview. It is recommended to check several frames from different parts of the data set.';
             
-            obj.guihandles.localize=uicontrol('style','pushbutton','String','Localize','Position',[xpos1+2.5*xw,top-20*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.localize_callback,'FontWeight','bold');
+            obj.guihandles.localize=uicontrol('style','pushbutton','String','Localize','Position',[xpos1+2.5*xw,top-22*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.localize_callback,'FontWeight','bold');
             obj.guihandles.localize.TooltipString='Perform 3D fitting of single molecules';
 
-            obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,top-22*vsep,xw*4,vsep],'FontSize',fontsize);
+            obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,top-24*vsep,xw*4,vsep],'FontSize',fontsize);
         end
         function selectfiles_callback(obj,a,b,which)
             switch which
                 case 1
-                    file=obj.guihandles.imagefile.String;
-                    if isempty(file)
-                        file='*.tif';
+                    switch obj.guihandles.loader.Value
+                        case {1,2}
+                            file=obj.guihandles.imagefile.String;
+                            if isempty(file)
+                                file='*.tif';
+                            end
+                            handle='imagefile';
+                        case 3 %Fiji
+%                             if exist('settings.mat','file')
+%                                 l=load('settings.mat');
+%                                 fijipath=l.fijipath;
+%                             end
+%                             if ~exist('fijipath','var')
+%                                 [file,fijipath]=uigetfile('Image*.exe','Select the ImageJ executable in the Fiji.app directory')
+%                                 obj.fijipath=fijipath;
+%                                 save('settings.mat','fijipath')
+%                             end
+                            fijipath='ImageJ';
+                            if ~isempty(obj.mij)
+                                try
+                                obj.mij.exit;
+                                catch err
+                                    err
+                                end
+                            end
+                            wf=msgbox('Open the raw image file in ImageJ. Then set parameters, load 3D calibratin and use preview/localize. Don''t close ImageJ.');
+                            waitfor(wf);
+%                             addpath([fijipath filesep 'scripts'])
+%                             path=pwd;
+                            myMiji(true,fijipath);
+%                             cd(path)
+                            obj.mij=MIJ;
+                             obj.guihandles.imagefile.String='from_ImageJ';
+                            return
                     end
-                    handle='imagefile';
                 case 2
                     file=obj.guihandles.calfile.String;
                     if isempty(file)
                         file='*_3dcal.mat';
                     end
                     handle='calfile';
+                 case 3
+                    file=obj.guihandles.calfile.String;
+                    if isempty(file)
+                        file='*.*';
+                    end
+                    handle='scmosfile';                   
             end
             [f,p]=uigetfile(file);
             if f
@@ -159,6 +209,7 @@ classdef simplefitter_GUI<handle
         function selectoutput_callback(obj,a,b)
             of=obj.guihandles.outputfile.String;
             if isempty(of)
+           
                 of='out.csv';
             end
              if contains(obj.guihandles.outputformat.String{obj.guihandles.outputformat.Value},'ViSP')
@@ -203,6 +254,11 @@ classdef simplefitter_GUI<handle
             p.outputfile=obj.guihandles.outputfile.String;
             p.outputformat=obj.guihandles.outputformat.String{obj.guihandles.outputformat.Value};
             p.pixelsize=str2num(obj.guihandles.pixelsize.String);
+            p.loader=(obj.guihandles.loader.Value);
+            p.mij=obj.mij;
+        end
+        
+        function changeloader_callback(obj,a,b)
         end
        
     end
