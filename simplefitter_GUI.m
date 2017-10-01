@@ -30,7 +30,6 @@ classdef simplefitter_GUI<handle
     properties
         guihandles
         smappos
-        fijipath
         mij
     end
     methods
@@ -74,7 +73,7 @@ classdef simplefitter_GUI<handle
             obj.guihandles.selectscmos=uicontrol('style','pushbutton','String','Load var map','Position',[xpos1+xw,top-6*vsep,xw*1,vsep],'FontSize',fontsize,'Callback',{@obj.selectfiles_callback,3});   
             obj.guihandles.selectscmos.TooltipString='Select sCMOS variance map (in photons) of same size ROI on chip as image stack';
             obj.guihandles.scmosfile=uicontrol('style','edit','String','','Position',[xpos1+2*xw,top-6*vsep,xw*2,vsep],'FontSize',fontsize);
-            obj.guihandles.scmosfile.TooltipString='Tiff image containing sCMOS variance map (same ROI on camera as tiff).';
+            obj.guihandles.scmosfile.TooltipString='Tiff/.mat image containing sCMOS variance map (same ROI on camera as tiff).';
             
 
 
@@ -94,55 +93,60 @@ classdef simplefitter_GUI<handle
             obj.guihandles.offsett.TooltipString=obj.guihandles.offset.TooltipString;
              
             obj.guihandles.peaktext=uicontrol('style','text','String','Peak candidate finding:','Position',[xpos1,top-11*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
-
-            obj.guihandles.peakfiltert=uicontrol('style','text','String','Filter size (pixel)','Position',[xpos1,top-12*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.peakfilter=uicontrol('style','edit','String','1.2','Position',[xpos1+xw*1.5,top-12*vsep,xw*.5,vsep],'FontSize',fontsize);
+            
+            obj.guihandles.backgroundmodet=uicontrol('style','text','String','Background estimation: ','Position',[xpos1,top-12*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.backgroundmode=uicontrol('style','popupmenu','String',{'Difference of Gaussians (fast)','Wavelet (accurate)','None'},'Position',[xpos1+xw*1.5,top-12*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.backgroundmode.TooltipString=sprintf('Algorithm for background estimation used for candidate finding.\n Difference of Gaussians is fast, wavelet filter is more accurate.');
+            obj.guihandles.backgroundmodet.TooltipString=obj.guihandles.backgroundmode.TooltipString;
+            
+            obj.guihandles.peakfiltert=uicontrol('style','text','String','Filter size (pixel)','Position',[xpos1,top-13*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.peakfilter=uicontrol('style','edit','String','1.2','Position',[xpos1+xw*1.5,top-13*vsep,xw*.5,vsep],'FontSize',fontsize);
 
             obj.guihandles.peakfilter.TooltipString=sprintf('After background subtraction, the image is filtered with a Gaussain filter prior to peak finding. \n Specify here the width of the Gaussian filter (sigma) in pixels.');
             obj.guihandles.peakfiltert.TooltipString=obj.guihandles.peakfilter.TooltipString;
             
-            obj.guihandles.peakcutofft=uicontrol('style','text','String','cutoff (photons)','Position',[xpos1+2*xw,top-12*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.peakcutoff=uicontrol('style','edit','String','1','Position',[xpos1+xw*3.5,top-12*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.peakcutofft=uicontrol('style','text','String','cutoff (photons)','Position',[xpos1+2*xw,top-13*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.peakcutoff=uicontrol('style','edit','String','1','Position',[xpos1+xw*3.5,top-13*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.peakcutoff.TooltipString=sprintf('Cutoff value to distinguish background from real localizations. \n Units are maximum pixel values of the photon-converted, filtered and background-subtracted image. \n Use the preview function to test several values to find the optimal one.');
             obj.guihandles.peakcutofft.TooltipString=obj.guihandles.peakcutoff.TooltipString;
                       
-            obj.guihandles.fittxt=uicontrol('style','text','String','Fitting paramters:','Position',[xpos1,top-14*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.fittxt=uicontrol('style','text','String','Fitting paramters:','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
 
-            obj.guihandles.roifitt=uicontrol('style','text','String','ROI size (pixel)','Position',[xpos1,top-15*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.roifit=uicontrol('style','edit','String','13','Position',[xpos1+xw*1.5,top-15*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.roifitt=uicontrol('style','text','String','ROI size (pixel)','Position',[xpos1,top-16*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.roifit=uicontrol('style','edit','String','13','Position',[xpos1+xw*1.5,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roifit.TooltipString=sprintf('Size of the fitting region (pixels).'); 
             obj.guihandles.roifitt.TooltipString=obj.guihandles.roifit.TooltipString;
             
-            obj.guihandles.bidirectional=uicontrol('style','checkbox','String','2D','Position',[xpos1+2*xw,top-15*vsep,xw*1,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.bidirectional=uicontrol('style','checkbox','String','2D','Position',[xpos1+2*xw,top-16*vsep,xw*1,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.bidirectional.TooltipString=sprintf('Check this option for a 2D dataset to enable bi-directional fitting.'); 
-            obj.guihandles.mirror=uicontrol('style','checkbox','String','mirror','Position',[xpos1+xw*3,top-15*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.mirror=uicontrol('style','checkbox','String','mirror','Position',[xpos1+xw*3,top-16*vsep,xw*1,vsep],'FontSize',fontsize);
             obj.guihandles.mirror.TooltipString=sprintf('EMCCD cameras mirror the image if in EM mode. \n Thus, if the bead stack calibration is taken with conventional gain (recommended for better SNR), calibration and experiment do not match. \n In this case, check the mirror option to mirror the single-molcule images prior to fitting.');             
             
-            obj.guihandles.outputtxt=uicontrol('style','text','String','Output file:','Position',[xpos1,top-17*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.outputtxt=uicontrol('style','text','String','Output file:','Position',[xpos1,top-18*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
           
-            obj.guihandles.selectoutput=uicontrol('style','pushbutton','String','Set output file','Position',[xpos1,top-18*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutput_callback);
+            obj.guihandles.selectoutput=uicontrol('style','pushbutton','String','Set output file','Position',[xpos1,top-19*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutput_callback);
             obj.guihandles.selectoutput.TooltipString='Select output file in which to write the localization table.';
-            obj.guihandles.outputfile=uicontrol('style','edit','String','','Position',[xpos1,top-19*vsep,xw*4,vsep],'FontSize',fontsize);
+            obj.guihandles.outputfile=uicontrol('style','edit','String','','Position',[xpos1,top-20*vsep,xw*4,vsep],'FontSize',fontsize);
             obj.guihandles.outputfile.TooltipString='Output file that contains the localization table.';
             
-            obj.guihandles.outputformat=uicontrol('style','popupmenu','String',{'csv','pointcloud-loader','ViSP'},'Position',[xpos1+1.5*xw,top-18*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.outputformat=uicontrol('style','popupmenu','String',{'csv','pointcloud-loader','ViSP'},'Position',[xpos1+1.5*xw,top-19*vsep,xw*2.5,vsep],'FontSize',fontsize);
             obj.guihandles.outputformat.TooltipString='Choose output format. CSV saves all fit parameters. Pointcloud-loader and ViSP are popular 3D viewers for localization data.';
                 
-            obj.guihandles.pixelsizet=uicontrol('style','text','String','pixel size (nm)','Position',[xpos1,top-20*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.pixelsize=uicontrol('style','edit','String','100','Position',[xpos1+xw*1.5,top-20*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.pixelsizet=uicontrol('style','text','String','pixel size (nm)','Position',[xpos1,top-21*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.pixelsize=uicontrol('style','edit','String','100','Position',[xpos1+xw*1.5,top-21*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.pixelsize.TooltipString='Pixelsize (nm). Required for some output formats that require all units in nm.';
             obj.guihandles.pixelsizet.TooltipString=obj.guihandles.pixelsize.TooltipString;
             
-            obj.guihandles.preview=uicontrol('style','pushbutton','String','Preview frame:','Position',[xpos1,top-22*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.preview_callback);
+            obj.guihandles.preview=uicontrol('style','pushbutton','String','Preview frame:','Position',[xpos1,top-23*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.preview_callback);
             obj.guihandles.preview.TooltipString='Localize the frame with the number specified here to check all fitting parameters.';
             
-            obj.guihandles.previewframe=uicontrol('style','edit','String','1','Position',[xpos1+1.5*xw,top-22*vsep,xw*.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.previewframe=uicontrol('style','edit','String','1','Position',[xpos1+1.5*xw,top-23*vsep,xw*.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.previewframe.TooltipString='Frame used for preview. It is recommended to check several frames from different parts of the data set.';
             
-            obj.guihandles.localize=uicontrol('style','pushbutton','String','Localize','Position',[xpos1+2.5*xw,top-22*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.localize_callback,'FontWeight','bold');
+            obj.guihandles.localize=uicontrol('style','pushbutton','String','Localize','Position',[xpos1+2.5*xw,top-23*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.localize_callback,'FontWeight','bold');
             obj.guihandles.localize.TooltipString='Perform 3D fitting of single molecules';
 
-            obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,top-24*vsep,xw*4,vsep],'FontSize',fontsize);
+            obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,top-25*vsep,xw*4,vsep],'FontSize',fontsize);
         end
         function selectfiles_callback(obj,a,b,which)
             switch which
@@ -189,7 +193,7 @@ classdef simplefitter_GUI<handle
                     end
                     handle='calfile';
                  case 3
-                    file=obj.guihandles.calfile.String;
+                    file=obj.guihandles.scmosfile.String;
                     if isempty(file)
                         file='*.*';
                     end
@@ -234,12 +238,19 @@ classdef simplefitter_GUI<handle
         function localize_callback(obj,a,b)
             p=obj.getguiparameters;
             p.preview=false;
+            
+            if isempty(p.outputfile)
+                errordlg('please define output file');
+                return
+            end
+            
             simplefitter_cspline(p)
         end        
         
         function p=getguiparameters(obj)
             %read the parameters of the GUI and write them into parameter
             %structure
+            
             p.imagefile=obj.guihandles.imagefile.String;
             p.calfile=obj.guihandles.calfile.String;
             p.offset=str2double(obj.guihandles.offset.String);
@@ -256,6 +267,25 @@ classdef simplefitter_GUI<handle
             p.pixelsize=str2num(obj.guihandles.pixelsize.String);
             p.loader=(obj.guihandles.loader.Value);
             p.mij=obj.mij;
+            p.backgroundmode=obj.guihandles.backgroundmode.String{obj.guihandles.backgroundmode.Value};
+            
+            
+            p.isscmos=obj.guihandles.isscmos.Value;
+            p.scmosfile=obj.guihandles.scmosfile.String;
+            
+            if p.isscmos && p.mirror
+                warndlg('sCMOS cameras do not mirror image, this only happens for EMCCD cameras when bead calibration is taken without and image data are taken with EM gain. Mirror not used.')
+                p.mirror=false;
+            end
+            
+            if isempty(p.calfile)
+                errordlg('please load 3D bead calibration file first')
+                error('please load 3D bead calibration file first')
+            end
+            if isempty(p.imagefile)
+                errordlg('please load image file first')
+                error('please load image file first')
+            end
         end
         
         function changeloader_callback(obj,a,b)

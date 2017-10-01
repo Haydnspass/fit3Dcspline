@@ -45,6 +45,11 @@ function simplefitter_cspline(p)
 % p.outputformat=Format of file;
 % p.pixelsize=pixel size in nm;
 
+% p.loader which loader to use
+% p.mij if loader is fiji: this is the fiji handle
+% p.isscmos scmos camera used
+% p.scmosfile file containgn scmos varmap
+
 
 fittime=0;
 fitsperblock=50000;
@@ -52,6 +57,36 @@ imstack=zeros(p.roifit,p.roifit,fitsperblock,'single');
 peakcoordinates=zeros(fitsperblock,3);
 indstack=0;
 resultsind=1;
+% bgmode='wavelet'; 
+if contains(p.backgroundmode,'avelet')
+    bgmode=2;
+elseif contains(p.backgroundmode,'aussian')
+     bgmode=1;
+else
+    bgmode=0;
+end
+
+%scmos
+if p.isscmos
+    varstack=ones(p.roifit,p.roifit,fitsperblock,'single');
+    [~,~,ext]=fileparts(p.scmosfile);
+    switch ext
+        case '.tif'
+            varmap=imread(p.scmosfile);
+        case '.mat'
+            varmap=load(p.scmosfile);
+            if isstruct(varmap)
+                fn=fieldnames(varmap);
+                varmap=varmap.(fn{1});
+            end
+        otherwise
+            errordlg('could not load variance map. No sCMOS noise model used.')
+            p.isscmos=false;
+            varstack=0;
+    end
+else
+    varstack=0;
+end
 %results
 % frame, x,y,z,phot,bg, errx,erry, errz,errphot, errbg,logLikelihood
 %load calibration
@@ -65,7 +100,7 @@ p.z0=cal.cspline.z0;
 p.coeff=cal.cspline.coeff;
 p.dx=floor(p.roifit/2);
 % readerome=bfGetReader(p.imagefile);
- p.status.String=['Open tiff file' ]; drawnow
+p.status.String=['Open tiff file' ]; drawnow
 
  switch p.loader
      case 1
@@ -94,18 +129,30 @@ else
 end
 
 %loop over frames, do filtering/peakfinding
-h=fspecial('gaussian',ceil(3*p.peakfilter+1),p.peakfilter);
+hgauss=fspecial('gaussian',ceil(3*p.peakfilter+1),p.peakfilter);
+hdog=fspecial('gaussian',ceil(6*p.peakfilter+1),p.peakfilter)-fspecial('gaussian',ceil(6*p.peakfilter+1),2.5*p.peakfilter);
 tshow=tic;
 for F=frames
     image=getimage(F,reader,p);
-%     image=reader.read(F);
-%      image2=bfGetPlane(readerome,F);
+
     sim=size(image);
     imphot=(single(image)-p.offset)*p.conversion;
-    bg=mywaveletfilter(imphot,3,false,true);
-    impf=filter2(h,imphot-bg);
+    
+    %background determination
+    if bgmode==2% wavelet
+        bg=mywaveletfilter(imphot,3,false,true);
+        impf=filter2(hgauss,imphot-bg);
+    elseif bgmode==1
+        impf=filter2(hdog,imphot);
+    else
+        impf=filter2(hgauss,imphot);
+    end
     maxima=maximumfindcall(impf);
-    maxgood=maxima(maxima(:,3)>p.peakcutoff,:);
+    indmgood=maxima(:,3)>p.peakcutoff;
+    indmgood=indmgood&maxima(:,1)>p.dx &maxima(:,1)<=sim(2)-p.dx;
+    indmgood=indmgood&maxima(:,2)>p.dx &maxima(:,2)<=sim(1)-p.dx;
+    maxgood=maxima(indmgood,:);
+
     
     if p.preview && size(maxgood,1)>2000
         p.status.String=('increase cutoff');
@@ -121,13 +168,16 @@ for F=frames
             else
                 imstack(:,:,indstack)=imphot(maxgood(k,2)-p.dx:maxgood(k,2)+p.dx,maxgood(k,1)-p.dx:maxgood(k,1)+p.dx);
             end
+            if p.isscmos
+                varstack(:,:,indstack)=varmap(maxgood(k,2)-p.dx:maxgood(k,2)+p.dx,maxgood(k,1)-p.dx:maxgood(k,1)+p.dx);
+            end
             peakcoordinates(indstack,1:2)=maxgood(k,1:2);
             peakcoordinates(indstack,3)=F;
    
             if indstack==fitsperblock
                 p.status.String=['Fitting...' ]; drawnow
                 t=tic;
-                resultsh=fitspline(imstack,peakcoordinates,p);
+                resultsh=fitspline(imstack,peakcoordinates,p,varstack);
                 fittime=fittime+toc(t);
                 
                 results(resultsind:resultsind+fitsperblock-1,:)=resultsh;
@@ -151,7 +201,12 @@ if indstack<1
 else
 
 t=tic;
-resultsh=fitspline(imstack(:,:,1:indstack),peakcoordinates(1:indstack,:),p); %fit all the rest
+if p.isscmos
+    varh=varstack(:,:,1:indstack);
+else
+    varh=0;
+end
+resultsh=fitspline(imstack(:,:,1:indstack),peakcoordinates(1:indstack,:),p,varh); %fit all the rest
 fittime=fittime+toc(t);
 
 results(resultsind:resultsind+indstack-1,:)=resultsh;
@@ -194,14 +249,14 @@ else
 end
 end
 
-function results=fitspline(imstack,peakcoordinates,p)
+function results=fitspline(imstack,peakcoordinates,p,varstack)
 if p.bidirectional
     fitmode=6;
 else
     fitmode=5;
 end
 
-[Pcspline,CRLB,LL]=mleFit_LM(imstack,fitmode,50,single(p.coeff),0,1);
+[Pcspline,CRLB,LL]=mleFit_LM(imstack,fitmode,50,single(p.coeff),varstack,1);
 results=zeros(size(imstack,3),12);
 results(:,1)=peakcoordinates(:,3);
 if  p.mirror

@@ -85,7 +85,7 @@ classdef calibrate3D_GUI<handle
             
             obj.guihandles.corrzt=uicontrol('style','text','String','Correct bead z-positions using ','Position',[xpos1,top-10*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.corrzselect=uicontrol('style','popupmenu','String',{'none','cross-correlation','shape (astig)'},...
-                'Value',3,'Position',[xpos1+2.5*xw,top-10*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.zcorr_callback);
+                'Value',2,'Position',[xpos1+2.5*xw,top-10*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.zcorr_callback);
             obj.guihandles.corrzselect.TooltipString=sprintf('Way of correcting for different z positions (e.g. due to a z shift between data sets or tilted coverslip). \n none: use absolute original positions. \n cross-correlation: use 3D cross-correlation on a volume defined with the parameter: frames used for CC \n shape: for astigmatism only: determine z from the frame whare sigma_x=sigma_y');
             obj.guihandles.corrzt.TooltipString=obj.guihandles.corrzselect.TooltipString;
             
