@@ -1,0 +1,59 @@
+Warning: Name is nonexistent or not a directory: shared
+> In path (line 109)
+  In addpath (line 88)
+  In calibrate3D_GUI (line 36)
+Warning: Name is nonexistent or not a directory: bfmatlab
+> In path (line 109)
+  In addpath (line 88)
+  In calibrate3D_GUI (line 37)
+CUDA driver version: 8000
+CUDA driver version: 8000
+CUDA devices detected: 1
+Using GPU GeForce GTX 750
+subregion size: 7 fittype: 1
+Number of fits: 1 no padding
+Memory required: 0MB Memory available: 1024MB
+threadx: 64,blockx: 1
+Memory copies to GPU 2.215952 seconds
+Actual fitting time 0.001000 Actual fits per second 999.695457
+Memory copies from GPU 0.000100 seconds
+Clean up from GPU 0.014298 seconds
+using: GPUmleFit_LM
+Subscript indices must either be real positive integers or logicals.
+
+Error in registerPSF3D_so (line 59)
+
+
+Error in getstackcal_so (line 71)
+
+
+Error in calibrate3D (line 194)
+
+
+Error in calibrate3D_GUI/run_callback (line 269)
+
+
+Error in calibrate3D_GUI>@(varargin)obj.run_callback(varargin{:}) (line 141)
+
+Error using waitforallfiguresclosed (line 9)
+Error while evaluating UIControl Callback.
+
+Subscript indices must either be real positive integers or logicals.
+
+Error in registerPSF3D_so (line 59)
+
+
+Error in getstackcal_so (line 71)
+
+
+Error in calibrate3D (line 194)
+
+
+Error in calibrate3D_GUI/run_callback (line 269)
+
+
+Error in calibrate3D_GUI>@(varargin)obj.run_callback(varargin{:}) (line 141)
+
+Error using waitforallfiguresclosed (line 9)
+Error while evaluating UIControl Callback.
+

@@ -1,0 +1,8 @@
+Warning: Name is nonexistent or not a directory: shared
+> In path (line 109)
+  In addpath (line 88)
+  In simplefitter_GUI (line 37)
+Warning: Name is nonexistent or not a directory: bfmatlab
+> In path (line 109)
+  In addpath (line 88)
+  In simplefitter_GUI (line 38)
