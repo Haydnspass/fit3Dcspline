@@ -212,7 +212,7 @@ for X=1:length(p.xrange)-1
             f0m=median([beadsh(icfs).f0]);
             ch.z=double(((1:size(stack,3))'-f0m)*p.dz);
 
-            p.ax_sxsy=axes(uitab(p.tabgroup,'Title','sx^2-sy^2'));
+            p.ax_sxsy=axes(uitab(p.tabgroup,'Title','Gauss cal'));
             p.ax_z.NextPlot='add';
             p.status.String='get Gauss model calibration';drawnow
             gausscalh=getgausscal_so(ch,p); 

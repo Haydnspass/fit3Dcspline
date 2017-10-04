@@ -33,8 +33,10 @@ classdef calibrate3D_GUI<handle
     methods
         function obj=calibrate3D_GUI(varargin)  
             %constructur: make GUI   
+            if ~isdeployed
             addpath('shared')
             addpath('bfmatlab')
+            end
             
             if nargin>0 %called from our propriety fitting software SMAP: extended funtionality. Hidden if called directly
                 extended=true;
@@ -64,7 +66,7 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.selectfiles.TooltipString='Select image files with bead stacks. You can select several files from different locations with the file select dialog box opend';
             obj.guihandles.filelist=uicontrol('style','listbox','String','','Position',[xpos1+1.5*xw,top-4*vsep,xw*2.5,vsep*3],'FontSize',fontsize);
             obj.guihandles.filelist.TooltipString='List of image files used for calibration. To change this list, use select camera files';
-            obj.guihandles.selectoutputfile=uicontrol('style','pushbutton','String','Select otuput file','Position',[xpos1,top-5*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutputfile_callback);
+            obj.guihandles.selectoutputfile=uicontrol('style','pushbutton','String','Select output file','Position',[xpos1,top-5*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutputfile_callback);
             obj.guihandles.selectoutputfile.TooltipString='Select file name for output calibration file. E.g. bead_astig_3dcal.mat or bead2d_3dcal.mat';
             obj.guihandles.outputfile=uicontrol('style','edit','String','data/bead_3dcal.mat','Position',[xpos1+1.5*xw,top-5*vsep,xw*2.5,vsep],'FontSize',fontsize);
             obj.guihandles.outputfile.TooltipString='Name of the output file';
@@ -90,8 +92,8 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.corrzt.TooltipString=obj.guihandles.corrzselect.TooltipString;
             
             
-            obj.guihandles.zcorrframest=uicontrol('style','text','String','frames to use for CC: ','Position',[xpos1+1.5*xw,top-11*vsep,xw*2,vsep],'FontSize',fontsize,'Visible','off','HorizontalAlignment',ha);
-            obj.guihandles.zcorrframes=uicontrol('style','edit','String','50','Position',[xpos1+3.5*xw,top-11*vsep,xw*.5,vsep],'FontSize',fontsize,'Visible','off');
+            obj.guihandles.zcorrframest=uicontrol('style','text','String','frames to use for CC: ','Position',[xpos1+1.5*xw,top-11*vsep,xw*2,vsep],'FontSize',fontsize,'Visible','on','HorizontalAlignment',ha);
+            obj.guihandles.zcorrframes=uicontrol('style','edit','String','50','Position',[xpos1+3.5*xw,top-11*vsep,xw*.5,vsep],'FontSize',fontsize,'Visible','on');
             obj.guihandles.zcorrframes.TooltipString=sprintf('Number of frames around focus used to calculate 3D cross-correlation and thus x, y and z shifts. \n Should correspond to 300-1500 nm (depends on dz). \n Too small value leads to poor z alignment.');
             obj.guihandles.zcorrframest.TooltipString=obj.guihandles.zcorrframes.TooltipString;
             
@@ -109,16 +111,17 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.roisizet=uicontrol('style','text','String','ROI size: X,Y (pixels): ','Position',[xpos1,top-16*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.ROIxy=uicontrol('style','edit','String','21','Position',[xpos1+2*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizezt=uicontrol('style','text','String','Z (frames): ','Position',[xpos1+2.5*xw,top-16*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.ROIz=uicontrol('style','edit','String','201','Position',[xpos1+3.5*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.ROIz=uicontrol('style','edit','String','','Position',[xpos1+3.5*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizet.TooltipString=sprintf('Size of the volume for which cspline coefficients are calculated. \n Should be larger than the ROI used for fitting. \n x,y: typically 17-31 pixels, z: number of frames in stack');
             obj.guihandles.ROIxy.TooltipString=obj.guihandles.roisizet.TooltipString;
             obj.guihandles.roisizezt.TooltipString=obj.guihandles.roisizet.TooltipString;
             obj.guihandles.ROIz.TooltipString=obj.guihandles.roisizet.TooltipString;
-            
+            obj.guihandles.roisizezt.Visible='off';
+            obj.guihandles.ROIz.Visible='off';
             
             
             obj.guihandles.smootht=uicontrol('style','text','String','Smoothing parameter in Z: ','Position',[xpos1,top-17*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.smoothz=uicontrol('style','edit','String','2','Position',[xpos1+2*xw,top-17*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.smoothz=uicontrol('style','edit','String','1','Position',[xpos1+2*xw,top-17*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.smoothz.TooltipString=sprintf('Smoothing paramter in z. Too large values lead to a broadened PSF and loss in accuracy, too small value leads to stripe artifacts. Typically 0.3-5');
             obj.guihandles.smootht.TooltipString=obj.guihandles.smoothz.TooltipString;
             

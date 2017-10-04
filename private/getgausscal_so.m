@@ -55,6 +55,7 @@ if nargin>4
     ylabel(ax,'sx^2-sy^2')
     xlabel(ax,'z (nm)')
      ylim(ax,[q(1) q(2)]);
+     title(ax,'Calibration for Gaussian fit')
 end
 
 else

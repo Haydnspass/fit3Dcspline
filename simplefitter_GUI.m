@@ -35,8 +35,10 @@ classdef simplefitter_GUI<handle
     methods
         function obj=simplefitter_GUI(varargin)  
             %constructur: make GUI   
+            if ~isdeployed
             addpath('shared')
             addpath('bfmatlab')
+            end
             
             figureheight=630;
             h=figure('Name','3D fittter','MenuBar','none','ToolBar','none');
@@ -55,6 +57,10 @@ classdef simplefitter_GUI<handle
             obj.guihandles.handle=h;
             obj.guihandles.title=uicontrol('style','text','String','Fit image stack with experimental PSF model. (c) 2017 Ries lab','Position',[xpos1,top-vsep+10,xw*4.5,vsep],'FontSize',10,'HorizontalAlignment',hatitle,'FontWeight','bold');
             
+            if ismac
+                obj.guihandles.mac=uicontrol('style','text','String','GPU fit only works on Windows. On Macs the CPU fitter is used.','Position',[xpos1,top-vsep-5,xw*4.5,vsep],'FontSize',10,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            end
+   
              obj.guihandles.filetxt=uicontrol('style','text','String','Data and calibration files:','Position',[xpos1,top-2*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             obj.guihandles.loadert=uicontrol('style','text','String','Loader','Position',[xpos1,top-3*vsep,xw*1.5,vsep],'FontSize',fontsize);
             obj.guihandles.loader=uicontrol('style','popupmenu','String',{'simple tif','ome loader','ImageJ'},'Position',[xpos1+1.5*xw,top-3*vsep,xw*2.5,vsep],'FontSize',fontsize,'Callback',@obj.changeloader_callback,'Value',3);
@@ -94,8 +100,8 @@ classdef simplefitter_GUI<handle
              
             obj.guihandles.peaktext=uicontrol('style','text','String','Peak candidate finding:','Position',[xpos1,top-11*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             
-            obj.guihandles.backgroundmodet=uicontrol('style','text','String','Background estimation: ','Position',[xpos1,top-12*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.backgroundmode=uicontrol('style','popupmenu','String',{'Difference of Gaussians (fast)','Wavelet (accurate)','None'},'Position',[xpos1+xw*1.5,top-12*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.backgroundmodet=uicontrol('style','text','String','Background estimation: ','Position',[xpos1,top-12*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.backgroundmode=uicontrol('style','popupmenu','String',{'Difference of Gaussians (fast)','Wavelet (accurate)','None'},'Position',[xpos1+xw*2,top-12*vsep,xw*2,vsep],'FontSize',fontsize);
             obj.guihandles.backgroundmode.TooltipString=sprintf('Algorithm for background estimation used for candidate finding.\n Difference of Gaussians is fast, wavelet filter is more accurate.');
             obj.guihandles.backgroundmodet.TooltipString=obj.guihandles.backgroundmode.TooltipString;
             

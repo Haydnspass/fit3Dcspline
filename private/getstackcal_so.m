@@ -91,7 +91,11 @@ sstack=size(beads(1).stack.image);
         x=round((scorrPSF(1)+1)/2);y=round((scorrPSF(2)+1)/2);
 
         dRx=round((p.ROIxy-1)/2);
-        dzroi=round((p.ROIz-1)/2);
+        if isnan(p.ROIz)
+            p.ROIz=size(corrPSF,3);
+        end
+            dzroi=round((p.ROIz-1)/2);
+        
         rangex=x-dRx:x+dRx;
         rangey=y-dRx:y+dRx;
 
@@ -184,8 +188,11 @@ sstack=size(beads(1).stack.image);
             plot(ax,framerange0',zprofile(1:length(framerange0)),'k*')
             plot(ax,zzz+rangez(1)+framerange0(1)-2,zbs,'b','LineWidth',2)
             xlabel(ax,'frames')
-            ylabel(ax,'intensity')
+            ylabel(ax,'normalized intensity')
             ax.XLim(2)=max(framerange0);ax.XLim(1)=min(framerange0);
+            title(ax,'Profile along z for x=0, y=0');
+            
+            legend('individual PSFs','average PSF','smoothed spline')
             
             xrange=-halfroisizebig:halfroisizebig;
              ax=axes(uitab(p.tabgroup,'Title','PSFx'));
@@ -195,7 +202,9 @@ sstack=size(beads(1).stack.image);
             plot(ax,xrange,xprofile,'k*-')
             plot(ax,(xxx-(b3_0.dataSize(1)+1)/2),xbs,'b','LineWidth',2)
             xlabel(ax,'x (pixel)')
-            ylabel(ax,'intensity')
+            ylabel(ax,'normalized intensity')
+            title(ax,'Profile along x for y=0, z=0');
+             legend('individual PSFs','average PSF','smoothed spline')
             
             drawnow
             

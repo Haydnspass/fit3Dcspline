@@ -28,6 +28,8 @@ for k=1:length(filelist)
 %     figure(88);
     imagesc(ax,mim);
     axis(ax,'equal');
+    axis(ax,'off')
+    title(ax,'Maximum intensity projection')
     int=maxima(:,3);
     try
     mimc=mim(roisize:end-roisize,roisize:end-roisize);

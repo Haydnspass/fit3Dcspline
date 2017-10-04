@@ -104,6 +104,7 @@ end
     drawnow
     s.x=splinex2;s.y=spliney2;
     s.zrange=[zt(1) zt(end)];
+    title(p.ax,'Lateral size of the PSF');
 
 
 zr=s.zrange(1):1:s.zrange(2);
