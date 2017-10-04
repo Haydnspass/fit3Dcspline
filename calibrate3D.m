@@ -186,6 +186,7 @@ for X=1:length(p.xrange)-1
         else
             indgoodc=true(size(beadsh));
             gausscal=[];
+            p.ax_z=[];
         end
 
 
@@ -225,6 +226,8 @@ for X=1:length(p.xrange)-1
             gausscal=[];
             gauss_sx2_sy2=[];
             gauss_zfit=[];
+            p.ax_sxsy=[];
+            
         end
         cspline_all=csplinecal;
         SXY(X,Y)=struct('gausscal',gausscal,'cspline_all',cspline_all,'gauss_sx2_sy2',gauss_sx2_sy2,'gauss_zfit',gauss_zfit,...
