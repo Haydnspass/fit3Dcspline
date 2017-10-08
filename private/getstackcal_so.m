@@ -176,9 +176,10 @@ sstack=size(beads(1).stack.image);
                  
             xprofile=squeeze(corrPSFn(:,yt,ftest));
             mpzhd=round((size(corrPSFhd,3)+1)/2+1);
+            dzzz=round((size(corrPSFn,3)+1)/2+1)-mpzhd;
             dxxx=0.1;
             xxx=1:dxxx:b3_0.dataSize(1);
-            zzzt=0*xxx+mpzhd;
+            zzzt=0*xxx+mpzhd+dzzz-1;
             xbs= interp3_0(b3_0,0*xxx+b3_0.dataSize(1)/2+.5,xxx,zzzt);
             zzz=1:dxxx:b3_0.dataSize(3);xxxt=0*zzz+b3_0.dataSize(1)/2+.5;
             zbs= interp3_0(b3_0,xxxt,xxxt,zzz); 

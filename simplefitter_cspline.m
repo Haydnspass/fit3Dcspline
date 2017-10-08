@@ -67,6 +67,7 @@ else
 end
 
 %scmos
+varmap=[];
 if p.isscmos
     varstack=ones(p.roifit,p.roifit,fitsperblock,'single');
     [~,~,ext]=fileparts(p.scmosfile);
@@ -87,6 +88,7 @@ if p.isscmos
 else
     varstack=0;
 end
+varmap=varmap*p.conversion^2;
 %results
 % frame, x,y,z,phot,bg, errx,erry, errz,errphot, errbg,logLikelihood
 %load calibration

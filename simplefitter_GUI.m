@@ -77,7 +77,7 @@ classdef simplefitter_GUI<handle
              
             obj.guihandles.isscmos=uicontrol('style','checkbox','String','sCMOS','Position',[xpos1,top-6*vsep,xw,vsep],'FontSize',fontsize);   
             obj.guihandles.selectscmos=uicontrol('style','pushbutton','String','Load var map','Position',[xpos1+xw,top-6*vsep,xw*1,vsep],'FontSize',fontsize,'Callback',{@obj.selectfiles_callback,3});   
-            obj.guihandles.selectscmos.TooltipString='Select sCMOS variance map (in photons) of same size ROI on chip as image stack';
+            obj.guihandles.selectscmos.TooltipString='Select sCMOS variance map (in ADU^2) of same size ROI on chip as image stack';
             obj.guihandles.scmosfile=uicontrol('style','edit','String','','Position',[xpos1+2*xw,top-6*vsep,xw*2,vsep],'FontSize',fontsize);
             obj.guihandles.scmosfile.TooltipString='Tiff/.mat image containing sCMOS variance map (same ROI on camera as tiff).';
             
