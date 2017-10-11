@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="490472107" file="C:\Users\ries\git\fit3Dcspline\simplefitter_GUI.prj" location="C:\Users\ries\git\fit3Dcspline" name="simplefitter_GUI" preferred-package-location="C:\Users\ries\git\fit3Dcspline\simplefitter_GUI\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration build-checksum="1722350874" file="/Users/ries/git/fit3D/simplefitter_GUI.prj" location="/Users/ries/git/fit3D" name="simplefitter_GUI" preferred-package-location="/Users/ries/git/fit3D/simplefitter_GUI/for_redistribution" preferred-package-type="package.type.app" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>simplefitter_GUI</param.appname>
     <param.icon />
     <param.icons />
@@ -9,10 +9,10 @@
     <param.company>EMBL</param.company>
     <param.summary />
     <param.description />
-    <param.screenshot>C:\Users\ries\Desktop\psf.png</param.screenshot>
+    <param.screenshot>${PROJECT_ROOT}/shared/psf.png</param.screenshot>
     <param.guid />
-    <param.installpath.string>\EMBL\simplefitter_GUI\</param.installpath.string>
-    <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
+    <param.installpath.string>/EMBL/simplefitter_GUI/</param.installpath.string>
+    <param.installpath.combo>option.installpath.systemwideapp</param.installpath.combo>
     <param.logo />
     <param.install.notes>In the following directions, replace MR by the directory where MATLAB or the MATLAB Runtime is installed on the target machine.
 
@@ -24,10 +24,10 @@ If it is defined, set it to the following:
 
 ${DYLD_LIBRARY_PATH}:MR/v93/runtime/maci64:MR/v93/sys/os/maci64:MR/v93/bin/maci64</param.install.notes>
     <param.target.install.notes />
-    <param.intermediate>${PROJECT_ROOT}\simplefitter_GUI\for_testing</param.intermediate>
-    <param.files.only>${PROJECT_ROOT}\simplefitter_GUI\for_redistribution_files_only</param.files.only>
-    <param.output>${PROJECT_ROOT}\simplefitter_GUI\for_redistribution</param.output>
-    <param.logdir>${PROJECT_ROOT}\simplefitter_GUI</param.logdir>
+    <param.intermediate>${PROJECT_ROOT}/simplefitter_GUI/for_testing</param.intermediate>
+    <param.files.only>${PROJECT_ROOT}/simplefitter_GUI/for_redistribution_files_only</param.files.only>
+    <param.output>${PROJECT_ROOT}/simplefitter_GUI/for_redistribution</param.output>
+    <param.logdir>${PROJECT_ROOT}/simplefitter_GUI</param.logdir>
     <param.enable.clean.build>false</param.enable.clean.build>
     <param.user.defined.mcr.options />
     <param.target.type>subtarget.standalone</param.target.type>
@@ -41,6 +41,10 @@ ${DYLD_LIBRARY_PATH}:MR/v93/runtime/maci64:MR/v93/sys/os/maci64:MR/v93/bin/maci6
     <param.windows.command.prompt>false</param.windows.command.prompt>
     <param.create.log>true</param.create.log>
     <param.log.file>log.txt</param.log.file>
+    <param.native.matlab>false</param.native.matlab>
+    <param.checkbox>false</param.checkbox>
+    <param.example />
+    <param.help.text />
     <unset>
       <param.icon />
       <param.icons />
@@ -66,63 +70,61 @@ ${DYLD_LIBRARY_PATH}:MR/v93/runtime/maci64:MR/v93/sys/os/maci64:MR/v93/bin/maci6
       <param.web.mcr.name />
       <param.package.mcr.name />
       <param.no.mcr.name />
+      <param.windows.command.prompt />
+      <param.native.matlab />
+      <param.checkbox />
+      <param.example />
+      <param.help.text />
     </unset>
     <fileset.main>
-      <file>${PROJECT_ROOT}\simplefitter_GUI.m</file>
+      <file>${PROJECT_ROOT}/simplefitter_GUI.m</file>
     </fileset.main>
     <fileset.resources>
-      <file>${PROJECT_ROOT}\bfmatlab\bioformats_package.jar</file>
-      <file>${PROJECT_ROOT}\ImageJ</file>
+      <file>${PROJECT_ROOT}/ImageJ</file>
+      <file>${PROJECT_ROOT}/bfmatlab/bioformats_package.jar</file>
     </fileset.resources>
     <fileset.package />
     <fileset.depfun>
-      <file>${PROJECT_ROOT}\bfmatlab\bfCheckJavaMemory.m</file>
-      <file>${PROJECT_ROOT}\bfmatlab\bfCheckJavaPath.m</file>
-      <file>${PROJECT_ROOT}\bfmatlab\bfGetPlane.m</file>
-      <file>${PROJECT_ROOT}\bfmatlab\bfGetReader.m</file>
-      <file>${PROJECT_ROOT}\bfmatlab\private\is_octave.m</file>
-      <file>${PROJECT_ROOT}\private\contains.m</file>
-      <file>${PROJECT_ROOT}\shared\CPUmleFit_LM.mexw64</file>
-      <file>${PROJECT_ROOT}\shared\getRoiTif.m</file>
-      <file>${PROJECT_ROOT}\shared\GPUmleFit_LM.mexw64</file>
-      <file>${PROJECT_ROOT}\shared\maximumfind.mexw64</file>
-      <file>${PROJECT_ROOT}\shared\maximumfindcall.m</file>
-      <file>${PROJECT_ROOT}\shared\mleFit_LM.m</file>
-      <file>${PROJECT_ROOT}\shared\myMiji.m</file>
-      <file>${PROJECT_ROOT}\shared\mytiffreader.m</file>
-      <file>${PROJECT_ROOT}\shared\mywaveletfilter.m</file>
-      <file>${PROJECT_ROOT}\shared\private\coldfilt.m</file>
-      <file>${PROJECT_ROOT}\shared\private\colfilter.m</file>
-      <file>${PROJECT_ROOT}\shared\private\colifilt.m</file>
-      <file>${PROJECT_ROOT}\shared\private\dtwaveifm2_L.m</file>
-      <file>${PROJECT_ROOT}\shared\private\dtwavexfm2_L.m</file>
-      <file>${PROJECT_ROOT}\shared\private\reflect.m</file>
-      <file>${PROJECT_ROOT}\shared\strfindfast.m</file>
-      <file>${PROJECT_ROOT}\simplefitter_cspline.m</file>
+      <file>${PROJECT_ROOT}/bfmatlab/bfCheckJavaMemory.m</file>
+      <file>${PROJECT_ROOT}/bfmatlab/bfCheckJavaPath.m</file>
+      <file>${PROJECT_ROOT}/bfmatlab/bfGetPlane.m</file>
+      <file>${PROJECT_ROOT}/bfmatlab/bfGetReader.m</file>
+      <file>${PROJECT_ROOT}/bfmatlab/private/is_octave.m</file>
+      <file>${PROJECT_ROOT}/private/contains.m</file>
+      <file>${PROJECT_ROOT}/shared/CPUmleFit_LM.mexmaci64</file>
+      <file>${PROJECT_ROOT}/shared/getRoiTif.m</file>
+      <file>${PROJECT_ROOT}/shared/maximumfind.mexmaci64</file>
+      <file>${PROJECT_ROOT}/shared/maximumfindcall.m</file>
+      <file>${PROJECT_ROOT}/shared/mleFit_LM.m</file>
+      <file>${PROJECT_ROOT}/shared/myMiji.m</file>
+      <file>${PROJECT_ROOT}/shared/mytiffreader.m</file>
+      <file>${PROJECT_ROOT}/shared/strfindfast.m</file>
+      <file>${PROJECT_ROOT}/simplefitter_cspline.m</file>
     </fileset.depfun>
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\simplefitter_GUI\for_testing" name="simplefitter_GUI.exe" optional="false">C:\Users\ries\git\fit3Dcspline\simplefitter_GUI\for_testing\simplefitter_GUI.exe</file>
-      <file location="${PROJECT_ROOT}\simplefitter_GUI\for_testing" name="splash.png" optional="false">C:\Users\ries\git\fit3Dcspline\simplefitter_GUI\for_testing\splash.png</file>
-      <file location="${PROJECT_ROOT}\simplefitter_GUI\for_testing" name="readme.txt" optional="true">C:\Users\ries\git\fit3Dcspline\simplefitter_GUI\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}/simplefitter_GUI/for_testing" name="simplefitter_GUI.app" optional="false">/Users/ries/git/fit3D/simplefitter_GUI/for_testing/simplefitter_GUI.app</file>
+      <file location="${PROJECT_ROOT}/simplefitter_GUI/for_testing" name="readme.txt" optional="true">/Users/ries/git/fit3D/simplefitter_GUI/for_testing/readme.txt</file>
+      <file location="${PROJECT_ROOT}/simplefitter_GUI/for_testing" name="run_simplefitter_GUI.sh" optional="false">/Users/ries/git/fit3D/simplefitter_GUI/for_testing/run_simplefitter_GUI.sh</file>
+      <file location="${PROJECT_ROOT}/simplefitter_GUI/for_testing" name="splash.png" optional="false">/Users/ries/git/fit3D/simplefitter_GUI/for_testing/splash.png</file>
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\Program Files\MATLAB\R2017a</root>
+      <root>/Applications/MATLAB_R2017b.app</root>
       <toolboxes />
     </matlab>
     <platform>
-      <unix>false</unix>
-      <mac>false</mac>
-      <windows>true</windows>
+      <unix>true</unix>
+      <mac>true</mac>
+      <windows>false</windows>
       <win2k>false</win2k>
       <winxp>false</winxp>
       <vista>false</vista>
       <linux>false</linux>
       <solaris>false</solaris>
-      <osver>6.1</osver>
+      <osver>10.13</osver>
       <os32>false</os32>
       <os64>true</os64>
-      <arch>win64</arch>
+      <arch>maci64</arch>
       <matlab>true</matlab>
     </platform>
   </configuration>
