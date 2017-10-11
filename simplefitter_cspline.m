@@ -131,8 +131,9 @@ else
 end
 
 %loop over frames, do filtering/peakfinding
-hgauss=fspecial('gaussian',ceil(3*p.peakfilter+1),p.peakfilter);
-hdog=fspecial('gaussian',ceil(6*p.peakfilter+1),p.peakfilter)-fspecial('gaussian',ceil(6*p.peakfilter+1),2.5*p.peakfilter);
+hgauss=fspecial('gaussian',max(3,ceil(3*p.peakfilter+1)),p.peakfilter);
+rsize=max(ceil(6*p.peakfilter+1),3);
+hdog=fspecial('gaussian',rsize,p.peakfilter)-fspecial('gaussian',rsize,max(1,2.5*p.peakfilter));
 tshow=tic;
 for F=frames
     image=getimage(F,reader,p);
@@ -141,16 +142,18 @@ for F=frames
     imphot=(single(image)-p.offset)*p.conversion;
     
     %background determination
-    if bgmode==2% wavelet
-        bg=mywaveletfilter(imphot,3,false,true);
-        impf=filter2(hgauss,imphot-bg);
+    if 0 %bgmode==3% wavelet
+%         bg=mywaveletfilter(imphot,3,false,true);
+%         
+%         impf=filter2(hgauss,(imphot)-(bg));
     elseif bgmode==1
-        impf=filter2(hdog,imphot);
-    else
-        impf=filter2(hgauss,imphot);
+%         impf=filter2(hdog,sqrt(imphot));
+         impf=filter2(hdog,(imphot));
+    elseif bgmode==2
+        impf=filter2(hgauss,(imphot));
     end
     maxima=maximumfindcall(impf);
-    indmgood=maxima(:,3)>p.peakcutoff;
+    indmgood=maxima(:,3)>(p.peakcutoff);
     indmgood=indmgood&maxima(:,1)>p.dx &maxima(:,1)<=sim(2)-p.dx;
     indmgood=indmgood&maxima(:,2)>p.dx &maxima(:,2)<=sim(1)-p.dx;
     maxgood=maxima(indmgood,:);
@@ -158,7 +161,10 @@ for F=frames
     
     if p.preview && size(maxgood,1)>2000
         p.status.String=('increase cutoff');
-        break
+        return
+    elseif p.preview && size(maxgood,1)==0
+                p.status.String=('No localizations found, decrease cutoff');
+        return
     end
     
     %cut out images
@@ -215,6 +221,7 @@ results(resultsind:resultsind+indstack-1,:)=resultsh;
 end
 if p.preview
     figure(201)
+%     imagesc(impf.^2);
     imagesc(impf);
      colorbar
     hold on

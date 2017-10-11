@@ -101,8 +101,8 @@ classdef simplefitter_GUI<handle
             obj.guihandles.peaktext=uicontrol('style','text','String','Peak candidate finding:','Position',[xpos1,top-11*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             
             obj.guihandles.backgroundmodet=uicontrol('style','text','String','Background estimation: ','Position',[xpos1,top-12*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.backgroundmode=uicontrol('style','popupmenu','String',{'Difference of Gaussians (fast)','Wavelet (accurate)','None'},'Position',[xpos1+xw*2,top-12*vsep,xw*2,vsep],'FontSize',fontsize);
-            obj.guihandles.backgroundmode.TooltipString=sprintf('Algorithm for background estimation used for candidate finding.\n Difference of Gaussians is fast, wavelet filter is more accurate.');
+            obj.guihandles.backgroundmode=uicontrol('style','popupmenu','String',{'Difference of Gaussians (fast)','None'},'Position',[xpos1+xw*2,top-12*vsep,xw*2,vsep],'FontSize',fontsize);
+            obj.guihandles.backgroundmode.TooltipString=sprintf('Algorithm for background estimation used for candidate finding.\n Difference of Gaussians is fast');%, wavelet filter is more accurate.');
             obj.guihandles.backgroundmodet.TooltipString=obj.guihandles.backgroundmode.TooltipString;
             
             obj.guihandles.peakfiltert=uicontrol('style','text','String','Filter size (pixel)','Position',[xpos1,top-13*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
