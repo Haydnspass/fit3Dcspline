@@ -35,6 +35,7 @@
 %% add path to helper functions
 % addpath('bfmatlab') %now replaced by own tiff reader mytiffread.m
 addpath('shared')
+javaaddpath('ImageJ/plugins/bioformats_package.jar')
 
 %% make bead calibration
 %run 3D calibration GUI (alternatively, you can directly call calibrate3D with proper parameters)

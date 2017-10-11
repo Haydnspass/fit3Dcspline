@@ -81,7 +81,6 @@ ${DYLD_LIBRARY_PATH}:MR/v93/runtime/maci64:MR/v93/sys/os/maci64:MR/v93/bin/maci6
     </fileset.main>
     <fileset.resources>
       <file>${PROJECT_ROOT}/ImageJ</file>
-      <file>${PROJECT_ROOT}/bfmatlab/bioformats_package.jar</file>
     </fileset.resources>
     <fileset.package />
     <fileset.depfun>

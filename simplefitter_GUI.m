@@ -39,6 +39,7 @@ classdef simplefitter_GUI<handle
             addpath('shared')
             addpath('bfmatlab')
             end
+            javaaddpath('ImageJ/plugins/bioformats_package.jar')
             
             figureheight=630;
             h=figure('Name','3D fittter','MenuBar','none','ToolBar','none');

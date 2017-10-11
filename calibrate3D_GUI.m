@@ -36,6 +36,7 @@ classdef calibrate3D_GUI<handle
             if ~isdeployed
             addpath('shared')
             addpath('bfmatlab')
+            javaaddpath('ImageJ/plugins/bioformats_package.jar')
             end
             
             if nargin>0 %called from our propriety fitting software SMAP: extended funtionality. Hidden if called directly
