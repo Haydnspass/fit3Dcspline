@@ -44,10 +44,12 @@ addpath('shared')
 %For fitting 2D datasets, create 3D calibration from 2D PSF stack (e.g. data/beadstacks_2D)
 % save e.g. as data/bead2D_3dcal.mat
 
-calibrate3D_GUI  %look at the tooltips for explanantions of the parameters
-
+g=calibrate3D_GUI;  %look at the tooltips for explanantions of the parameters
+fill=[fileparts(pwd) filesep 'data/bead_3dcal.mat']; %refer to data outside the main directory
+g.guihandles.outputfile.String=fill;
+g.guihandles.filelist.String=[fileparts(pwd) filesep 'data/beadstacks_3D_astig/stack3D_1.tif'];
 %% load bead calibration
-cal=load('data/bead_3dcal.mat'); %load bead calibration
+cal=load(fill); %load bead calibration
 
 
 %% either simulate data or load experimental tiff file
@@ -74,7 +76,7 @@ if mode ==1 % simulate data
     
 else %experimental data
     
-    file='data/single_bead.tif'; %experimental astgmatic bead stack.
+    file=[fileparts(pwd) filesep 'data/single_bead.tif']; %experimental astgmatic bead stack.
     imstackadu=readfile_tif(file); % Stack of ROIs in photons.
     p.offset=400;p.conversion=.1;
     imstack=(single(imstackadu)-p.offset)/p.conversion;% if necessary, convert ADU into photons.
@@ -203,7 +205,7 @@ end
 %% fit 2D dataset with cspline
 % Here we simulate Nfits positions per data point and calculate the
 % z-dependent error
-cal=load('data/bead2d_3dcal.mat'); %load bead calibration
+cal=load([fileparts(pwd) filesep 'data/bead2d_3dcal.mat']); %load bead calibration
 
 ztruth = -475:50:475; %z positions for which we want to simulate fluorophores
 Nfits = 300; %fits per data points
