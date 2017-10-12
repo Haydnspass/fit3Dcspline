@@ -122,7 +122,7 @@ sstack=size(beads(1).stack.image);
         %calculate effective smoothing factor. For dz=10 nm, pixelsize= 130
         %nm, a value around 1 produces visible but not too much smoothing.
         lambdax=p.smoothxy/p.cam_pixelsize_um(1)/100000;
-        lambdaz=p.smoothz/p.dz*200;
+        lambdaz=p.smoothz/p.dz*100;
         lambda=[lambdax lambdax lambdaz];
         %calculate smoothed bsplines
         b3_0=bsarray(double(corrPSFs),'lambda',lambda);
@@ -176,10 +176,11 @@ sstack=size(beads(1).stack.image);
                  
             xprofile=squeeze(corrPSFn(:,yt,ftest));
             mpzhd=round((size(corrPSFhd,3)+1)/2+1);
-            dzzz=round((size(corrPSFn,3)+1)/2+1)-mpzhd;
+            dzzz=round((size(corrPSFn,3)-1)/2+1)-mpzhd;
             dxxx=0.1;
             xxx=1:dxxx:b3_0.dataSize(1);
-            zzzt=0*xxx+mpzhd+dzzz-1;
+%             zzzt=0*xxx+mpzhd+dzzz-1;
+            zzzt=0*xxx+ftest;
             xbs= interp3_0(b3_0,0*xxx+b3_0.dataSize(1)/2+.5,xxx,zzzt);
             zzz=1:dxxx:b3_0.dataSize(3);xxxt=0*zzz+b3_0.dataSize(1)/2+.5;
             zbs= interp3_0(b3_0,xxxt,xxxt,zzz); 
