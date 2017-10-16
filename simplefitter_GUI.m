@@ -74,7 +74,7 @@ classdef simplefitter_GUI<handle
             obj.guihandles.selectcoeff=uicontrol('style','pushbutton','String','Load calibration','Position',[xpos1,top-5*vsep,xw*2,vsep],'FontSize',fontsize,'Callback',{@obj.selectfiles_callback,2});
             obj.guihandles.selectcoeff.TooltipString='Select 3D calibration file generated with the tool calibrat3D_GUI.';
             obj.guihandles.calfile=uicontrol('style','edit','String','','Position',[xpos1+2*xw,top-5*vsep,xw*2,vsep],'FontSize',fontsize);
-            obj.guihandles.calfile.TooltipString='File containing the 3D calibration. *_3dcal.mat.';
+            obj.guihandles.calfile.TooltipString='File containing the 3D calibration. *_3dcal.mat. Leave empty for Gaussian fitting.';
              
             obj.guihandles.isscmos=uicontrol('style','checkbox','String','sCMOS','Position',[xpos1,top-6*vsep,xw,vsep],'FontSize',fontsize);   
             obj.guihandles.selectscmos=uicontrol('style','pushbutton','String','Load var map','Position',[xpos1+xw,top-6*vsep,xw*1,vsep],'FontSize',fontsize,'Callback',{@obj.selectfiles_callback,3});   
@@ -246,10 +246,10 @@ classdef simplefitter_GUI<handle
             p=obj.getguiparameters;
             p.preview=false;
             
-            if isempty(p.outputfile)
-                errordlg('please define output file');
-                return
-            end
+%             if isempty(p.outputfile)
+%                 errordlg('please define output file');
+%                 return
+%             end
             
             simplefitter_cspline(p)
         end        
@@ -285,10 +285,14 @@ classdef simplefitter_GUI<handle
                 p.mirror=false;
             end
             
-            if isempty(p.calfile)
-                errordlg('please load 3D bead calibration file first')
-                error('please load 3D bead calibration file first')
-            end
+%             if isempty(p.calfile)
+%                 warndlg('3D bead calibration file not selected. Using Gaussian fitter');
+%                 p.isspline=false;
+%             else
+%                 p.isspline=true;
+% %                 errordlg('please load 3D bead calibration file first')
+% %                 error('please load 3D bead calibration file first')
+%             end
             if isempty(p.imagefile)
                 errordlg('please load image file first')
                 error('please load image file first')

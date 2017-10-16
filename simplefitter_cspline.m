@@ -26,7 +26,6 @@
 %  to convey the resulting work.
 
 function simplefitter_cspline(p)
-
 %parameters:
 % p.imagefile: fiename of data (char);
 % p.calfile: filename of calibration data (char);
@@ -94,12 +93,16 @@ varmap=varmap*p.conversion^2;
 %load calibration
 if exist(p.calfile,'file')
     cal=load(p.calfile);
+    p.dz=cal.cspline.dz;  %coordinate system of spline PSF is corner based and in units pixels / planes
+    p.z0=cal.cspline.z0;
+    p.coeff=cal.cspline.coeff;
+    p.isspline=true;
 else
-    errordlg('please select 3D calibration file')
+%     errordlg('please select 3D calibration file')
+    warndlg('3D calibration file could not be loaded. Using Gaussian fitter instead.','replace');
+    p.isspline=false;
 end
-p.dz=cal.cspline.dz;  %coordinate system of spline PSF is corner based and in units pixels / planes
-p.z0=cal.cspline.z0;
-p.coeff=cal.cspline.coeff;
+
 p.dx=floor(p.roifit/2);
 % readerome=bfGetReader(p.imagefile);
 p.status.String=['Open tiff file' ]; drawnow
@@ -235,7 +238,11 @@ else
     results(:,[13,15])=results(:,[2, 7])*p.pixelsize(1);
     results(:,[14,16])=results(:,[3, 8])*p.pixelsize(end);
     
-    resultstable=array2table(results,'VariableNames',{'frame','x_pix','y_pix','z_nm','photons','background',' crlb_x','crlb_y','crlb_z','crlb_photons','crlb_background','logLikelyhood','x_nm','y_nm','crlb_xnm','crlb_ynm'});
+    if p.isspline
+        resultstable=array2table(results,'VariableNames',{'frame','x_pix','y_pix','z_nm','photons','background',' crlb_x','crlb_y','crlb_z','crlb_photons','crlb_background','logLikelyhood','x_nm','y_nm','crlb_xnm','crlb_ynm'});
+    else
+        resultstable=array2table(results,'VariableNames',{'frame','x_pix','y_pix','sx_pix','sy_pix','photons','background',' crlb_x','crlb_y','crlb_photons','crlb_background','logLikelyhood','x_nm','y_nm','crlb_xnm','crlb_ynm'});
+    end
     % 
     writenames=true;
     if contains(p.outputformat,'pointcloud')
@@ -259,13 +266,23 @@ end
 end
 
 function results=fitspline(imstack,peakcoordinates,p,varstack)
-if p.bidirectional
-    fitmode=6;
+if p.isspline
+    if p.bidirectional
+        fitmode=6;
+    else
+        fitmode=5;
+    end
+    fitpar=single(p.coeff);
 else
-    fitmode=5;
+    if p.bidirectional
+        fitmode=2;
+    else
+        fitmode=4;
+    end
+    fitpar=single(1);
 end
 
-[Pcspline,CRLB,LL]=mleFit_LM(imstack,fitmode,50,single(p.coeff),varstack,1);
+[Pcspline,CRLB,LL]=mleFit_LM(imstack,fitmode,50,fitpar,varstack,1);
 results=zeros(size(imstack,3),12);
 results(:,1)=peakcoordinates(:,3);
 if  p.mirror
@@ -274,14 +291,33 @@ else
     results(:,2)=Pcspline(:,2)-p.dx+peakcoordinates(:,1);
     
 end
-% frame, x,y,z,phot,bg, errx,erry, errz,errphot, errbg,logLikelihood
+
+
+if p.isspline
+    % frame, x,y,z,phot,bg, errx,erry, errz,errphot, errbg,logLikelihood
 results(:,3)=Pcspline(:,1)-p.dx+peakcoordinates(:,2); %x,y in pixels 
 results(:,4)=(Pcspline(:,5)-p.z0)*p.dz;
 results(:,5:6)=Pcspline(:,3:4);
-results(:,7:8)=sqrt(CRLB(:,[2 1]));
-results(:,9)=sqrt(CRLB(:,5)*p.dz);
-results(:,10:11)=sqrt(CRLB(:,3:4));
+results(:,7:8)=real(sqrt(CRLB(:,[2 1])));
+results(:,9)=real(sqrt(CRLB(:,5)*p.dz));
+results(:,10:11)=real(sqrt(CRLB(:,3:4)));
 results(:,12)=LL;
+else
+        % frame, x,y,sx,sy,phot,bg, errx,erry,errphot, errbg,logLikelihood
+results(:,3)=Pcspline(:,1)-p.dx+peakcoordinates(:,2); %x,y in pixels 
+results(:,4)=Pcspline(:,5);
+if p.bidirectional
+    results(:,5)=results(:,4);
+else
+    results(:,5)=Pcspline(:,6);
+end
+results(:,6:7)=Pcspline(:,3:4);
+
+results(:,8:9)=real(sqrt(CRLB(:,[2 1])));
+
+results(:,10:11)=real(sqrt(CRLB(:,3:4)));
+results(:,12)=LL;
+end
 
 end
 
