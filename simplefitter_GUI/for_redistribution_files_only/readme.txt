@@ -1,31 +1,37 @@
-simplefitter_GUI Executable
+MATLAB Compiler
 
 1. Prerequisites for Deployment 
 
-Verify that version 9.3 (R2017b) of the MATLAB Runtime is installed.   
+. Verify the MATLAB Runtime is installed and ensure you    
+  have installed version 9.2 (R2017a).   
 
-If the MATLAB Runtime is not installed, you can run the MATLAB Runtime installer.
-To find its location, enter
+. If the MATLAB Runtime is not installed, do the following:
+  (1) enter
   
-    >>mcrinstaller
+      >>mcrinstaller
       
-at the MATLAB prompt.
+      at MATLAB prompt. The MCRINSTALLER command displays the 
+      location of the MATLAB Runtime installer.
 
-Alternatively, download and install the Macintosh version of the MATLAB Runtime for R2017b 
-from the following link on the MathWorks website:
+  (2) run the MATLAB Runtime installer.
 
-    http://www.mathworks.com/products/compiler/mcr/index.html
+Or download the Macintosh version of the MATLAB Runtime for R2017a 
+from the MathWorks Web site by navigating to
+
+   http://www.mathworks.com/products/compiler/mcr/index.html
+   
    
 For more information about the MATLAB Runtime and the MATLAB Runtime installer, see 
 Package and Distribute in the MATLAB Compiler documentation  
 in the MathWorks Documentation Center.    
 
-NOTE: You will need administrator rights to run the MATLAB Runtime installer. 
+
+NOTE: You will need administrator rights to run MCRInstaller. 
 
 
 2. Files to Deploy and Package
 
-Files to Package for Standalone 
+Files to package for Standalone 
 ================================
 -run_simplefitter_GUI.sh (shell script for temporarily setting environment variables and 
  executing the application)
@@ -34,26 +40,25 @@ Files to Package for Standalone
        ./run_simplefitter_GUI.sh <mcr_directory> <argument_list>
        
     at Linux or Mac command prompt. <mcr_directory> is the directory 
-    where version 9.3 of the MATLAB Runtime is installed or the directory where 
+    where version 9.2 of the MATLAB Runtime is installed or the directory where 
     MATLAB is installed on the machine. <argument_list> is all the 
     arguments you want to pass to your application. For example, 
 
-    If you have version 9.3 of the MATLAB Runtime installed in 
-    /mathworks/home/application/v93, run the shell script as:
+    If you have version 9.2 of the MATLAB Runtime installed in 
+    /mathworks/home/application/v92, run the shell script as:
     
-       ./run_simplefitter_GUI.sh /mathworks/home/application/v93
+       ./run_simplefitter_GUI.sh /mathworks/home/application/v92
        
     If you have MATLAB installed in /mathworks/devel/application/matlab, 
     run the shell script as:
     
        ./run_simplefitter_GUI.sh /mathworks/devel/application/matlab
 -MCRInstaller.zip 
-    Note: if end users are unable to download the MATLAB Runtime using the
-    instructions in the previous section, include it when building your 
-    component by clicking the "Runtime downloaded from web" link in the
-    Deployment Tool.
+   -if end users are unable to download the MATLAB Runtime using the above  
+    link, include it when building your component by clicking 
+    the "Runtime downloaded from web" link in the Deployment Tool
 -The Macintosh bundle directory structure simplefitter_GUI.app 
-    Note: this can be stored in an archive file with the zip command 
+   -this can be gathered up using the zip command 
     zip -r simplefitter_GUI.zip simplefitter_GUI.app
     or the tar command 
     tar -cvf simplefitter_GUI.tar simplefitter_GUI.app
@@ -61,28 +66,34 @@ Files to Package for Standalone
 
 3. Definitions
 
-For information on deployment terminology, go to
-http://www.mathworks.com/help and select MATLAB Compiler >
-Getting Started > About Application Deployment >
-Deployment Product Terms in the MathWorks Documentation
+For information on deployment terminology, go to 
+http://www.mathworks.com/help. Select MATLAB Compiler >   
+Getting Started > About Application Deployment > 
+Deployment Product Terms in the MathWorks Documentation 
 Center.
+
 
 4. Appendix 
 
 A. Mac systems:
-In the following directions, replace MR by the directory where MATLAB or the MATLAB 
-   Runtime is installed on the target machine.
+In the following directions, replace MCR_ROOT by the directory where the MATLAB Runtime 
+   is installed on the target machine.
 
-If the environment variable DYLD_LIBRARY_PATH is undefined, set it to the following 
-   string:
+If the environment variable DYLD_LIBRARY_PATH is undefined, set it to the concatenation 
+   of the following strings:
 
-MR/v93/runtime/maci64:MR/v93/sys/os/maci64:MR/v93/bin/maci64
+    MCR_ROOT/v92/runtime/maci64:
+    MCR_ROOT/v92/sys/os/maci64:
+    MCR_ROOT/v92/bin/maci64
 
-If it is defined, set it to the following:
+If it is defined, set it to the concatenation of these strings:
 
-${DYLD_LIBRARY_PATH}:MR/v93/runtime/maci64:MR/v93/sys/os/maci64:MR/v93/bin/maci64
+    ${LD_LIBRARY_PATH}: 
+    MCR_ROOT/v92/runtime/maci64:
+    MCR_ROOT/v92/sys/os/maci64:
+    MCR_ROOT/v92/bin/maci64
 
-    For more detailed information about setting the MATLAB Runtime paths, see Package and 
+   For more detail information about setting the MATLAB Runtime paths, see Package and 
    Distribute in the MATLAB Compiler documentation in the MathWorks Documentation Center.
 
 
@@ -92,14 +103,14 @@ ${DYLD_LIBRARY_PATH}:MR/v93/runtime/maci64:MR/v93/sys/os/maci64:MR/v93/bin/maci6
               setenv command.
         NOTE: The environment variable syntax utilizes forward 
               slashes (/), delimited by colons (:).  
-        NOTE: When deploying standalone applications, you can
-              run the shell script file run_simplefitter_GUI.sh 
+        NOTE: When deploying standalone applications, it is possible 
+              to run the shell script file run_simplefitter_GUI.sh 
               instead of setting environment variables. See 
               section 2 "Files to Deploy and Package".    
 
 
 
-5. Launching application using Macintosh finder
+5. Launching of application using Macintosh finder.
 
 If the application is purely graphical, that is, it doesn't read from standard in or 
 write to standard out or standard error, it may be launched in the finder just like any 
