@@ -133,6 +133,7 @@ inz=abs(ground_truth.z)<zrange;
 %difference between fitted z and ground truth
 cspline.zrel=cspline.z-ground_truth.z;
 gaussz.zrel=gaussz.z-ground_truth.z;
+gaussz.zrel(isnan(gaussz.zrel))=0;
 gausssxsy.zrel=gausssxsy.z-ground_truth.z;
 gausssxsy.zrel(isnan(gausssxsy.zrel))=0;
 

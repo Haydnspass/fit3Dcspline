@@ -31,5 +31,5 @@ Copyright (c) 2017 Ries Lab, European Molecular Biology Laboratory, Heidelberg.
 fit3Dcspline also includes OME Bio-Formats package for reading and converting biological
 file formats in folder **bfmatlab** which comes with a separate copyright. 
 
-The fit3Dcspline is licenced under the [GNU GPL](www.gnu.org/licenses/). 
+The fit3Dcspline is licenced under the [GNU GPL](https://www.gnu.org/licenses/). 
 
