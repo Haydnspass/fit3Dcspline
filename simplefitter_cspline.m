@@ -99,7 +99,7 @@ if exist(p.calfile,'file')
     p.isspline=true;
 else
 %     errordlg('please select 3D calibration file')
-    warndlg('3D calibration file could not be loaded. Using Gaussian fitter instead.','replace');
+    warndlg('3D calibration file could not be loaded. Using Gaussian fitter instead.','Using Gaussian fit','replace');
     p.isspline=false;
 end
 
@@ -152,7 +152,7 @@ for F=frames
     elseif bgmode==1
 %         impf=filter2(hdog,sqrt(imphot));
          impf=filter2(hdog,(imphot));
-    elseif bgmode==2
+    elseif bgmode==0
         impf=filter2(hgauss,(imphot));
     end
     maxima=maximumfindcall(impf);
