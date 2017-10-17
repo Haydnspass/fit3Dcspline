@@ -137,7 +137,7 @@ classdef simplefitter_GUI<handle
             obj.guihandles.outputfile.TooltipString='Output file that contains the localization table.';
             
             obj.guihandles.outputformat=uicontrol('style','popupmenu','String',{'csv','pointcloud-loader','ViSP'},'Position',[xpos1+1.5*xw,top-19*vsep,xw*2.5,vsep],'FontSize',fontsize);
-            obj.guihandles.outputformat.TooltipString='Choose output format. CSV saves all fit parameters. Pointcloud-loader and ViSP are popular 3D viewers for localization data.';
+            obj.guihandles.outputformat.TooltipString=sprintf('Choose output format. CSV saves all fit parameters. Can be opened for instance in PALMsiever. \n Pointcloud-loader and ViSP are popular 3D viewers for localization data.');
                 
             obj.guihandles.pixelsizet=uicontrol('style','text','String','pixel size (nm)','Position',[xpos1,top-21*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.pixelsize=uicontrol('style','edit','String','100','Position',[xpos1+xw*1.5,top-21*vsep,xw*.5,vsep],'FontSize',fontsize);

@@ -258,6 +258,7 @@ else
          disp('Load in Visp: https://science.institut-curie.org/research/multiscale-physics-biology-chemistry/umr168-physical-chemistry/team-dahan/softwares/visp-software-2/')
     else
         del=',';
+         disp('Generic output. Can be imported e.g. in PALMsiever: https://github.com/PALMsiever/palm-siever')
     end
 
     writetable(resultstable,p.outputfile,'Delimiter',del,'FileType','text','WriteVariableNames',writenames);

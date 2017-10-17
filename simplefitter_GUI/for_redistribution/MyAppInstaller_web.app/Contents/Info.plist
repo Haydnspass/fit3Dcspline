@@ -31,15 +31,15 @@
 	<key>NSAppTransportSecurity</key> 
 	<dict> 
 	    <key>NSExceptionDomains</key> 
-		<dict> 
-			<key>mathworks.com</key> 
 			<dict> 
-				<key>NSIncludesSubdomains</key> 
-				<true/> 
-				<key>NSThirdPartyExceptionRequiresForwardSecrecy</key> 
-				<false/> 
+				<key>mathworks.com</key> 
+				<dict> 
+					<key>NSIncludesSubdomains</key> 
+					<true/> 
+					<key>NSThirdPartyExceptionRequiresForwardSecrecy</key> 
+					<false/> 
+				</dict> 
 			</dict> 
 		</dict> 
-    </dict>
-</dict>
+	</dict>
 </plist>
