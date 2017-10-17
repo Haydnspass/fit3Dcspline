@@ -117,7 +117,7 @@ classdef simplefitter_GUI<handle
             obj.guihandles.peakcutoff.TooltipString=sprintf('Cutoff value to distinguish background from real localizations. \n Units are maximum pixel values of the photon-converted, filtered and background-subtracted image. \n Use the preview function to test several values to find the optimal one.');
             obj.guihandles.peakcutofft.TooltipString=obj.guihandles.peakcutoff.TooltipString;
                       
-            obj.guihandles.fittxt=uicontrol('style','text','String','Fitting paramters:','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.fittxt=uicontrol('style','text','String','Fitting parameters:','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
 
             obj.guihandles.roifitt=uicontrol('style','text','String','ROI size (pixel)','Position',[xpos1,top-16*vsep,xw*1.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.roifit=uicontrol('style','edit','String','13','Position',[xpos1+xw*1.5,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
@@ -165,16 +165,7 @@ classdef simplefitter_GUI<handle
                                 file='*.tif';
                             end
                             handle='imagefile';
-                        case 3 %Fiji
-%                             if exist('settings.mat','file')
-%                                 l=load('settings.mat');
-%                                 fijipath=l.fijipath;
-%                             end
-%                             if ~exist('fijipath','var')
-%                                 [file,fijipath]=uigetfile('Image*.exe','Select the ImageJ executable in the Fiji.app directory')
-%                                 obj.fijipath=fijipath;
-%                                 save('settings.mat','fijipath')
-%                             end
+                        case 3 %ImageJ
                             fijipath='ImageJ';
                             if ~isempty(obj.mij)
                                 try
@@ -185,10 +176,7 @@ classdef simplefitter_GUI<handle
                             end
                             wf=msgbox('Open the raw image file in ImageJ. Then set parameters, load 3D calibratin and use preview/localize. Don''t close ImageJ.');
                             waitfor(wf);
-%                             addpath([fijipath filesep 'scripts'])
-%                             path=pwd;
                             myMiji(true,fijipath);
-%                             cd(path)
                             obj.mij=MIJ;
                              obj.guihandles.imagefile.String='from_ImageJ';
                             return
@@ -196,7 +184,7 @@ classdef simplefitter_GUI<handle
                 case 2
                     file=obj.guihandles.calfile.String;
                     if isempty(file)
-                        file='*_3dcal.mat';
+                        file='*.mat';
                     end
                     handle='calfile';
                  case 3

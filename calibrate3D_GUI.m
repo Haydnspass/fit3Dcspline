@@ -74,7 +74,7 @@ classdef calibrate3D_GUI<handle
             
           
             ha='right';
-            obj.guihandles.csplinet=uicontrol('style','text','String','General paramters: ','Position',[xpos1,top-7*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.csplinet=uicontrol('style','text','String','General parameters: ','Position',[xpos1,top-7*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             obj.guihandles.dzt=uicontrol('style','text','String','Distance between frames (nm)','Position',[xpos1,top-8*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.dz=uicontrol('style','edit','String','10','Position',[xpos1+2.5*xw,top-8*vsep,xw*1,vsep],'FontSize',fontsize);
             obj.guihandles.dz.TooltipString=sprintf('Distance in nm between frames. By convention, these are objective positions (not corrected for refractive index mismatch). \n A spacing between 10 nm and 50 nm works well ');
@@ -108,7 +108,7 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.mindistance.TooltipString=sprintf('Minimum distance between beads (in pixels). If beads are closer together, they are removed and not used for averaging. Helps eliminating background contaminations from close by beads');
             obj.guihandles.mindistancet.TooltipString=obj.guihandles.mindistance.TooltipString;           
      
-            obj.guihandles.csplinet=uicontrol('style','text','String','Cspline paramters: ','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.csplinet=uicontrol('style','text','String','Cspline parameters: ','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             obj.guihandles.roisizet=uicontrol('style','text','String','ROI size: X,Y (pixels): ','Position',[xpos1,top-16*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.ROIxy=uicontrol('style','edit','String','21','Position',[xpos1+2*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizezt=uicontrol('style','text','String','Z (frames): ','Position',[xpos1+2.5*xw,top-16*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
