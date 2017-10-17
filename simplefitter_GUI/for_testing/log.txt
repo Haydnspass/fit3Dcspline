@@ -1,3 +1,9 @@
+Warning: Invalid file or directory 'C:\Users\ries\git\fit3Dcspline\simplefitter_GUI\for_testing\ImageJ\plugins\bioformats_package.jar'.
+> In javaclasspath>local_validate_dynamic_path
+  In javaclasspath>local_javapath
+  In javaclasspath
+  In javaaddpath (line 71)
+  In simplefitter_GUI (line 42)
 
 
 Use MIJ.exit to end the session
@@ -10,9 +16,9 @@ Help: MIJ.help
 JVM> 1.3.9
 JVM> Version: 1.7.0_60
 JVM> Total amount of memory: 212992 Kb
-JVM> Amount of free memory: 94494 Kb
-ImageJ> Version:1.50i
-ImageJ> Memory:123MB of 4869MB (2%)
+JVM> Amount of free memory: 60999 Kb
+ImageJ> Version:1.51k
+ImageJ> Memory:157MB of 4869MB (3%)
 ImageJ> Directory plugins: Not specified
 ImageJ> Directory macros: Not specified
 ImageJ> Directory luts: C:\Users\ries\git\fit3Dcspline\simplefitter_GUI\for_testing\luts\
@@ -22,57 +28,4 @@ ImageJ> Directory startup: C:\Users\ries\git\fit3Dcspline\simplefitter_GUI\for_t
 ImageJ> Directory home: C:\Users\ries\
 --------------------------------------------------------------
 Status> ImageJ is running.
---------------------------------------------------------------
-ImageJ instance ended cleanly
-
-
-Use MIJ.exit to end the session
-
---------------------------------------------------------------
-MIJ 1.3.9: Matlab to ImageJ Interface
---------------------------------------------------------------
-More Info: http://bigwww.epfl.ch/sage/soft/mij/
-Help: MIJ.help
-JVM> 1.3.9
-JVM> Version: 1.7.0_60
-JVM> Total amount of memory: 212992 Kb
-JVM> Amount of free memory: 79231 Kb
-ImageJ> Version:1.50i
-ImageJ> Memory:133MB of 4869MB (2%)
-ImageJ> Directory plugins: Not specified
-ImageJ> Directory macros: Not specified
-ImageJ> Directory luts: C:\Users\ries\git\fit3Dcspline\simplefitter_GUI\for_testing\luts\
-ImageJ> Directory image: Not specified
-ImageJ> Directory imagej: C:\Users\ries\git\fit3Dcspline\simplefitter_GUI\for_testing\
-ImageJ> Directory startup: C:\Users\ries\git\fit3Dcspline\simplefitter_GUI\for_testing\
-ImageJ> Directory home: C:\Users\ries\
---------------------------------------------------------------
-Status> ImageJ is running.
---------------------------------------------------------------
-
-err = 
-
-  JavaException with properties:
-
-    ExceptionObject: [1x1 java.lang.NullPointerException]
-         identifier: 'MATLAB:Java:GenericException'
-            message: 'Java exception occurred: ...'
-              cause: {}
-              stack: [2x1 struct]
-
-
-
-Use MIJ.exit to end the session
-
---------------------------------------------------------------
-MIJ 1.3.9: Matlab to ImageJ Interface
---------------------------------------------------------------
-More Info: http://bigwww.epfl.ch/sage/soft/mij/
-Help: MIJ.help
-JVM> 1.3.9
-JVM> Version: 1.7.0_60
-JVM> Total amount of memory: 212992 Kb
-JVM> Amount of free memory: 68863 Kb
---------------------------------------------------------------
-Status> ImageJ is already started.
 --------------------------------------------------------------
