@@ -56,7 +56,7 @@ if ~isfield(p,'xrange')
     p.xrange=[-inf inf]; p.yrange=[-inf inf]; 
 end
 %get bead positions
-p.status.String='load files and segmet beads';drawnow
+p.status.String='Load files and segment beads';drawnow
 f=figure('Name','Bead calibration');
 p.tabgroup=uitabgroup(f);
 %get beads from images
@@ -100,7 +100,7 @@ if contains(p.modality,'astig') || contains(p.modality,'2D')
     %determine sx,sy
 %     disp('fit beads to get sx,sy')
     t=tic;
-    p.status.String=['Gaussian fit of beads to get spatial paramters '];drawnow
+    p.status.String=['Gaussian fit of beads to get spatial parameters '];drawnow
     for k=1:length(beads)
         stackh=single(beads(k).stack.image);
         s=size(stackh); 
