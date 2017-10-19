@@ -151,7 +151,8 @@ for F=frames
 %         impf=filter2(hgauss,(imphot)-(bg));
     elseif bgmode==1
 %         impf=filter2(hdog,sqrt(imphot));
-         impf=filter2(hdog,(imphot));
+%          impf=filter2(hdog,(imphot));
+         impf=filter2(hdog,(imphot- min(imphot(:,1))));
     elseif bgmode==0
         impf=filter2(hgauss,(imphot));
     end
