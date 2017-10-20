@@ -77,6 +77,11 @@ for k=1:length(filelist)
             b(bind).isstack=false;
 %             err
         end
+        if isfield(p,'files')
+            b(bind).roi=p.files(k).info.roi;
+        else
+            b(bind).roi=[0 0 size(imstack,1) size(imstack,2)];
+        end
         bind=bind-1;
     end
     fmax=max(fmax,numframes);
@@ -84,7 +89,13 @@ end
 b=b([b(:).isstack]);
 
 p.fminmax=[1 fmax];
-p.cam_pixelsize_um=[1 1]/1000;
+
+        if isfield(p,'files')
+            p.cam_pixelsize_um=p.files(k).info.cam_pixelsize_um;
+        else
+            p.cam_pixelsize_um=[1 1]/1000; %?????
+        end      
+
 p.pathhere=fileparts(filelist{1});
 end
 

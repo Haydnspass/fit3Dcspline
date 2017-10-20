@@ -194,7 +194,8 @@ classdef calibrate3D_GUI_g<handle
         function loadT_callback(obj,a,b)
             of=obj.guihandles.Tfile.String;
             if isempty(of)
-                of='*.mat';
+                fl=obj.guihandles.filelist.String;
+                of=[fileparts(fl{1}) '*.mat'];
             end
             [f,p]=uigetfile(of);
             if f
@@ -253,10 +254,12 @@ classdef calibrate3D_GUI_g<handle
             
             if ~isempty(obj.smappos) %called from SMAP
                 p.smap=true;
+                p.smappos=obj.smappos;
                 p.imageRoi=obj.smappos.imageROI;
                 if obj.guihandles.posfromsmap.Value %use positions passed on from SMAP
                     p.beadpos=obj.smappos.positions;
                 end
+                p.files=obj.smappos.files;
                 %determine xrange, yrange for spatial calibration
                 switch obj.guihandles.spatialmode.Value
                     case 1 %all
@@ -290,6 +293,7 @@ classdef calibrate3D_GUI_g<handle
             
             p.isglobalfit=obj.guihandles.isglobalfit.Value;
             p.Tfile=obj.guihandles.Tfile.String;
+           
             
             calibrate3D_g(p);
         end    

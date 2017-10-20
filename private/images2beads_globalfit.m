@@ -1,0 +1,113 @@
+function [b,p]=images2beads_globalfit(p)
+% addpath('bfmatlab')
+fs=p.filtersize;
+h=fspecial('gaussian',2*round(fs*3/2)+1,fs);
+fmax=0;
+roisize=p.ROIxy;
+roisizeh=round(1.5*(p.ROIxy-1)/2); %create extra space if we need to shift;
+rsr=-roisizeh:roisizeh;
+filelist=p.filelist;
+b=[];
+ht=uitab(p.tabgroup,'Title','Files');
+tg=uitabgroup(ht);
+for k=1:length(filelist)
+    ax=axes(uitab(tg,'Title',num2str(k)));
+    p.fileax(k)=ax;
+    if isfield(p,'smap') && p.smap
+        imstack=readfile_ome(filelist{k});
+    else
+        imstack=readfile_tif(filelist{k});
+    end
+    
+     
+    imstack=imstack-min(imstack(:)); %fast fix for offset;
+    mim=max(imstack,[],3);
+    mim=filter2(h,mim);
+    imagesc(ax,mim);
+    axis(ax,'equal');
+    axis(ax,'off')
+    title(ax,'Maximum intensity projection')
+    if isfield(p,'beadpos') %passed on externally
+        maxima=round(p.beadpos{k});
+    else
+        maxima=maximumfindcall(mim);
+        int=maxima(:,3);
+        try
+        mimc=mim(roisize:end-roisize,roisize:end-roisize);
+        mmed=quantile(mimc(:),0.2);
+        imt=mimc(mimc<mmed);
+            sm=sort(int);
+        mv=mean(sm(end-5:end));
+        cutoff=mean(imt(:))+max(2.5*std(imt(:)),(mv-mean(imt(:)))/10);
+        catch
+            cutoff=quantile(mimc(:),.95);
+        end
+        if any(int>cutoff)
+            maxima=maxima(int>cutoff,:);
+        else
+            [~,indm]=max(int);
+            maxima=maxima(indm,:);
+        end
+    end
+    
+    %calculate in nm on chip (reference for transformation)
+    maximanm=(maxima(:,1:2)+p.smappos.roi{k}([1 2]));
+    maximanm(:,1)=maximanm(:,1)*p.smappos.pixelsize{k}(1)*1000;
+    maximanm(:,2)=maximanm(:,2)*p.smappos.pixelsize{k}(end)*1000;
+    
+    %transform reference to target
+    l=load(p.Tfile);
+    transform=l.transformation;
+    indref=transform.getRef(maximanm(:,1),maximanm(:,2));
+    maximaref=maxima(indref,:);
+    [x,y]=transform.transformCoordinatesFwd(maximanm(indref,1),maximanm(indref,2));
+    maximatargetf(:,1)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
+    maximatargetf(:,2)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
+    maximatar=round(maximatargetf);
+    dxy=maximatargetf-maximatar;
+    
+    
+    hold (ax,'on')
+    plot(ax,maximaref(:,1),maximaref(:,2),'ko',maximatar(:,1),maximatar(:,2),'kd')
+    hold (ax,'off')
+    drawnow
+    numframes=size(imstack,3);
+    bind=length(b)+size(maximaref,1);
+%     bold=size(maxima,1);
+    for l=1:size(maximaref,1)
+        b(bind).loc.frames=(1:numframes)';
+        b(bind).loc.filenumber=zeros(numframes,1)+k;
+        b(bind).filenumber=k;
+        b(bind).pos=maximaref(l,1:2);
+        b(bind).postar=maximatar(l,1:2);
+        b(bind).shiftxy=dxy(l,:);
+        try
+            b(bind).stack.image=imstack(b(bind).pos(2)+rsr,b(bind).pos(1)+rsr,:);
+            b(bind).stack.imagetar=imstack(b(bind).postar(2)+rsr,b(bind).postar(1)+rsr,:);
+            b(bind).stack.framerange=1:numframes;
+            b(bind).isstack=true;
+            
+        catch err
+            b(bind).isstack=false;
+%             err
+        end
+        
+            b(bind).roi=p.smappos.roi{k};
+        bind=bind-1;
+    end
+    fmax=max(fmax,numframes);
+end
+b=b([b(:).isstack]);
+
+p.fminmax=[1 fmax];
+
+        if isfield(p,'files')
+            p.cam_pixelsize_um=p.files(k).info.cam_pixelsize_um;
+        else
+            p.cam_pixelsize_um=[1 1]/1000; %?????
+        end      
+
+p.pathhere=fileparts(filelist{1});
+end
+
+

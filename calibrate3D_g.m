@@ -46,7 +46,10 @@ function calibrate3D_g(p)
 % p.yrange
 % p.positions (get beads only here)
 % p.smap (called from SMAP: extended functionality)
-if ~isfield(p,'smap')
+% isglobalfit
+% Tfile
+
+if ~isfield(p,'smap')&& (~p.globalfit)
     p.smap=false;
     imageRoi=zeros(2,1); 
 else
@@ -60,7 +63,11 @@ p.status.String='Load files and segment beads';drawnow
 f=figure('Name','Bead calibration');
 p.tabgroup=uitabgroup(f);
 %get beads from images
-[beads,p]=images2beads_so(p);
+if isfield(p,'isglobalfit')&&p.isglobalfit
+    [beads,p]=images2beads_globalfit(p);
+else
+    [beads,p]=images2beads_so(p);
+end
 
 %get positions of beads
 for k=length(beads):-1:1
@@ -192,10 +199,12 @@ for X=1:length(p.xrange)-1
 
         % get cspline calibration
         p.status.String='get cspline calibration';drawnow
-        [csplinecal,indgoods]=getstackcal_so(beadsh(indgoodc),p);
+        [csplinecal,indgoods]=getstackcal_g(beadsh(indgoodc),p);
         icf=find(indgoodc);
         icfs=icf(indgoods);
-        cspline.coeff=single(csplinecal.cspline.coeff);
+        for k=1:length(csplinecal.cspline.coeff)
+            cspline.coeff{k}=single(csplinecal.cspline.coeff{k});
+        end
         cspline.dz=csplinecal.cspline.dz;
         cspline.z0=csplinecal.cspline.z0;
         cspline.x0=csplinecal.cspline.x0;
