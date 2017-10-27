@@ -244,6 +244,7 @@ for X=1:length(p.xrange)-1
             'Yrange',p.yrange([Y Y+1])+imageRoi(2),'posind',[X,Y],'EMon',p.emgain);
     end
 end
+
     
 parameters=rmfield(p,{'tabgroup','status','ax_z','ax_sxsy','fileax'});
     

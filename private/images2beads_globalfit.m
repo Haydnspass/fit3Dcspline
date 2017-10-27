@@ -63,7 +63,15 @@ for k=1:length(filelist)
     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,1),maximanm(indref,2));
     maximatargetf(:,1)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
     maximatargetf(:,2)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
+    
+   
+    if 0 %for testing
+    maximatargetfm(:,1)=maximatargetf(:,1)+3.5;
+    maximatargetfm(:,2)=maximatargetf(:,2)-3.;
+    maximatar=round(maximatargetfm);
+    else 
     maximatar=round(maximatargetf);
+    end
     dxy=maximatargetf-maximatar;
     
     
