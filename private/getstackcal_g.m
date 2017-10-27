@@ -292,15 +292,20 @@ t=tic;
             fitmode=5;
         end
         fitstack=single(squeeze(teststack(range,range,:,k,:)));
-        coeffh(:,:,:,:,1)=coeff{1};
-        coeffh(:,:,:,:,2)=coeff{2};
+        coeffh(:,:,:,:,1)=single(coeff{1});
+        coeffh(:,:,:,:,2)=single(coeff{2});
         shared=[1 1 1 0 0];
         nfits=size(fitstack,3);
         npar=5;
         dT=zeros(npar,2,nfits);
         dT(1,2,:)=shiftxy(k,1);
         dT(2,2,:)=shiftxy(k,2);
-        [P,CRLB, LL,update, error] =  kernel_MLEfit_Spline_LM_multichannel_finalized(fitstack,coeffh, shared,dT,50);
+%         [PM,CRLBM, LLM,update, error] =  kernel_MLEfit_Spline_LM_multichannel_finalized(fitstack,coeffh, shared,dT,50);
+        sharedA = repmat(shared,[1 size(fitstack,3)]);
+        [P,CRLB, LL] =CPUmleFit_LM_MultiChannel(fitstack,int32(sharedA),50,coeffh,single(dT));
+        
+    
+      
 %         [P] =  mleFit_LM(single(squeeze(teststack(range,range,:,k))),fitmode,100,single(coeff),0,1);
         
         z=(1:size(P,1))'-1;
@@ -313,18 +318,18 @@ t=tic;
         zs(:,k)=P(:,5);
         
         
-        % imageslicer
-        coord=P(:,1:5);
-        coord2=coord;
-        coord2(:,1)=coord2(:,1)+squeeze(dT(1,2,:));
-        coord2(:,2)=coord2(:,2)+squeeze(dT(2,2,:));
-        img1=renderPSF(coeff{1},coord,size(fitstack,1));
-        img2=renderPSF(coeff{2},coord2,size(fitstack,1));
-        imall=[fitstack(:,:,:,1),img1; fitstack(:,:,:,2),img2];
-        res=[fitstack(:,:,:,1)-img1, 0*img1;fitstack(:,:,:,2)-img2,0*img2];
-        ims(:,:,:,1)=imall;ims(:,:,:,2)=res;
-        imageslicer(ims)
-       
+        if 0% imageslicer to test
+            coord=P(:,1:5);
+            coord2=coord;
+            coord2(:,1)=coord2(:,1)+squeeze(dT(1,2,:));
+            coord2(:,2)=coord2(:,2)+squeeze(dT(2,2,:));
+            img1=renderPSF(coeff{1},coord,size(fitstack,1));
+            img2=renderPSF(coeff{2},coord2,size(fitstack,1));
+            imall=[fitstack(:,:,:,1),img1; fitstack(:,:,:,2),img2];
+            res=[fitstack(:,:,:,1)-img1, 0*img1;fitstack(:,:,:,2)-img2,0*img2];
+            ims(:,:,:,1)=imall;ims(:,:,:,2)=res;
+            imageslicer(ims)
+        end
         
 % test for the returned photons and photons in the raw image        
 %         phot=P(:,3); bg=P(:,4);
