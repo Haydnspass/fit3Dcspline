@@ -300,12 +300,39 @@ t=tic;
         dT=zeros(npar,2,nfits);
         dT(1,2,:)=shiftxy(k,1);
         dT(2,2,:)=shiftxy(k,2);
+        iterations=50;
 %         [PM,CRLBM, LLM,update, error] =  kernel_MLEfit_Spline_LM_multichannel_finalized(fitstack,coeffh, shared,dT,50);
         sharedA = repmat(shared,[1 size(fitstack,3)]);
-        [P,CRLB, LL] =CPUmleFit_LM_MultiChannel(fitstack,int32(sharedA),50,coeffh,single(dT));
+        [P,CRLB, LL] =CPUmleFit_LM_MultiChannel(fitstack,int32(sharedA),iterations,coeffh,single(dT));
+        %compare with sinlge fits
+        [P1,CRLB1, LL1] =mleFit_LM(fitstack(:,:,:,1),5,iterations,single(coeff{1}),0,1);
+        [P2,CRLB2, LL2] =mleFit_LM(fitstack(:,:,:,2),5,iterations,single(coeff{2}),0,1);
+        %compare with all free fits
+        [Pf,CRLBr, LLf] =CPUmleFit_LM_MultiChannel(fitstack,int32(sharedA*0),iterations,coeffh,single(dT));
         
-    
-      
+        
+        %define one as reference and plot differences 
+        figure(78);
+        rs=01;
+%         subplot(2,2,1)
+hold off
+        plot(P1(:,1),P2(:,1)-0*shiftxy(k,1),'+')
+        xlim([-1 1]*rs+(p.ROIxy-1)/2);
+        ylim([-1 1]*rs+(p.ROIxy-1)/2);
+ 
+%         subplot(2,2,2)
+hold on
+        plot(Pf(:,1),Pf(:,2),'o')
+        xlim([-1 1]*rs+(p.ROIxy-1)/2);
+        ylim([-1 1]*rs+(p.ROIxy-1)/2);
+
+%         subplot(2,2,3)
+hold on
+        plot(P1(:,1),P(:,1),'x')
+        xlim([-1 1]*rs+(p.ROIxy-1)/2);
+        ylim([-1 1]*rs+(p.ROIxy-1)/2);
+        title(shiftxy(k,1))
+        
 %         [P] =  mleFit_LM(single(squeeze(teststack(range,range,:,k))),fitmode,100,single(coeff),0,1);
         
         z=(1:size(P,1))'-1;

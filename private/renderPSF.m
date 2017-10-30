@@ -33,7 +33,7 @@ for kk = 1:Nfits
     for ii = 0:Npixels-1
         for jj = 0:Npixels-1
              temp = fAt3Dj_v2(ii+xstart+off,jj+ystart+off,zstart,spline_xsize,spline_ysize,spline_zsize,delta_f,coeff);
-             model = temp*cor(kk,4);
+             model = temp*cor(kk,4)+cor(kk,5);
              data(ii+1,jj+1,kk)=model;
         end
     end
