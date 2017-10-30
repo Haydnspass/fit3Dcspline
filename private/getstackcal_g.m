@@ -263,7 +263,7 @@ sstack=size(beads(1).stack.image);
 
                 
                 testallrois(isnan(testallrois))=0;
-                zall=testfit_spline(testallrois,cspline.coeff,-shiftxy,p,{},ax);
+                zall=testfit_spline(testallrois,cspline.coeff,shiftxy,p,{},ax);
                 drawnow
             end
         end 

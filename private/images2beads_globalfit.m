@@ -71,9 +71,11 @@ for k=1:length(filelist)
     maximatargetf(:,2)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
     
    
-    if 0 %for testing
-    maximatargetfm(:,1)=maximatargetf(:,1)+3.5;
-    maximatargetfm(:,2)=maximatargetf(:,2)-3.;
+    if 1 %for testing
+        maximatargetf(:,1)=maximatargetf(:,1)-1;
+        maximatargetf(:,2)=maximatargetf(:,2)-.5;
+    maximatargetfm(:,1)=maximatargetf(:,1)+2;
+    maximatargetfm(:,2)=maximatargetf(:,2)-1.;
     maximatar=round(maximatargetfm);
     else 
     maximatar=round(maximatargetf);
@@ -118,7 +120,7 @@ p.fminmax=[1 fmax];
         if isfield(p,'files')
             p.cam_pixelsize_um=p.files(k).info.cam_pixelsize_um;
         else
-            p.cam_pixelsize_um=[1 1]/1000; %?????
+            p.cam_pixelsize_um=[1 1]/10; %?????
         end      
 
 p.pathhere=fileparts(filelist{1});
