@@ -14,7 +14,13 @@ for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
     p.fileax(k)=ax;
     if isfield(p,'smap') && p.smap
+        
         imstack=readfile_ome(filelist{k});
+        if isempty(imstack)
+            disp('using simple reader')
+            imstack=readfile_tif(filelist{k});
+        end
+          
     else
         imstack=readfile_tif(filelist{k});
     end

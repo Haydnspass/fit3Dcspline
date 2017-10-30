@@ -1,7 +1,11 @@
-function img=simulate2c
+function out=simulate2c
 % transformfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1/ROI2_20per639_50msexp_1_MMStack2_T.mat';
-cal3dfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1_3dcal.mat'; 
-transformfile='/Users/jonas/Documents/Data/simulstack_affine_2_T.mat';
+% cal3dfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1_3dcal.mat'; 
+% transformfile='/Users/jonas/Documents/Data/simulstack_affine_2_T.mat';
+
+cal3dfile='/Users/ries/Documents/Data/3D/global3D/ROI2_20per639_50msexp_1_3dcal.mat'; 
+transformfile='/Users/ries/Documents/Data/3D/global3D/ROI2_20per639_50msexp_1/ROI2_20per639_50msexp_1_MMStack_T.mat';
+
 
 nbeads=25;
 roisize=21;
@@ -25,12 +29,14 @@ t=load(cal3dfile); coeff=t.SXY.cspline.coeff;
 [xtnm,ytnm]=transformation.transformCoordinatesFwd(xnm,ynm);
 xt=xtnm/pixelsize;yt=ytnm/pixelsize;
 figure(88);plot(x,y,'+',xt,yt,'x')
-coord=horzcat(y,x);
+% coord=horzcat(y,x);
+coord=horzcat(x,y);
 
 channel=1;
 
 makeimg;
-coord=horzcat(yt,xt);
+% coord=horzcat(yt,xt);
+coord=horzcat(xt,yt);
 channel=2;
 makeimg
 img=img+Nbg;
@@ -38,11 +44,13 @@ imageslicer(img);
 
 imgnoise=poissrnd(img);
 outfile=[fileparts(cal3dfile) filesep 'simulstack.tif'];
+% imgnoise=permute(imgnoise,[2,1,3]);
 saveastiff(uint16(imgnoise),outfile);
 
 function makeimg
 roipos=round(coord);
 incoord=coord-roipos+dr;
+incoord(:,[1 2])=incoord(:,[2 1]);
 incoord(:,4)=Nphot;
 incoord(:,5)=0;
 for zk=1:length(zpos)
