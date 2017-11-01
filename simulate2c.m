@@ -1,19 +1,19 @@
 function out=simulate2c
-% transformfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1/ROI2_20per639_50msexp_1_MMStack2_T.mat';
-% cal3dfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1_3dcal.mat'; 
-% transformfile='/Users/jonas/Documents/Data/simulstack_affine_2_T.mat';
+% transformfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1/ROI2_20per639_50msexp_1/ROI2_20per639_50msexp_1_MMStack2_T.mat';
+cal3dfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1/ROI2_20per639_50msexp_1_3dcal.mat'; 
+% transformfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1/simulstack_affine_2_T.mat';
+transformfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1/affine_T.mat';
 
-cal3dfile='/Users/ries/Documents/Data/3D/global3D/ROI2_20per639_50msexp_1_3dcal.mat'; 
-transformfile='/Users/ries/Documents/Data/3D/global3D/ROI2_20per639_50msexp_1/ROI2_20per639_50msexp_1_MMStack_T.mat';
-
+% cal3dfile='/Users/ries/Documents/Data/3D/global3D/ROI2_20per639_50msexp_1_3dcal.mat'; 
+% transformfile='/Users/ries/Documents/Data/3D/global3D/ROI2_20per639_50msexp_1/ROI2_20per639_50msexp_1_MMStack_T.mat';
 
 nbeads=25;
-roisize=21;
+roisize=31;
 dr=(roisize-1)/2;
-zpos=1:200; %in slices
+zpos=1:201; %in slices
 pixelsize=100;
-Nphot=10000;
-Nbg=100;
+Nphot=16000;
+Nbg=5;
 img=zeros(512,512,length(zpos),'single');
 
 x=rand(nbeads,1)*(size(img,1)-roisize*2)+roisize;
@@ -22,10 +22,11 @@ y=rand(nbeads,1)*(size(img,2)-roisize*2)/2+roisize;
 xnm=x*pixelsize; ynm=y*pixelsize;
 
 t=load(transformfile); transformation=t.transformation;
-t=load(cal3dfile); coeff=t.SXY.cspline.coeff;
+t=load(cal3dfile); coeffh=t.SXY.cspline.coeff;
 
 
-
+% coeff=coeffh;
+coeff{1}=coeffh;coeff{2}=coeffh;
 [xtnm,ytnm]=transformation.transformCoordinatesFwd(xnm,ynm);
 xt=xtnm/pixelsize;yt=ytnm/pixelsize;
 figure(88);plot(x,y,'+',xt,yt,'x')
@@ -44,9 +45,10 @@ imageslicer(img);
 
 imgnoise=poissrnd(img);
 outfile=[fileparts(cal3dfile) filesep 'simulstack.tif'];
+outfile2=[fileparts(cal3dfile) filesep 'simulstackp.tif'];
 % imgnoise=permute(imgnoise,[2,1,3]);
 saveastiff(uint16(imgnoise),outfile);
-
+saveastiff(uint16(img+Nbg),outfile2);
 function makeimg
 roipos=round(coord);
 incoord=coord-roipos+dr;

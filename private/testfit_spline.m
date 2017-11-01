@@ -4,12 +4,16 @@ if nargin<4
 elseif ~iscell(linepar)
     linepar={linepar};
 end
-d=round((size(teststack,1)-p.ROIxy)/2);
-            range=d+1:d+p.ROIxy;
+roifit=17;
+d=round((size(teststack,1)-roifit)/2);
+            range=d+1:d+roifit;
 
 numstack=size(teststack,4);
 t=tic;
 % f=figure(989);ax2=gca;hold off
+dx1=[];
+dx2=[];dy1=[];
+dy2=[];
     for k=1:size(teststack,4)
         if toc(t)>1
             p.status.String=['fitting test stacks: ' num2str(k/numstack,'%1.2f')];drawnow
@@ -29,7 +33,7 @@ t=tic;
         dT=zeros(npar,2,nfits);
         dT(1,2,:)=shiftxy(k,2);
         dT(2,2,:)=shiftxy(k,1);
-        iterations=50;
+        iterations=150;
 %         [PM,CRLBM, LLM,update, error] =  kernel_MLEfit_Spline_LM_multichannel_finalized(fitstack,coeffh, shared,dT,50);
         sharedA = repmat(shared,[1 size(fitstack,3)]);
         [P,CRLB, LL] =CPUmleFit_LM_MultiChannel(fitstack,int32(sharedA),iterations,coeffh,single(dT));
@@ -39,38 +43,37 @@ t=tic;
         %compare with all free fits
         [Pf,CRLBr, LLf] =CPUmleFit_LM_MultiChannel(fitstack,int32(sharedA*0),iterations,coeffh,single(dT));
         
-        
+        dx1(k)=median(P1(:,1));
+        dy1(k)=median(P1(:,2));
+         dx2(k)=median(P2(:,1));
+        dy2(k)=median(P2(:,2));
         %define one as reference and plot differences 
         figure(78);
-        rs=02;
-%         subplot(2,2,1)
+        rs=01;
+        subplot(1,2,1)
 hold off
-        plot(P1(:,1),P2(:,1)+0*shiftxy(k,1),'+')
-        xlim([-1 1]*rs+(p.ROIxy-1)/2);
-        ylim([-1 1]*rs+(p.ROIxy-1)/2);
-        xlabel('x1 single fit')
-        ylabel('x')
-%         subplot(2,2,2)
+        plot(P1(:,1),P2(:,1)-squeeze(dT(1,2,:)),'.')
 hold on
-        plot(Pf(:,1),Pf(:,2),'o')
-        xlim([-1 1]*rs+(p.ROIxy-1)/2);
-        ylim([-1 1]*rs+(p.ROIxy-1)/2);
-        xlabel('x1 not linked')
-        ylabel('x')
-%         subplot(2,2,3)
-
-        plot(P1(:,1),P(:,1),'x')
-        
-        plot([-1 1]*rs+(p.ROIxy-1)/2,[-1 1]*rs+(p.ROIxy-1)/2)
-        xlim([-1 1]*rs+(p.ROIxy-1)/2);
-        ylim([-1 1]*rs+(p.ROIxy-1)/2);
-        
-        
-        title(shiftxy(k,1))
+        plot(Pf(:,1),Pf(:,2)-0*shiftxy(k,2),'.')
+        plot(P1(:,1),P(:,1),'.')
+        plot([-1 1]*rs+(roifit-1)/2,[-1 1]*rs+(roifit-1)/2)
+         title(dT(1,2))
         xlabel('x1 single fit')
         ylabel('x ')
         legend('x2 individual fit','x2 not linked','x linked')
-        
+ 
+                subplot(1,2,2)
+hold off
+        plot(P1(:,2),P2(:,2)-squeeze(dT(2,2,:)),'.')
+hold on
+        plot(Pf(:,3),Pf(:,4)-0*shiftxy(k,1),'.')
+        plot(P1(:,2),P(:,2),'.')
+        plot([-1 1]*rs+(roifit-1)/2,[-1 1]*rs+(roifit-1)/2)
+        title(dT(2,2))
+        xlabel('y1 single fit')
+        ylabel('y ')
+        legend('y2 individual fit','y2 not linked','y linked')
+      
 %         [P] =  mleFit_LM(single(squeeze(teststack(range,range,:,k))),fitmode,100,single(coeff),0,1);
         
         z=(1:size(P,1))'-1;
@@ -82,8 +85,14 @@ hold on
         ylabel(ax,'zfit (nm)')
         zs(:,k)=P(:,5);
         
+        figure(104);
+        plot(z,P1(:,5)-z,z,P2(:,5)-z,z,Pf(:,5)-z,z,Pf(:,6)-z,z,P(:,3)-z,'k')
+        legend('z1','z2','zi1','zi2','zg');
+        xlabel(ax,'frame')
+        ylabel(ax,'zfit (nm)')
+        ylim([-5 5])
         
-        if 1% imageslicer to test
+        if 0% imageslicer to test
 %             coord=P1(:,[1 2 5 3 4]);
             coord=P(:,[1 2 3 4 6]);
             coord2=coord;
@@ -94,7 +103,8 @@ hold on
             imall=[fitstack(:,:,:,1),img1; fitstack(:,:,:,2),img2];
             res=[fitstack(:,:,:,1)-img1, 0*img1;fitstack(:,:,:,2)-img2,0*img2];
             ims(:,:,:,1)=imall;ims(:,:,:,2)=res;
-            imageslicer(ims)
+            f=figure(105);
+            imageslicer(ims,'Parent',f);
         end
         
 % test for the returned photons and photons in the raw image        
@@ -105,5 +115,9 @@ hold on
 %         plot(ax2,z,(photsum-totsum)./totsum,'.')
 %         hold(ax2,'on')
     end
+    
+    figure(222)
+    zzz=1:length(dx1);
+    plot(zzz,dx1-dx2,'x',zzz,dy1-dy2,'o',zzz,-shiftxy(:,1),zzz,-shiftxy(:,2))
     
 end

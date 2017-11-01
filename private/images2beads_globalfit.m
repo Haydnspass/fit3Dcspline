@@ -67,15 +67,20 @@ for k=1:length(filelist)
     indref=transform.getRef(maximanm(:,1),maximanm(:,2));
     maximaref=maxima(indref,:);
     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,1),maximanm(indref,2));
+%     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,2),maximanm(indref,1));
+   
+    
     maximatargetf(:,1)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
     maximatargetf(:,2)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
+%     maximatargetf(:,2)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
+%     maximatargetf(:,1)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
     
    
     if 1 %for testing
-        maximatargetf(:,1)=maximatargetf(:,1)-1;
-        maximatargetf(:,2)=maximatargetf(:,2)-.5;
-    maximatargetfm(:,1)=maximatargetf(:,1)+2;
-    maximatargetfm(:,2)=maximatargetf(:,2)-1.;
+        maximatargetf(:,1)=maximatargetf(:,1)+0.;
+        maximatargetf(:,2)=maximatargetf(:,2)+0.;
+    maximatargetfm(:,1)=maximatargetf(:,1)-0.1;
+    maximatargetfm(:,2)=maximatargetf(:,2)+0.1;
     maximatar=round(maximatargetfm);
     else 
     maximatar=round(maximatargetf);
