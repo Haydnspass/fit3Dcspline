@@ -76,10 +76,10 @@ for k=1:length(filelist)
 %     maximatargetf(:,1)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
     
    
-    if 1 %for testing
-        maximatargetf(:,1)=maximatargetf(:,1)+0.;
-        maximatargetf(:,2)=maximatargetf(:,2)+0.;
-    maximatargetfm(:,1)=maximatargetf(:,1)-0.1;
+    if 0 %for testing
+        maximatargetf(:,1)=maximatargetf(:,1)+1;
+        maximatargetf(:,2)=maximatargetf(:,2)+0.5;
+    maximatargetfm(:,1)=maximatargetf(:,1)-0.1+2;
     maximatargetfm(:,2)=maximatargetf(:,2)+0.1;
     maximatar=round(maximatargetfm);
     else 

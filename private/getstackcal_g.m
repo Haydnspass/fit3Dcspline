@@ -73,6 +73,9 @@ sstack=size(beads(1).stack.image);
 %     ax=axes('Parent',uitab(p.tabgroup,'Title','scatter'));
 
     [~,sortinddev]=sort(devs);
+    
+    sortinddev=1:length(sortinddev);%XXXXX
+    
     allrois=allstacks(:,:,:,sortinddev);
     allroist=allstackst(:,:,:,sortinddev);
     shiftxys=shiftxy(sortinddev,:);
