@@ -229,8 +229,9 @@ if nargin<4
 elseif ~iscell(linepar)
     linepar={linepar};
 end
-d=round((size(teststack,1)-p.ROIxy)/2);
-            range=d+1:d+p.ROIxy;
+fitsize=min(p.ROIxy,21);
+d=round((size(teststack,1)-fitsize)/2);
+            range=d+1:d+fitsize;
 
 numstack=size(teststack,4);
 t=tic;

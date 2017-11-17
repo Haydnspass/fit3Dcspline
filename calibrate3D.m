@@ -162,7 +162,7 @@ for X=1:length(p.xrange)-1
             p.tabgroup=uitabgroup(ht);
         end
         
-        indgood=beadposxs< p.xrange(X+1) & beadposxs>p.xrange(X) & beadposys<p.yrange(Y+1) & beadposys>p.yrange(Y);
+        indgood=beadposxs+imageRoi(1)< p.xrange(X+1) & beadposxs+imageRoi(1)>p.xrange(X) & beadposys+imageRoi(2)<p.yrange(Y+1) & beadposys+imageRoi(2)>p.yrange(Y);
         beadsh=beads(indgood);
         
         for k=1:max(beadfilenumber)

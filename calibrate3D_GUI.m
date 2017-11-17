@@ -247,10 +247,10 @@ classdef calibrate3D_GUI<handle
                         p.xrange=[-inf inf];p.yrange=[-inf inf];
                     case 2%split horz
                         midp=str2double(obj.guihandles.spatial_xval.String);
-                        p.xrange=[-inf  inf];p.yrange=[-inf midp inf];
+                        p.yrange=[-inf  inf];p.xrange=[-inf midp inf];
                     case 3% split vert
                        midp=str2double(obj.guihandles.spatial_xval.String);
-                        p.xrange=[-inf  midp inf];p.yrange=[-inf inf];
+                        p.yrange=[-inf  midp inf];p.xrange=[-inf inf];
                     case 4%MxN
                         mn=str2num(obj.guihandles.spatial_xval.String);
                         imsize=str2num(obj.guihandles.spatial_yval.String);
