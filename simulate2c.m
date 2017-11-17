@@ -3,14 +3,17 @@ function out=simulate2c
 cal3dfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1/ROI2_20per639_50msexp_1_3dcal.mat'; 
 % transformfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1/simulstack_affine_2_T.mat';
 transformfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1/affine_T.mat';
-
+% transformfile='/Users/jonas/Documents/Data/ROI2_20per639_50msexp_1/testmirrorA_T.mat';
 % cal3dfile='/Users/ries/Documents/Data/3D/global3D/ROI2_20per639_50msexp_1_3dcal.mat'; 
 % transformfile='/Users/ries/Documents/Data/3D/global3D/ROI2_20per639_50msexp_1/ROI2_20per639_50msexp_1_MMStack_T.mat';
 
+mirror=true;
+ midp=255;
 nbeads=25;
 roisize=31;
 dr=(roisize-1)/2;
 zpos=1:201; %in slices
+% zpos=99:101;
 pixelsize=100;
 Nphot=16000;
 Nbg=5;
@@ -41,11 +44,18 @@ coord=horzcat(xt,yt);
 channel=2;
 makeimg
 img=img+Nbg;
+
+
+if mirror
+   
+    img(midp:end,:,:)=img(end:-1:midp,:,:);
+    
+end
 imageslicer(img);
 
 imgnoise=poissrnd(img);
-outfile=[fileparts(cal3dfile) filesep 'simulstack.tif'];
-outfile2=[fileparts(cal3dfile) filesep 'simulstackp.tif'];
+outfile=[fileparts(cal3dfile) filesep 'simulstackM.tif'];
+outfile2=[fileparts(cal3dfile) filesep 'simulstackMp.tif'];
 % imgnoise=permute(imgnoise,[2,1,3]);
 saveastiff(uint16(imgnoise),outfile);
 saveastiff(uint16(img+Nbg),outfile2);

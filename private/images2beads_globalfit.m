@@ -10,6 +10,9 @@ filelist=p.filelist;
 b=[];
 ht=uitab(p.tabgroup,'Title','Files');
 tg=uitabgroup(ht);
+l=load(p.Tfile);
+transform=l.transformation;
+p.mirror=contains(transform.tinfo.mirror.targetmirror,'up-down');
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
     p.fileax(k)=ax;
@@ -25,8 +28,12 @@ for k=1:length(filelist)
         imstack=readfile_tif(filelist{k});
     end
     
+    
      
     imstack=imstack-min(imstack(:)); %fast fix for offset;
+    
+%     imageslicer(imstack)%%%%%%%%XXXXXXX
+    
     mim=max(imstack,[],3);
     mim=filter2(h,mim);
     imagesc(ax,mim);
@@ -62,8 +69,7 @@ for k=1:length(filelist)
     maximanm(:,2)=maximanm(:,2)*p.smappos.pixelsize{k}(end)*1000;
     
     %transform reference to target
-    l=load(p.Tfile);
-    transform=l.transformation;
+
     indref=transform.getRef(maximanm(:,1),maximanm(:,2));
     maximaref=maxima(indref,:);
     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,1),maximanm(indref,2));

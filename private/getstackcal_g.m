@@ -29,13 +29,21 @@ sstack=size(beads(1).stack.image);
     
     allstacks=zeros(sstack(1),sstack(2),sstack(3),length(beads))+NaN;
     allstackst=zeros(sstack(1),sstack(2),sstack(3),length(beads))+NaN;
+%     allstackstm=zeros(sstack(1),sstack(2),sstack(3),length(beads))+NaN;
     goodvs=[];
     for B=length(beads):-1:1
         allstacks(:,:,:,B)=beads(B).stack.image;
-        allstackst(:,:,:,B)=beads(B).stack.imagetar;
+        if ~p.mirror
+            allstackst(:,:,:,B)=beads(B).stack.imagetar;
+            shiftxy(B,1:2)=beads(B).shiftxy;
+        else
+            allstackst(:,:,:,B)=beads(B).stack.imagetar(end:-1:1,:,:);
+            shiftxy(B,1:2)=beads(B).shiftxy;
+            shiftxy(B,2)=-shiftxy(B,2);
+        end
         stackh=allstacks(:,:,:,B);
         goodvs(B)=sum(~isnan(stackh(:)))/numel(stackh);
-        shiftxy(B,1:2)=beads(B).shiftxy;
+        
     end
     
     mstack=nanmean(allstacks,4);
@@ -94,6 +102,10 @@ sstack=size(beads(1).stack.image);
     
     corrPSFr=corrPSF(1:size(allrois,1),:,:);
     corrPSFt=corrPSF(size(allrois,1)+1:end,:,:);
+    
+    if p.mirror
+       corrPSFt=corrPSFt(end:-1:1,:,:); 
+    end
     %undo sorting by deviation to associate beads again to their
     %bead number
     [~,sortback]=sort(sortinddev);
