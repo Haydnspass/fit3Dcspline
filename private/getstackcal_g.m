@@ -103,9 +103,10 @@ sstack=size(beads(1).stack.image);
     corrPSFr=corrPSF(1:size(allrois,1),:,:);
     corrPSFt=corrPSF(size(allrois,1)+1:end,:,:);
     
-    if p.mirror
-       corrPSFt=corrPSFt(end:-1:1,:,:); 
-    end
+%     if p.mirror
+%        corrPSFt=corrPSFt(end:-1:1,:,:); 
+%     end
+
     %undo sorting by deviation to associate beads again to their
     %bead number
     [~,sortback]=sort(sortinddev);

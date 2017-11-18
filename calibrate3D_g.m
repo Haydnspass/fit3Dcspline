@@ -208,7 +208,9 @@ for X=1:length(p.xrange)-1
         cspline.dz=csplinecal.cspline.dz;
         cspline.z0=csplinecal.cspline.z0;
         cspline.x0=csplinecal.cspline.x0;
-
+        cspline.global.isglobal=p.isglobalfit;
+        cspline.global.transformation=p.transformation;
+        
         if contains(p.modality,'astig')
             photbead=10^5; %corr PSF normalized to 1. As MLE is used, this screws up statistics totally. Thus assign bright signal to bead.
             stackb=csplinecal.PSF;
@@ -239,6 +241,10 @@ for X=1:length(p.xrange)-1
             
         end
         cspline_all=csplinecal;
+%         cspline_all.bspline=[];
+%         cspline_all.PSF=[];
+%         cspline_all.PSFsmooth=[];
+        cspline_all=[];
         SXY(X,Y)=struct('gausscal',gausscal,'cspline_all',cspline_all,'gauss_sx2_sy2',gauss_sx2_sy2,'gauss_zfit',gauss_zfit,...
             'cspline',cspline,'Xrangeall',p.xrange+imageRoi(1),'Yrangeall',p.yrange+imageRoi(2),'Xrange',p.xrange([X X+1])+imageRoi(1),...
             'Yrange',p.yrange([Y Y+1])+imageRoi(2),'posind',[X,Y],'EMon',p.emgain);

@@ -12,6 +12,7 @@ ht=uitab(p.tabgroup,'Title','Files');
 tg=uitabgroup(ht);
 l=load(p.Tfile);
 transform=l.transformation;
+p.transformation=transform;
 p.mirror=contains(transform.tinfo.mirror.targetmirror,'up-down');
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
