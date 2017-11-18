@@ -53,52 +53,63 @@ for k=1:size(imin,4)
     catch err %range out 
     end
 end
-% avim=nanmean(imin,4);
-avim=nanmean(smallim,4);
+avim=nanmean(imina,4);
+% avim=nanmean(smallim,4);
+ph=p;ph.xrange=xrange;
+[shiftedstack,shift,cc]=aligntoref(avim,imina, smallim, zshiftf0,ph);
 
-xn=1:size(imina,1);yn=1:size(imina,2);zn=1:size(imina,3);
-[Xq,Yq,Zq]=meshgrid(yn,xn,zn);
+shiftedstackn=normalizstack(shiftedstack,p);
+
+indgood=true(1,size(shiftedstackn,4));
+[indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
+
+meanim=nanmean(shiftedstack(:,:,:,indgood),4);
+    meanim(isnan(meanim))=avim(isnan(meanim));   
+%     refim=meanim(xrange,p.yrange,p.framerange);
+[shiftedstack,shift,cc]=aligntoref(meanim,imina, smallim, zshiftf0,ph);
+% xn=1:size(imina,1);yn=1:size(imina,2);zn=1:size(imina,3);
+% [Xq,Yq,Zq]=meshgrid(yn,xn,zn);
 
 % xns=1:size(smallim,1);yns=1:size(smallim,2);zns=1:size(smallim,3);
 % [Xqs,Yqs,Zqs]=meshgrid(yns,xns,zns);
 
-meanim=[];
-% refim=avim(p.xrange,p.yrange,p.framerange);
-refim=avim;
+% meanim=[];
+% % refim=avim(p.xrange,p.yrange,p.framerange);
+% refim=avim;
 
-simin=size(imina);
-shiftedstack=zeros(simin(1),simin(2),simin(3),numbeads)+NaN;
-
-for k=1:numbeads
-    goodframes=squeeze(nansum(nansum(smallim(:,:,:,k),1),2))>0;
-    if p.alignz
-        [shift(k,:),cc(k)]=get3Dcorrshift(refim(:,:,goodframes),smallim(:,:,goodframes,k));
-    else
-        if any(goodframes)
-%             smallimshiftf0=interp3(smallim(:,:,:,k),Xqs,Yqs,Zqs-double(zshiftf0(k)),'cubic',0);
-            [shift(k,:),cc(k)]=get2Dcorrshift(refim(:,:,goodframes),smallim(:,:,goodframes,k));
-%             [shift(k,:),cc(k)]=get2Dcorrshift(refim(:,:,goodframes),smallimshiftf0);
-        else
-            shift(k,:)=[0 0 0];cc(k)=NaN;
-        end
-    end
-%     imina(1:size(imin,1),:,:,k)=imin(:,:,:,k);
-%     imina(size(imin,1)+1:end,:,:,k)=shiftimagexy(imint(:,:,:,k),-p.shiftxy(k,:));
-    shiftedh=interp3(imina(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
-%     shiftedh=interp3(imin(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
-%     shiftedht=interp3(imin(:,:,:,k),Xq-shift(k,2)-p.shiftxy(k,1),Yq-shift(k,1)-p.shiftxy(k,2),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
+% simin=size(imina);
+% shiftedstack=zeros(simin(1),simin(2),simin(3),numbeads)+NaN;
+% 
+% for k=1:numbeads
+%     goodframes=squeeze(nansum(nansum(smallim(:,:,:,k),1),2))>0;
+%     if p.alignz
+%         [shift(k,:),cc(k)]=get3Dcorrshift(refim(:,:,goodframes),smallim(:,:,goodframes,k));
+%     else
+%         if any(goodframes)
+% %             smallimshiftf0=interp3(smallim(:,:,:,k),Xqs,Yqs,Zqs-double(zshiftf0(k)),'cubic',0);
+%             [shift(k,:),cc(k)]=get2Dcorrshift(refim(:,:,goodframes),smallim(:,:,goodframes,k));
+% %             [shift(k,:),cc(k)]=get2Dcorrshift(refim(:,:,goodframes),smallimshiftf0);
+%         else
+%             shift(k,:)=[0 0 0];cc(k)=NaN;
+%         end
+%     end
+% %     imina(1:size(imin,1),:,:,k)=imin(:,:,:,k);
+% %     imina(size(imin,1)+1:end,:,:,k)=shiftimagexy(imint(:,:,:,k),-p.shiftxy(k,:));
+%     shiftedh=interp3(imina(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
+% %     shiftedh=interp3(imin(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
+% %     shiftedht=interp3(imin(:,:,:,k),Xq-shift(k,2)-p.shiftxy(k,1),Yq-shift(k,1)-p.shiftxy(k,2),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
+% %     
+% %     shiftedstack(1:size(imin,1),:,:,k)=shiftedh;
+% %     shiftedstack(size(imin,1)+1:end,:,:,k)=shiftedht;
+%     shiftedstack(:,:,:,k)=shiftedh;
+%     meanim=nanmean(shiftedstack(:,:,:,1:k),4);
+%     meanim(isnan(meanim))=avim(isnan(meanim));
 %     
-%     shiftedstack(1:size(imin,1),:,:,k)=shiftedh;
-%     shiftedstack(size(imin,1)+1:end,:,:,k)=shiftedht;
-    shiftedstack(:,:,:,k)=shiftedh;
-    meanim=nanmean(shiftedstack(:,:,:,1:k),4);
-    meanim(isnan(meanim))=avim(isnan(meanim));
-    
-    refim=meanim(xrange,p.yrange,p.framerange);
-end
+%     refim=meanim(xrange,p.yrange,p.framerange);
+% end
 
 shiftedstackn=normalizstack(shiftedstack,p);
-ph=p;ph.xrange=xrange;
+
 indgood=true(1,size(shiftedstackn,4));
 [indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
 [indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
@@ -136,6 +147,47 @@ if length(axs)>1
     imageslicer(vertcat(avim,imout),'Parent',axs{2}.Parent)
 end
 
+end
+
+function [shiftedstack,shift,cc]=aligntoref(avim,imina, smallim, zshiftf0,p)
+xn=1:size(imina,1);yn=1:size(imina,2);zn=1:size(imina,3);
+[Xq,Yq,Zq]=meshgrid(yn,xn,zn);
+% meanim=[];
+refim=avim(p.xrange,p.yrange,p.framerange);
+% refim=avim;
+
+numbeads=size(imina,4);
+simin=size(imina);
+shiftedstack=zeros(simin(1),simin(2),simin(3),numbeads)+NaN;
+
+for k=1:numbeads
+        p.status.String=['calculate shift of individual PSFs: ' num2str(k) ' of ' num2str(numbeads)]; drawnow
+    goodframes=squeeze(nansum(nansum(smallim(:,:,:,k),1),2))>0;
+    if p.alignz
+        [shift(k,:),cc(k)]=get3Dcorrshift(refim(:,:,goodframes),smallim(:,:,goodframes,k));
+    else
+        if any(goodframes)
+%             smallimshiftf0=interp3(smallim(:,:,:,k),Xqs,Yqs,Zqs-double(zshiftf0(k)),'cubic',0);
+            [shift(k,:),cc(k)]=get2Dcorrshift(refim(:,:,goodframes),smallim(:,:,goodframes,k));
+%             [shift(k,:),cc(k)]=get2Dcorrshift(refim(:,:,goodframes),smallimshiftf0);
+        else
+            shift(k,:)=[0 0 0];cc(k)=NaN;
+        end
+    end
+%     imina(1:size(imin,1),:,:,k)=imin(:,:,:,k);
+%     imina(size(imin,1)+1:end,:,:,k)=shiftimagexy(imint(:,:,:,k),-p.shiftxy(k,:));
+    shiftedh=interp3(imina(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
+%     shiftedh=interp3(imin(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
+%     shiftedht=interp3(imin(:,:,:,k),Xq-shift(k,2)-p.shiftxy(k,1),Yq-shift(k,1)-p.shiftxy(k,2),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
+%     
+%     shiftedstack(1:size(imin,1),:,:,k)=shiftedh;
+%     shiftedstack(size(imin,1)+1:end,:,:,k)=shiftedht;
+    shiftedstack(:,:,:,k)=shiftedh;
+%     meanim=nanmean(shiftedstack(:,:,:,1:k),4);
+% %     meanim(isnan(meanim))=refim(isnan(r));
+%     
+%     refim=meanim(p.xrange,p.yrange,p.framerange);
+end
 end
 
 function [indgood,res,normamp,co,cc]=getoverlap(shiftedstackn,shift,p,indgood)

@@ -10,17 +10,31 @@ filelist=p.filelist;
 b=[];
 ht=uitab(p.tabgroup,'Title','Files');
 tg=uitabgroup(ht);
+l=load(p.Tfile);
+transform=l.transformation;
+p.transformation=transform;
+p.mirror=contains(transform.tinfo.mirror.targetmirror,'up-down');
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
     p.fileax(k)=ax;
     if isfield(p,'smap') && p.smap
+        
         imstack=readfile_ome(filelist{k});
+        if isempty(imstack)
+            disp('using simple reader')
+            imstack=readfile_tif(filelist{k});
+        end
+          
     else
         imstack=readfile_tif(filelist{k});
     end
     
+    
      
     imstack=imstack-min(imstack(:)); %fast fix for offset;
+    
+%     imageslicer(imstack)%%%%%%%%XXXXXXX
+    
     mim=max(imstack,[],3);
     mim=filter2(h,mim);
     imagesc(ax,mim);
@@ -56,14 +70,28 @@ for k=1:length(filelist)
     maximanm(:,2)=maximanm(:,2)*p.smappos.pixelsize{k}(end)*1000;
     
     %transform reference to target
-    l=load(p.Tfile);
-    transform=l.transformation;
+
     indref=transform.getRef(maximanm(:,1),maximanm(:,2));
     maximaref=maxima(indref,:);
     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,1),maximanm(indref,2));
+%     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,2),maximanm(indref,1));
+   
+    maximatargetf=[];
     maximatargetf(:,1)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
     maximatargetf(:,2)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
+%     maximatargetf(:,2)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
+%     maximatargetf(:,1)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
+    
+   
+    if 0 %for testing
+        maximatargetf(:,1)=maximatargetf(:,1)+1;
+        maximatargetf(:,2)=maximatargetf(:,2)+0.5;
+    maximatargetfm(:,1)=maximatargetf(:,1)-0.1+2;
+    maximatargetfm(:,2)=maximatargetf(:,2)+0.1;
+    maximatar=round(maximatargetfm);
+    else 
     maximatar=round(maximatargetf);
+    end
     dxy=maximatargetf-maximatar;
     
     
@@ -104,7 +132,7 @@ p.fminmax=[1 fmax];
         if isfield(p,'files')
             p.cam_pixelsize_um=p.files(k).info.cam_pixelsize_um;
         else
-            p.cam_pixelsize_um=[1 1]/1000; %?????
+            p.cam_pixelsize_um=[1 1]/10; %?????
         end      
 
 p.pathhere=fileparts(filelist{1});

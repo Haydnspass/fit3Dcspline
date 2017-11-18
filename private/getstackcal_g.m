@@ -29,13 +29,21 @@ sstack=size(beads(1).stack.image);
     
     allstacks=zeros(sstack(1),sstack(2),sstack(3),length(beads))+NaN;
     allstackst=zeros(sstack(1),sstack(2),sstack(3),length(beads))+NaN;
+%     allstackstm=zeros(sstack(1),sstack(2),sstack(3),length(beads))+NaN;
     goodvs=[];
     for B=length(beads):-1:1
         allstacks(:,:,:,B)=beads(B).stack.image;
-        allstackst(:,:,:,B)=beads(B).stack.imagetar;
+        if ~p.mirror
+            allstackst(:,:,:,B)=beads(B).stack.imagetar;
+            shiftxy(B,1:2)=beads(B).shiftxy;
+        else
+            allstackst(:,:,:,B)=beads(B).stack.imagetar(end:-1:1,:,:);
+            shiftxy(B,1:2)=beads(B).shiftxy;
+            shiftxy(B,2)=-shiftxy(B,2);
+        end
         stackh=allstacks(:,:,:,B);
         goodvs(B)=sum(~isnan(stackh(:)))/numel(stackh);
-        shiftxy(B,1:2)=beads(B).shiftxy;
+        
     end
     
     mstack=nanmean(allstacks,4);
@@ -73,6 +81,9 @@ sstack=size(beads(1).stack.image);
 %     ax=axes('Parent',uitab(p.tabgroup,'Title','scatter'));
 
     [~,sortinddev]=sort(devs);
+    
+    sortinddev=1:length(sortinddev);%XXXXX
+    
     allrois=allstacks(:,:,:,sortinddev);
     allroist=allstackst(:,:,:,sortinddev);
     shiftxys=shiftxy(sortinddev,:);
@@ -87,16 +98,21 @@ sstack=size(beads(1).stack.image);
      framerange=max(1,midrange-fw2):min(midrange+fw2,size(stackh,3));
     p.status.String='calculate shift of individual PSFs';drawnow
     filenumber=[beads(:).filenumber];
-    [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_g(allrois,allroist,struct('shiftxy',shiftxys,'framerange',framerange,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false),{},filenumber(sortinddev));
+    [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_g(allrois,allroist,struct('shiftxy',shiftxys,'framerange',framerange,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false,'status',p.status),{},filenumber(sortinddev));
     
     corrPSFr=corrPSF(1:size(allrois,1),:,:);
     corrPSFt=corrPSF(size(allrois,1)+1:end,:,:);
+    
+%     if p.mirror
+%        corrPSFt=corrPSFt(end:-1:1,:,:); 
+%     end
+
     %undo sorting by deviation to associate beads again to their
     %bead number
     [~,sortback]=sort(sortinddev);
     shiftedstack=shiftedstack(:,:,:,sortback);
     beadgood=beadgood(sortback);
-
+%     shiftxys=shiftxys(sortback,:);
     indgood=beadgood;
     allrois=allstacks;
   
@@ -250,61 +266,25 @@ sstack=size(beads(1).stack.image);
             drawnow
             
             %quality control: refit all beads
-            if 0% isempty(stackcal_testfit)||stackcal_testfit  %not implemented yet in fitter. Fix later
+            if isempty(stackcal_testfit)||stackcal_testfit  %not implemented yet in fitter. Fix later
                 ax=axes(uitab(p.tabgroup,'Title','validate'));
-                testallrois=allrois(:,:,:,beadgood);
-                testallrois(isnan(testallrois))=0;
-                zall=testfit(testallrois,cspline.coeff,p,{},ax);
+                testallrois(:,:,:,:,1)=allrois(:,:,:,beadgood);
+                testallrois(:,:,:,:,2)=allroist(:,:,:,beadgood);
+                
                 corrPSFfit=corrPSF/max(corrPSF(:))*max(testallrois(:)); %bring back to some reasonable photon numbers;
-                zref=testfit(corrPSFfit,cspline.coeff,p,{'k','LineWidth',2},ax);
+                corrPSFfitf(:,:,:,1,1)=corrPSFfit(1:size(corrPSFfit,2),:,:);
+                corrPSFfitf(:,:,:,1,2)=corrPSFfit(size(corrPSFfit,2)+1:end,:,:);
+                zref=testfit_spline(corrPSFfitf,cspline.coeff,[0 0],p,{'k','LineWidth',2},ax);
+                
+
+                
+                testallrois(isnan(testallrois))=0;
+                zall=testfit_spline(testallrois,cspline.coeff,shiftxy(beadgood,:),p,{},ax);
                 drawnow
             end
         end 
 end
 
-function zs=testfit(teststack,coeff,p,linepar,ax)
-if nargin<4
-    linepar={};
-elseif ~iscell(linepar)
-    linepar={linepar};
-end
-d=round((size(teststack,1)-p.ROIxy)/2);
-            range=d+1:d+p.ROIxy;
-
-numstack=size(teststack,4);
-t=tic;
-% f=figure(989);ax2=gca;hold off
-    for k=1:size(teststack,4)
-        if toc(t)>1
-            p.status.String=['fitting test stacks: ' num2str(k/numstack,'%1.2f')];drawnow
-            t=tic;
-        end
-        if contains(p.modality,'2D')
-            fitmode=6;
-        else
-            fitmode=5;
-        end
-
-        [P] =  mleFit_LM(single(squeeze(teststack(range,range,:,k))),fitmode,100,single(coeff),0,1);
-        
-        z=(1:size(P,1))'-1;
-
-        znm=(P(:,5)-p.z0)*p.dz;
-        plot(ax,z,znm,linepar{:})
-        hold(ax,'on')
-        xlabel(ax,'frame')
-        ylabel(ax,'zfit (nm)')
-        zs(:,k)=P(:,5);
-% test for the returned photons and photons in the raw image        
-%         phot=P(:,3); bg=P(:,4);
-%         totsum=squeeze(nansum( nansum(teststack(range,range,:,k),1),2));
-%         totsum=totsum-squeeze(min(min(teststack(range,range,:,k),[],1),[],2))*length(range)^2;
-%         photsum=phot+0*bg*length(range)^2;
-%         plot(ax2,z,(photsum-totsum)./totsum,'.')
-%         hold(ax2,'on')
-    end
-    
-end
 
 function teststripes(coeff,p,ax)
 %not used, can be called to test for stripe artifacts.
