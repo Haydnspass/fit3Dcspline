@@ -36,7 +36,11 @@ dy2=[];
         iterations=150;
 %         [PM,CRLBM, LLM,update, error] =  kernel_MLEfit_Spline_LM_multichannel_finalized(fitstack,coeffh, shared,dT,50);
         sharedA = repmat(shared,[1 size(fitstack,3)]);
-        [P,CRLB, LL] =CPUmleFit_LM_MultiChannel(fitstack,int32(sharedA),iterations,coeffh,single(dT));
+        try
+        [P,CRLB, LL] =GPUmleFit_LM_MultiChannel(fitstack,int32(sharedA),iterations,coeffh,single(dT));
+        catch err
+              [P,CRLB, LL] =CPUmleFit_LM_MultiChannel(fitstack,int32(sharedA),iterations,coeffh,single(dT));
+        end
         %compare with sinlge fits
 %         [P1,CRLB1, LL1] =mleFit_LM(fitstack(:,:,:,1),5,iterations,single(coeff{1}),0,1);
 %         [P2,CRLB2, LL2] =mleFit_LM(fitstack(:,:,:,2),5,iterations,single(coeff{2}),0,1);

@@ -64,6 +64,20 @@ for k=1:length(filelist)
         end
     end
     
+    %remove beads that are closer together than mindistance
+    if isfield(p,'mindistance')&&~isempty(p.mindistance)
+        indgoodb=true(size(maxima,1),1);
+        for bk=1:size(maxima,1)
+            for bl=bk+1:size(maxima,1)
+                if  sum((maxima(bk,1:2)-maxima(bl,1:2)).^2)<p.mindistance^2
+                    indgoodb(bk)=false;
+                    indgoodb(bl)=false;
+                end
+            end
+        end 
+        maxima=maxima(indgoodb,:);
+    end 
+    
     %calculate in nm on chip (reference for transformation)
     maximanm=(maxima(:,1:2)+p.smappos.roi{k}([1 2]));
     maximanm(:,1)=maximanm(:,1)*p.smappos.pixelsize{k}(1)*1000;

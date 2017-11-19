@@ -44,29 +44,42 @@ for k=1:size(imin,4)
     imina(size(imin,1)+1:end,:,:,k)=shiftimagexy(imint(:,:,:,k),-p.shiftxy(k,:));
 end
 
-xrange=[p.xrange p.xrange+size(imin,1)];
-smallim=zeros(length(xrange),length(p.yrange),length(p.framerange),size(imin,4));
-for k=1:size(imin,4)
-    frh=round(p.framerange-zshiftf0(k)); %makes sure, all beads are at same z position
-    try
-    smallim(:,:,:,k)=imina(xrange,p.yrange,frh,k);
-    catch err %range out 
-    end
-end
-avim=nanmean(imina,4);
+% xrange=[p.xrange p.xrange+size(imin,1)];
+% smallim=zeros(length(xrange),length(p.yrange),length(p.framerange),size(imin,4));
+% for k=1:size(imin,4)
+%     frh=round(p.framerange-zshiftf0(k)); %makes sure, all beads are at same z position
+%     try
+%     smallim(:,:,:,k)=imina(xrange,p.yrange,frh,k);
+%     catch err %range out 
+%     end
+% end
+numref=max(round(size(imina,4)*.5),min(5,size(imina,4)));
+avim=nanmean(imina(:,:,:,p.sortind(1:numref)),4);
 % avim=nanmean(smallim,4);
-ph=p;ph.xrange=xrange;
-[shiftedstack,shift,cc]=aligntoref(avim,imina, smallim, zshiftf0,ph);
+ph=p;
+lcc=ceil((min(13,length(p.yrange))-1)/2);
+mp=ceil(((length(p.yrange))-1)/2)+1;
+ph.yrange=p.yrange(mp-lcc:mp+lcc);
+ph.xrange=[p.xrange(mp-lcc:mp+lcc) p.xrange(mp-lcc:mp+lcc)+size(imin,1)];
 
+smallim=[];
+[shiftedstack,shift,cc]=aligntoref(avim,imina, smallim, zshiftf0,ph);
+cca(:,1)=cc;
+for k=1:2
 shiftedstackn=normalizstack(shiftedstack,p);
 
 indgood=true(1,size(shiftedstackn,4));
 [indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
-
+% sum(indgood)/length(indgood)
 meanim=nanmean(shiftedstack(:,:,:,indgood),4);
     meanim(isnan(meanim))=avim(isnan(meanim));   
 %     refim=meanim(xrange,p.yrange,p.framerange);
 [shiftedstack,shift,cc]=aligntoref(meanim,imina, smallim, zshiftf0,ph);
+cca(:,1+k)=cc;
+figure(100);plot(cca(p.sortind,:));drawnow
+% imageslicer(shiftedstack)
+end
+
 % xn=1:size(imina,1);yn=1:size(imina,2);zn=1:size(imina,3);
 % [Xq,Yq,Zq]=meshgrid(yn,xn,zn);
 
@@ -151,6 +164,18 @@ end
 
 function [shiftedstack,shift,cc]=aligntoref(avim,imina, smallim, zshiftf0,p)
 xn=1:size(imina,1);yn=1:size(imina,2);zn=1:size(imina,3);
+
+
+smallim=zeros(length(p.xrange),length(p.yrange),length(p.framerange),size(imina,4));
+for k=1:size(imina,4)
+    frh=round(p.framerange-zshiftf0(k)); %makes sure, all beads are at same z position
+    try
+    smallim(:,:,:,k)=imina(p.xrange,p.yrange,frh,k);
+    catch err %range out 
+    end
+end
+
+
 [Xq,Yq,Zq]=meshgrid(yn,xn,zn);
 % meanim=[];
 refim=avim(p.xrange,p.yrange,p.framerange);
@@ -176,8 +201,12 @@ for k=1:numbeads
     end
 %     imina(1:size(imin,1),:,:,k)=imin(:,:,:,k);
 %     imina(size(imin,1)+1:end,:,:,k)=shiftimagexy(imint(:,:,:,k),-p.shiftxy(k,:));
-    shiftedh=interp3(imina(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
-%     shiftedh=interp3(imin(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
+    
+shiftedh=interp3(imina(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
+ shiftedh=interp3(imina(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq+shift(k,3)-double(zshiftf0(k)),'cubic',0);
+
+    
+    %     shiftedh=interp3(imin(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
 %     shiftedht=interp3(imin(:,:,:,k),Xq-shift(k,2)-p.shiftxy(k,1),Yq-shift(k,1)-p.shiftxy(k,2),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
 %     
 %     shiftedstack(1:size(imin,1),:,:,k)=shiftedh;
@@ -208,7 +237,7 @@ for k=size(shiftedstackn,4):-1:1
 end
 rescc=res./cc;
 rescc(abs(shift(:,1))>3|abs(shift(:,2))>3)=NaN;
-indtest=indgood&cc>0;
+indtest=indgood&(cc>0);
 [a,b]=robustMean(rescc(indtest));
 if isnan(b)
     a=nanmean(rescc);b=nanstd(rescc);

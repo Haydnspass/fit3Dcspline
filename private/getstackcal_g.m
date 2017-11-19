@@ -81,14 +81,15 @@ sstack=size(beads(1).stack.image);
 %     ax=axes('Parent',uitab(p.tabgroup,'Title','scatter'));
 
     [~,sortinddev]=sort(devs);
-    
-    sortinddev=1:length(sortinddev);%XXXXX
-    
-    allrois=allstacks(:,:,:,sortinddev);
-    allroist=allstackst(:,:,:,sortinddev);
-    shiftxys=shiftxy(sortinddev,:);
+%     
+%     sortinddev=1:length(sortinddev);%XXXXX
+%     
+%     allrois=allstacks(:,:,:,sortinddev);
+%     allroist=allstackst(:,:,:,sortinddev);
+%     shiftxys=shiftxy(sortinddev,:);
     if alignzastig
-        zshift=dframe(sortinddev)-round(median(dframe));
+%         zshift=dframe(sortinddev)-round(median(dframe));
+         zshift=dframe-round(median(dframe));
     else
         zshift=[];
     end
@@ -98,24 +99,23 @@ sstack=size(beads(1).stack.image);
      framerange=max(1,midrange-fw2):min(midrange+fw2,size(stackh,3));
     p.status.String='calculate shift of individual PSFs';drawnow
     filenumber=[beads(:).filenumber];
-    [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_g(allrois,allroist,struct('shiftxy',shiftxys,'framerange',framerange,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false,'status',p.status),{},filenumber(sortinddev));
+%     [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_g(allrois,allroist,struct('sortind',sortinddev,'shiftxy',shiftxys,'framerange',framerange,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false,'status',p.status),{},filenumber(sortinddev));
+    [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_g(allstacks,allstackst,struct('sortind',sortinddev,'shiftxy',shiftxy,'framerange',framerange,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false,'status',p.status),{},filenumber(sortinddev));
     
-    corrPSFr=corrPSF(1:size(allrois,1),:,:);
-    corrPSFt=corrPSF(size(allrois,1)+1:end,:,:);
+
+    corrPSFr=corrPSF(1:size(allstacks,1),:,:);
+    corrPSFt=corrPSF(size(allstacks,1)+1:end,:,:);
     
-%     if p.mirror
-%        corrPSFt=corrPSFt(end:-1:1,:,:); 
-%     end
 
     %undo sorting by deviation to associate beads again to their
     %bead number
-    [~,sortback]=sort(sortinddev);
-    shiftedstack=shiftedstack(:,:,:,sortback);
-    beadgood=beadgood(sortback);
+%     [~,sortback]=sort(sortinddev);
+%     shiftedstack=shiftedstack(:,:,:,sortback);
+%     beadgood=beadgood(sortback);
 %     shiftxys=shiftxys(sortback,:);
     indgood=beadgood;
     allrois=allstacks;
-  
+  allroist=allstackst;
 
         %cut out the central part of the PSF correspoinding to the set
         %Roisize in x,y and z
