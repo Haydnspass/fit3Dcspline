@@ -54,6 +54,7 @@ end
 %     end
 % end
 numref=max(round(size(imina,4)*.5),min(5,size(imina,4)));
+% numref=1;
 avim=nanmean(imina(:,:,:,p.sortind(1:numref)),4);
 % avim=nanmean(smallim,4);
 ph=p;
@@ -62,23 +63,35 @@ mp=ceil(((length(p.yrange))-1)/2)+1;
 ph.yrange=p.yrange(mp-lcc:mp+lcc);
 ph.xrange=[p.xrange(mp-lcc:mp+lcc) p.xrange(mp-lcc:mp+lcc)+size(imin,1)];
 
-smallim=[];
-[shiftedstack,shift,cc]=aligntoref(avim,imina, smallim, zshiftf0,ph);
-cca(:,1)=cc;
-for k=1:2
-shiftedstackn=normalizstack(shiftedstack,p);
+%new algorithm to try:
+%1. align with all frames
+ph.framerange=1:size(avim,3);
+[shiftedstack,shift,cc]=aligntoref(avim,imina, zshiftf0,ph);
 
+%calculate good ones, 
+shiftedstackn=normalizstack(shiftedstack,p);
 indgood=true(1,size(shiftedstackn,4));
 [indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
-% sum(indgood)/length(indgood)
-meanim=nanmean(shiftedstack(:,:,:,indgood),4);
-    meanim(isnan(meanim))=avim(isnan(meanim));   
-%     refim=meanim(xrange,p.yrange,p.framerange);
-[shiftedstack,shift,cc]=aligntoref(meanim,imina, smallim, zshiftf0,ph);
-cca(:,1+k)=cc;
-figure(100);plot(cca(p.sortind,:));drawnow
-% imageslicer(shiftedstack)
-end
+meanim=nanmean(shiftedstack(:,:,:,indgood),4);meanim(isnan(meanim))=avim(isnan(meanim));   
+
+%do central correlation using shiftedstack
+ph.framerange=p.framerange;
+[shiftedstack,shift2,cc]=aligntoref(meanim,shiftedstack, 0*zshiftf0,ph);
+% cca(:,1)=cc;
+% for k=1:2
+% shiftedstackn=normalizstack(shiftedstack,p);
+% 
+% indgood=true(1,size(shiftedstackn,4));
+% [indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
+% % sum(indgood)/length(indgood)
+% meanim=nanmean(shiftedstack(:,:,:,indgood),4);
+%     meanim(isnan(meanim))=avim(isnan(meanim));   
+% %     refim=meanim(xrange,p.yrange,p.framerange);
+% [shiftedstack,shift,cc]=aligntoref(meanim,imina, smallim, zshiftf0,ph);
+% cca(:,1+k)=cc;
+% figure(100);plot(cca(p.sortind,:));drawnow
+% % imageslicer(shiftedstack)
+% end
 
 % xn=1:size(imina,1);yn=1:size(imina,2);zn=1:size(imina,3);
 % [Xq,Yq,Zq]=meshgrid(yn,xn,zn);
@@ -162,7 +175,7 @@ end
 
 end
 
-function [shiftedstack,shift,cc]=aligntoref(avim,imina, smallim, zshiftf0,p)
+function [shiftedstack,shift,cc]=aligntoref(avim,imina, zshiftf0,p)
 xn=1:size(imina,1);yn=1:size(imina,2);zn=1:size(imina,3);
 
 
@@ -203,7 +216,7 @@ for k=1:numbeads
 %     imina(size(imin,1)+1:end,:,:,k)=shiftimagexy(imint(:,:,:,k),-p.shiftxy(k,:));
     
 shiftedh=interp3(imina(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
- shiftedh=interp3(imina(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq+shift(k,3)-double(zshiftf0(k)),'cubic',0);
+%  shiftedh=interp3(imina(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq+shift(k,3)-double(zshiftf0(k)),'cubic',0);
 
     
     %     shiftedh=interp3(imin(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
