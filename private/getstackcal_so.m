@@ -30,13 +30,15 @@ sstack=size(beads(1).stack.image);
     allstacks=zeros(sstack(1),sstack(2),sstack(3),length(beads))+NaN;
     goodvs=[];
     for B=length(beads):-1:1
-        allstacks(:,:,:,B)=beads(B).stack.image;
+        stackh=beads(B).stack.image;
+        allstacks(:,:,1:size(stackh,3),B)=stackh;
         stackh=allstacks(:,:,:,B);
         goodvs(B)=sum(~isnan(stackh(:)))/numel(stackh);
     end
     
     mstack=nanmean(allstacks,4);
-    mstack=mstack-nanmin(mstack(:));
+    mstacks=mstack(3:end-2)
+    mstack=mstack-nanmin();
     mstack=mstack/nansum(mstack(:));
     for k=length(beads):-1:1
     	stackh=(allstacks(:,:,:,k));
