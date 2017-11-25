@@ -58,6 +58,7 @@ meanim=nanmean(shiftedstack(:,:,:,indgood),4);meanim(isnan(meanim))=avim(isnan(m
 %do central correlation using shiftedstack
 ph.framerange=p.framerange;
 [shiftedstack,shift2,cc]=aligntoref(meanim,shiftedstack, 0*zshiftf0,ph);
+shift=shift+shift2;
 
 shiftedstackn=normalizstack(shiftedstack,p);
 

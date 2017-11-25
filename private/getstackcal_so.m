@@ -1,4 +1,4 @@
-function [splinefit,indgood]=getstackcal_so(beads,p)
+function [splinefit,indgood,shift]=getstackcal_so(beads,p)
 global stackcal_testfit
 isastig=contains(p.modality,'astig')||contains(p.modality,'2D');
 alignzastig=isastig&contains(p.zcorr,'astig');
@@ -37,8 +37,8 @@ sstack=size(beads(1).stack.image);
     end
     
     mstack=nanmean(allstacks,4);
-    mstacks=mstack(3:end-2)
-    mstack=mstack-nanmin();
+    mstacks=mstack(3:end-2);
+    mstack=mstack-nanmin(mstacks(:));
     mstack=mstack/nansum(mstack(:));
     for k=length(beads):-1:1
     	stackh=(allstacks(:,:,:,k));
