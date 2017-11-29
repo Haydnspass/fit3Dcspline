@@ -14,6 +14,8 @@ t=tic;
 dx1=[];
 dx2=[];dy1=[];
 dy2=[];
+
+f=figure(134);ax2=gca;hold(ax2,'off')
     for k=1:size(teststack,4)
         if toc(t)>1
             p.status.String=['fitting test stacks: ' num2str(k/numstack,'%1.2f')];drawnow
@@ -41,6 +43,9 @@ dy2=[];
         catch err
               [P,CRLB, LL] =CPUmleFit_LM_MultiChannel(fitstack,int32(sharedA),iterations,coeffh,single(dT));
         end
+        
+        
+        [P,CRLB, LL,residuals] =CPUmleFit_LM_MultiChannel_R(fitstack,int32(sharedA),iterations,coeffh,single(dT));
         %compare with sinlge fits
 %         [P1,CRLB1, LL1] =mleFit_LM(fitstack(:,:,:,1),5,iterations,single(coeff{1}),0,1);
 %         [P2,CRLB2, LL2] =mleFit_LM(fitstack(:,:,:,2),5,iterations,single(coeff{2}),0,1);
@@ -89,6 +94,11 @@ dy2=[];
         ylabel(ax,'zfit (nm)')
         zs(:,k)=P(:,3);
 %         
+
+plot(ax2,P(:,1),P(:,2),'.')
+hold(ax2,'on')
+
+
 %         figure(104);
 %         plot(z,P1(:,5)-z,z,P2(:,5)-z,z,Pf(:,5)-z,z,Pf(:,6)-z,z,P(:,3)-z,'k')
 %         legend('z1','z2','zi1','zi2','zg');
