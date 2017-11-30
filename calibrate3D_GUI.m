@@ -81,7 +81,7 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.dzt.TooltipString=obj.guihandles.dz.TooltipString;
             
             obj.guihandles.modalityt=uicontrol('style','text','String','3D modality ','Position',[xpos1,top-9*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
+            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Value',2,'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
             obj.guihandles.modality.TooltipString='Select the kind of PSF. Astigmatic, arbitrary (e.g. saddle-point, double-helix), or unmodified 2D';
             obj.guihandles.modalityt.TooltipString=obj.guihandles.modality.TooltipString;
             
@@ -104,7 +104,7 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.filtert.TooltipString=obj.guihandles.filter.TooltipString;
             
             obj.guihandles.mindistancet=uicontrol('style','text','String','Minimum distance (pixels)','Position',[xpos1,top-13*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.mindistance=uicontrol('style','edit','String','15','Position',[xpos1+2.5*xw,top-13*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.mindistance=uicontrol('style','edit','String','20','Position',[xpos1+2.5*xw,top-13*vsep,xw*1,vsep],'FontSize',fontsize);
             obj.guihandles.mindistance.TooltipString=sprintf('Minimum distance between beads (in pixels). If beads are closer together, they are removed and not used for averaging. Helps eliminating background contaminations from close by beads');
             obj.guihandles.mindistancet.TooltipString=obj.guihandles.mindistance.TooltipString;           
      
@@ -162,6 +162,7 @@ classdef calibrate3D_GUI<handle
             else
                 set(h, 'HandleVisibility', 'off'); %not affected by close all command
             end
+            modality_callback(obj,0,0)
         end
         function selectfiles_callback(obj,a,b)
             sf=selectManyFiles;

@@ -1,6 +1,6 @@
 function [splinefit,indgood,shift]=getstackcal_so(beads,p)
 global stackcal_testfit
-isastig=contains(p.modality,'astig')||contains(p.modality,'2D');
+isastig=contains(p.modality,'astig'); %||contains(p.modality,'2D');
 alignzastig=isastig&contains(p.zcorr,'astig');
 zcorr=contains(p.zcorr,'corr');
 sstack=size(beads(1).stack.image);

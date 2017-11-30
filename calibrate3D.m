@@ -96,7 +96,7 @@ p.ploton=false;
 % beads(2)=beads(1);
 % beads(3:end)=[];
 
-if contains(p.modality,'astig') || contains(p.modality,'2D')
+if contains(p.modality,'astig') % || contains(p.modality,'2D') 2D treated now as arbitrary
     %determine sx,sy
 %     disp('fit beads to get sx,sy')
     t=tic;
@@ -107,19 +107,19 @@ if contains(p.modality,'astig') || contains(p.modality,'2D')
         d=round((s(1)-p.gaussroi)/2);
         stack=stackh(d+1:end-d,d+1:end-d,:);
         %fit bead bead stacks with Gaussian model
-        if contains(p.modality,'astig')
+%         if contains(p.modality,'astig')
             P=mleFit_LM(stack,4,100,1,0,1);
             beads(k).loc.PSFxpix=P(:,5);
             beads(k).loc.PSFypix=P(:,6);
             beads(k).loc.phot=P(:,3);
             beads(k).f0=stackas2z_so(beads(k).loc.PSFxpix,beads(k).loc.PSFypix,beads(k).loc.frames,beads(k).loc.phot,p);
-        else
-            P=mleFit_LM(stack,2,100,1,0,1);
-            beads(k).loc.PSFxpix=P(:,5);
-            beads(k).loc.PSFypix=P(:,5);
-            beads(k).loc.phot=P(:,3);
-            beads(k).f0=stackas2z2D_so(beads(k).loc.PSFxpix,beads(k).loc.frames,beads(k).loc.phot,p);
-        end
+%         else
+%             P=mleFit_LM(stack,2,100,1,0,1);
+%             beads(k).loc.PSFxpix=P(:,5);
+%             beads(k).loc.PSFypix=P(:,5);
+%             beads(k).loc.phot=P(:,3);
+%             beads(k).f0=stackas2z2D_so(beads(k).loc.PSFxpix,beads(k).loc.frames,beads(k).loc.phot,p);
+%         end
         
         beads(k).loc.bg=P(:,4);
         %determine true position of the beads as the position, where PSFx==PSFy
