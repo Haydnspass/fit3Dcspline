@@ -244,7 +244,17 @@ classdef calibrate3D_GUI<handle
                 %determine xrange, yrange for spatial calibration
                 switch obj.guihandles.spatialmode.Value
                     case 1 %all
-                        p.xrange=[-inf inf];p.yrange=[-inf inf];
+                        if isfield(obj.smappos,'xrange')
+                            p.xrange=obj.smappos.xrange;
+                        else
+                            p.xrange=[-inf inf];
+                        end
+                        if isfield(obj.smappos,'yrange')
+                            p.yrange=obj.smappos.yrange;
+                        else
+                            p.yrange=[-inf inf];
+                        end                       
+                        
                     case 2%split horz
                         midp=str2double(obj.guihandles.spatial_xval.String);
                         p.yrange=[-inf  inf];p.xrange=[-inf midp inf];
