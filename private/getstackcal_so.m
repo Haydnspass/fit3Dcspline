@@ -196,7 +196,7 @@ sstack=size(beads(1).stack.image);
             ax.XLim(2)=max(framerange0);ax.XLim(1)=min(framerange0);
             title(ax,'Profile along z for x=0, y=0');
             
-            legend('individual PSFs','average PSF','smoothed spline')
+            legend(ax,'individual PSFs','average PSF','smoothed spline')
             
             xrange=-halfroisizebig:halfroisizebig;
              ax=axes(uitab(p.tabgroup,'Title','PSFx'));
@@ -208,7 +208,7 @@ sstack=size(beads(1).stack.image);
             xlabel(ax,'x (pixel)')
             ylabel(ax,'normalized intensity')
             title(ax,'Profile along x for y=0, z=0');
-             legend('individual PSFs','average PSF','smoothed spline')
+             legend(ax,'individual PSFs','average PSF','smoothed spline')
             
             drawnow
             

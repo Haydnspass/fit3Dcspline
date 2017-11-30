@@ -29,7 +29,10 @@ for k=1:length(filelist)
         imstack=readfile_tif(filelist{k});
     end
     
-    
+    if p.emgain
+        imstack=imstack(:,end:-1:1);
+    end
+       
      
     imstack=imstack-min(imstack(:)); %fast fix for offset;
     
