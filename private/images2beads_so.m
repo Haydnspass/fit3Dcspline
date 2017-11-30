@@ -20,9 +20,12 @@ for k=1:length(filelist)
     end
     
     if p.emgain
-        imstack=imstack(:,end:-1:1);
+        imstack=imstack(:,end:-1:1,:);
     end
-       
+    
+    if isfield(p,'framerangeuse')
+        imstack=imstack(:,:,p.framerangeuse(1):p.framerangeuse(end));
+    end
     
      
     imstack=imstack-min(imstack(:)); %fast fix for offset;

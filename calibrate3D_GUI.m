@@ -242,6 +242,9 @@ classdef calibrate3D_GUI<handle
                 if obj.guihandles.posfromsmap.Value %use positions passed on from SMAP
                     p.beadpos=obj.smappos.positions;
                 end
+                if isfield(obj.smappos,'framerangeuse')
+                    p.framerangeuse=obj.smappos.framerangeuse;
+                end
                 %determine xrange, yrange for spatial calibration
                 switch obj.guihandles.spatialmode.Value
                     case 1 %all
