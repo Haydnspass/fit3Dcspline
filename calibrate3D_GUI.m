@@ -110,7 +110,7 @@ classdef calibrate3D_GUI<handle
      
             obj.guihandles.csplinet=uicontrol('style','text','String','Cspline parameters: ','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             obj.guihandles.roisizet=uicontrol('style','text','String','ROI size: X,Y (pixels): ','Position',[xpos1,top-16*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.ROIxy=uicontrol('style','edit','String','21','Position',[xpos1+2*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.ROIxy=uicontrol('style','edit','String','27','Position',[xpos1+2*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizezt=uicontrol('style','text','String','Z (frames): ','Position',[xpos1+2.5*xw,top-16*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.ROIz=uicontrol('style','edit','String','','Position',[xpos1+3.5*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizet.TooltipString=sprintf('Size of the volume for which cspline coefficients are calculated. \n Should be larger than the ROI used for fitting. \n x,y: typically 17-31 pixels, z: number of frames in stack');

@@ -45,7 +45,12 @@ for k=1:length(filelist)
     imt=mimc(mimc<mmed);
         sm=sort(int);
     mv=mean(sm(end-5:end));
-    cutoff=mean(imt(:))+max(3*std(imt(:)),(mv-mean(imt(:)))/5);
+%     cutoff=mean(imt(:))+max(3*std(imt(:)),(mv-mean(imt(:)))/5);
+    cutoff=mean(imt(:))+max(2.5*std(imt(:)),(mv-mean(imt(:)))/15);
+%     iq=quantile(int,0.5);
+%    cutoff= mean(int(int<iq))+3*std(int(int<iq));
+    
+    
     catch
         cutoff=quantile(mimc(:),.95);
     end

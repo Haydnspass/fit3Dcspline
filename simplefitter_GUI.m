@@ -42,7 +42,7 @@ classdef simplefitter_GUI<handle
             javaaddpath('ImageJ/plugins/bioformats_package.jar')
             
             figureheight=630;
-            h=figure('Name','3D fittter','MenuBar','none','ToolBar','none');
+            h=figure('Name','3D fitter','MenuBar','none','ToolBar','none');
             initPosition = h.Position;
             h.Position=[initPosition(1), initPosition(2)- figureheight+initPosition(4),450, figureheight];
             top=h.Position(4)-10;
@@ -153,7 +153,10 @@ classdef simplefitter_GUI<handle
             obj.guihandles.localize=uicontrol('style','pushbutton','String','Localize','Position',[xpos1+2.5*xw,top-23*vsep,xw*1.5,vsep],'FontSize',fontsize, 'Callback',@obj.localize_callback,'FontWeight','bold');
             obj.guihandles.localize.TooltipString='Perform 3D fitting of single molecules';
 
-            obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,top-25*vsep,xw*4,vsep],'FontSize',fontsize);
+            obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,top-25*vsep,xw*3.5,vsep],'FontSize',fontsize);
+            
+            obj.guihandles.stop=uicontrol('style','togglebutton','String','Stop','Position',[xpos1+3.5*xw,top-25*vsep,xw*0.5,vsep],'FontSize',fontsize, 'Callback',@obj.stop_callback);
+            obj.guihandles.stop.TooltipString='Perform 3D fitting of single molecules';
         end
         function selectfiles_callback(obj,a,b,which)
             switch which
@@ -224,13 +227,18 @@ classdef simplefitter_GUI<handle
         
         
         function preview_callback(obj,a,b)
+            obj.guihandles.stop.Value=false;
+            obj.stop_callback(obj.guihandles.stop);
             p=obj.getguiparameters;
+            p.status.String='Preview...'; drawnow;
             p.preview=true;
             simplefitter_cspline(p)
         end
         
         
         function localize_callback(obj,a,b)
+            obj.guihandles.stop.Value=false;
+            obj.stop_callback(obj.guihandles.stop);
             p=obj.getguiparameters;
             p.preview=false;
             
@@ -238,7 +246,7 @@ classdef simplefitter_GUI<handle
 %                 errordlg('please define output file');
 %                 return
 %             end
-            
+            p.status.String='Start localization...';drawnow;
             simplefitter_cspline(p)
         end        
         
@@ -288,6 +296,11 @@ classdef simplefitter_GUI<handle
         end
         
         function changeloader_callback(obj,a,b)
+        end
+        
+        function stop_callback(obj,object,b)
+            global simplefitter_stop
+            simplefitter_stop=object.Value;
         end
        
     end

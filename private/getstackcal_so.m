@@ -73,7 +73,7 @@ sstack=size(beads(1).stack.image);
      framerange=max(1,midrange-fw2):min(midrange+fw2,size(stackh,3));
     p.status.String='calculate shift of individual PSFs';drawnow
     filenumber=[beads(:).filenumber];
-    [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_so(allstacks,struct('sortind',sortinddev,'framerange',framerange,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false),{},filenumber(sortinddev));
+    [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_so(allstacks,struct('sortind',sortinddev,'framerange',framerange,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false,'status',p.status),{},filenumber(sortinddev));
     
     
     %undo sorting by deviation to associate beads again to their

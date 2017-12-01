@@ -50,6 +50,8 @@ function simplefitter_cspline(p)
 % p.scmosfile file containgn scmos varmap
 
 
+global simplefitter_stop
+
 fittime=0;
 fitsperblock=50000;
 imstack=zeros(p.roifit,p.roifit,fitsperblock,'single');
@@ -123,7 +125,12 @@ p.status.String=['Open tiff file' ]; drawnow
                 break
             end
           end
-          numframes=reader.size;
+          if ~exist('reader','var')
+              p.status.String='Error... Check if image is loaded in ImageJ'; drawnow
+              return
+          end
+%           numframes=reader.size;
+          numframes=reader.getSize;
  end
 
 
@@ -204,7 +211,9 @@ for F=frames
         tshow=tic;
         p.status.String=['Loading frame ' num2str(F) ' of ' num2str(numframes)]; drawnow
     end
-              
+    if  simplefitter_stop
+        break
+    end
 end
 closereader(reader,p);
 p.status.String=['Fitting last stack...' ]; drawnow
