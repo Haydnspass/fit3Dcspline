@@ -47,7 +47,7 @@ addpath('shared')
 g=calibrate3D_GUI;  %look at the tooltips for explanantions of the parameters
 fill=[fileparts(pwd) filesep 'data/bead_3dcal.mat']; %refer to data outside the main directory
 g.guihandles.outputfile.String=fill;
-g.guihandles.filelist.String=[fileparts(pwd) filesep 'data/beadstacks_3D_astig/stack3D_1.tif'];
+g.guihandles.filelist.String=[fileparts(pwd) filesep 'data/beadstacks_3D_astig/stack3D_1.tif']; %you can load additional bead stacks in the GUI
 %% load bead calibration
 cal=load(fill); %load bead calibration
 
@@ -202,7 +202,11 @@ else
     gausssxsy.dx=nanstd(gausssxsy.x(inz));
     gausssxsy.dy=nanstd(gausssxsy.y(inz));
 end
-
+%% make 2D PSF
+g=calibrate3D_GUI;  %look at the tooltips for explanantions of the parameters
+fill=[fileparts(pwd) filesep 'data/bead2d_3dcal.mat']; %refer to data outside the main directory
+g.guihandles.outputfile.String=fill;
+g.guihandles.filelist.String=[fileparts(pwd) filesep 'data/beadstacks_2D/stack2D_1.tif'];
 %% fit 2D dataset with cspline
 % Here we simulate Nfits positions per data point and calculate the
 % z-dependent error
@@ -224,8 +228,10 @@ for i = 1: length(ztruth)
     coordsz = ztruth(i)/dz+z0*ones(Nfits,1);
     coordinates = [coordsxy coordsz];
     imstack = simSplinePSF(Npixels,cal.cspline.coeff,Nphotons,bg,coordinates);
-
-    [P CRLB LL ]=mleFit_LM(imstack,6,50,single(cal.cspline.coeff),sCMOSvarmap,1); %fit mode 6
+    zstartnm=400; %z start parameter 400 nm above and below the focus
+    zstart=[-1 1]*zstartnm/cal.cspline.dz; %in units of dz
+    
+    [P CRLB LL ]=mleFit_LM(imstack,5,50,single(cal.cspline.coeff),sCMOSvarmap,1,zstart); 
     
     
     z=(P(:,5)-z0).*dz;

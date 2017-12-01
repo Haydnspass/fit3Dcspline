@@ -7,6 +7,9 @@ roisize=p.ROIxy;
 roisizeh=round(1.5*(p.ROIxy-1)/2); %create extra space if we need to shift;
 rsr=-roisizeh:roisizeh;
 filelist=p.filelist;
+if ~iscell(filelist) %single file
+    filelist={filelist};
+end
 b=[];
 ht=uitab(p.tabgroup,'Title','Files');
 tg=uitabgroup(ht);
