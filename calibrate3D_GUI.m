@@ -69,7 +69,7 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.filelist.TooltipString='List of image files used for calibration. To change this list, use select camera files';
             obj.guihandles.selectoutputfile=uicontrol('style','pushbutton','String','Select output file','Position',[xpos1,top-5*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutputfile_callback);
             obj.guihandles.selectoutputfile.TooltipString='Select file name for output calibration file. E.g. bead_astig_3dcal.mat or bead2d_3dcal.mat';
-            obj.guihandles.outputfile=uicontrol('style','edit','String','data/bead_3dcal.mat','Position',[xpos1+1.5*xw,top-5*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.outputfile=uicontrol('style','edit','String','bead_3dcal.mat','Position',[xpos1+1.5*xw,top-5*vsep,xw*2.5,vsep],'FontSize',fontsize);
             obj.guihandles.outputfile.TooltipString='Name of the output file';
             
           
@@ -81,7 +81,7 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.dzt.TooltipString=obj.guihandles.dz.TooltipString;
             
             obj.guihandles.modalityt=uicontrol('style','text','String','3D modality ','Position',[xpos1,top-9*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Value',2,'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
+            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Value',1,'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
             obj.guihandles.modality.TooltipString='Select the kind of PSF. Astigmatic, arbitrary (e.g. saddle-point, double-helix), or unmodified 2D';
             obj.guihandles.modalityt.TooltipString=obj.guihandles.modality.TooltipString;
             
@@ -170,9 +170,9 @@ classdef calibrate3D_GUI<handle
             waitfor(sf.handle);
             obj.guihandles.filelist.String=sf.filelist;
             obj.guihandles.filelist.Value=1;
-            if isempty(obj.guihandles.outputfile.String)
+            if isempty(obj.guihandles.outputfile.String)|| strcmp(obj.guihandles.outputfile.String,'bead_3dcal.mat')
                 [path,file]=fileparts(sf.filelist{1});
-                obj.guihandles.outputfile.String=[path file '_3Dcorr.mat'];
+                obj.guihandles.outputfile.String=[path filesep file '_3Dcorr.mat'];
                 
             end
         end

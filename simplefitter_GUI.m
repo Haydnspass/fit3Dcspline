@@ -242,10 +242,10 @@ classdef simplefitter_GUI<handle
             p=obj.getguiparameters;
             p.preview=false;
             
-%             if isempty(p.outputfile)
-%                 errordlg('please define output file');
-%                 return
-%             end
+            if isempty(p.outputfile)
+                errordlg('please define output file');
+                return
+            end
             p.status.String='Start localization...';drawnow;
             simplefitter_cspline(p)
         end        

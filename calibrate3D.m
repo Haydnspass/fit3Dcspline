@@ -88,12 +88,17 @@ if isfield(p,'mindistance')&&~isempty(p.mindistance)
     end 
     beads=beads(indgood); 
 end  
+if isempty(beads)
+    warndlg('Could not find and segment any bead. ROI size too large?')
+    p.status.String='error: could not find and segment any bead...';
+    return
+end
 
 p.midpoint=round(size(beads(1).stack.image,3)/2); %reference for beads
 p.ploton=false;
 
 % beads=beads([2 3])
-% beads(2)=beads(1);
+% beads(2)=beads(1); 
 % beads(3:end)=[];
 
 if contains(p.modality,'astig') % || contains(p.modality,'2D') 2D treated now as arbitrary
@@ -131,7 +136,7 @@ if contains(p.modality,'astig') % || contains(p.modality,'2D') 2D treated now as
         beads(k).psfx0=beads(k).loc.PSFxpix(ind);
         beads(k).psfy0=beads(k).loc.PSFypix(ind);
         if toc(t)>1
-            p.status.String=['Gaussian fit of beads to get spatial paramters: ' num2str(k) ' of ' num2str(length(beads))];
+            p.status.String=['Gaussian fit of beads to get spatial parameters: ' num2str(k) ' of ' num2str(length(beads))];
             drawnow
             t=tic;
         end

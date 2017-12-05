@@ -34,8 +34,8 @@ else
     zshiftf0=zeros(numbeads,1);
 end
 imina=imin;
-numref=max(round(size(imina,4)*.5),min(5,size(imina,4)));
-% numref=1;
+numref=max(round(size(imina,4)*.5),min(5,size(imina,4))); %align to average of several beads
+numref=1; %align to a sigle bead only;
 avim=nanmean(imina(:,:,:,p.sortind(1:numref)),4);
 % avim=nanmean(smallim,4);
 ph=p;

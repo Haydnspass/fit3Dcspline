@@ -187,28 +187,28 @@ sstack=size(beads(1).stack.image);
             zzz=1:dxxx:b3_0.dataSize(3);xxxt=0*zzz+b3_0.dataSize(1)/2+.5;
             zbs= interp3_0(b3_0,xxxt,xxxt,zzz); 
             hold(ax,'off')
-             plot(ax,framerange0,zpall(1:length(framerange0),:),'c')
+             h1=plot(ax,framerange0,zpall(1:length(framerange0),:),'c');
              hold(ax,'on')
-            plot(ax,framerange0',zprofile(1:length(framerange0)),'k*')
-            plot(ax,zzz+rangez(1)+framerange0(1)-2,zbs,'b','LineWidth',2)
+            h2=plot(ax,framerange0',zprofile(1:length(framerange0)),'k*');
+            h3=plot(ax,zzz+rangez(1)+framerange0(1)-2,zbs,'b','LineWidth',2);
             xlabel(ax,'frames')
             ylabel(ax,'normalized intensity')
             ax.XLim(2)=max(framerange0);ax.XLim(1)=min(framerange0);
             title(ax,'Profile along z for x=0, y=0');
             
-            legend(ax,'individual PSFs','average PSF','smoothed spline')
+            legend([h1(1),h2,h3],'individual PSFs','average PSF','smoothed spline')
             
             xrange=-halfroisizebig:halfroisizebig;
              ax=axes(uitab(p.tabgroup,'Title','PSFx'));
             hold(ax,'off')
-            plot(ax,xrange,xpall,'c')
+            h1=plot(ax,xrange,xpall,'c');
             hold(ax,'on')
-            plot(ax,xrange,xprofile,'k*-')
-            plot(ax,(xxx-(b3_0.dataSize(1)+1)/2),xbs,'b','LineWidth',2)
+            h2=plot(ax,xrange,xprofile,'k*');
+            h3=plot(ax,(xxx-(b3_0.dataSize(1)+1)/2),xbs,'b','LineWidth',2);
             xlabel(ax,'x (pixel)')
             ylabel(ax,'normalized intensity')
             title(ax,'Profile along x for y=0, z=0');
-             legend(ax,'individual PSFs','average PSF','smoothed spline')
+             legend([h1(1),h2,h3],'individual PSFs','average PSF','smoothed spline')
             
             drawnow
             
