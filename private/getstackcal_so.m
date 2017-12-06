@@ -1,6 +1,6 @@
-function [splinefit,indgood]=getstackcal_so(beads,p)
+function [splinefit,indgood,shift]=getstackcal_so(beads,p)
 global stackcal_testfit
-isastig=contains(p.modality,'astig')||contains(p.modality,'2D');
+isastig=contains(p.modality,'astig'); %||contains(p.modality,'2D');
 alignzastig=isastig&contains(p.zcorr,'astig');
 zcorr=contains(p.zcorr,'corr');
 sstack=size(beads(1).stack.image);
@@ -30,13 +30,15 @@ sstack=size(beads(1).stack.image);
     allstacks=zeros(sstack(1),sstack(2),sstack(3),length(beads))+NaN;
     goodvs=[];
     for B=length(beads):-1:1
-        allstacks(:,:,:,B)=beads(B).stack.image;
+        stackh=beads(B).stack.image;
+        allstacks(:,:,1:size(stackh,3),B)=stackh;
         stackh=allstacks(:,:,:,B);
         goodvs(B)=sum(~isnan(stackh(:)))/numel(stackh);
     end
     
     mstack=nanmean(allstacks,4);
-    mstack=mstack-nanmin(mstack(:));
+    mstacks=mstack(3:end-2);
+    mstack=mstack-nanmin(mstacks(:));
     mstack=mstack/nansum(mstack(:));
     for k=length(beads):-1:1
     	stackh=(allstacks(:,:,:,k));
@@ -58,7 +60,7 @@ sstack=size(beads(1).stack.image);
 %     ax=axes('Parent',uitab(p.tabgroup,'Title','scatter'));
 
     [~,sortinddev]=sort(devs);
-    allrois=allstacks(:,:,:,sortinddev);
+%     allrois=allstacks(:,:,:,sortinddev);
     
     if alignzastig
         zshift=dframe(sortinddev)-round(median(dframe));
@@ -71,14 +73,14 @@ sstack=size(beads(1).stack.image);
      framerange=max(1,midrange-fw2):min(midrange+fw2,size(stackh,3));
     p.status.String='calculate shift of individual PSFs';drawnow
     filenumber=[beads(:).filenumber];
-    [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_so(allrois,struct('framerange',framerange,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false),{},filenumber(sortinddev));
+    [corrPSF,shiftedstack,shift,beadgood]=registerPSF3D_so(allstacks,struct('sortind',sortinddev,'framerange',framerange,'alignz',zcorr,'zshiftf0',zshift,'beadfilterf0',false,'status',p.status),{},filenumber(sortinddev));
     
     
     %undo sorting by deviation to associate beads again to their
     %bead number
-    [~,sortback]=sort(sortinddev);
-    shiftedstack=shiftedstack(:,:,:,sortback);
-    beadgood=beadgood(sortback);
+%     [~,sortback]=sort(sortinddev);
+%     shiftedstack=shiftedstack(:,:,:,sortback);
+%     beadgood=beadgood(sortback);
 
     indgood=beadgood;
     allrois=allstacks;
@@ -91,7 +93,7 @@ sstack=size(beads(1).stack.image);
         x=round((scorrPSF(1)+1)/2);y=round((scorrPSF(2)+1)/2);
 
         dRx=round((p.ROIxy-1)/2);
-        if isnan(p.ROIz)
+        if ~isfield(p,'ROIz') || isnan(p.ROIz)
             p.ROIz=size(corrPSF,3);
         end
             dzroi=round((p.ROIz-1)/2);
@@ -185,28 +187,28 @@ sstack=size(beads(1).stack.image);
             zzz=1:dxxx:b3_0.dataSize(3);xxxt=0*zzz+b3_0.dataSize(1)/2+.5;
             zbs= interp3_0(b3_0,xxxt,xxxt,zzz); 
             hold(ax,'off')
-             plot(ax,framerange0,zpall(1:length(framerange0),:),'c')
+             h1=plot(ax,framerange0,zpall(1:length(framerange0),:),'c');
              hold(ax,'on')
-            plot(ax,framerange0',zprofile(1:length(framerange0)),'k*')
-            plot(ax,zzz+rangez(1)+framerange0(1)-2,zbs,'b','LineWidth',2)
+            h2=plot(ax,framerange0',zprofile(1:length(framerange0)),'k*');
+            h3=plot(ax,zzz+rangez(1)+framerange0(1)-2,zbs,'b','LineWidth',2);
             xlabel(ax,'frames')
             ylabel(ax,'normalized intensity')
             ax.XLim(2)=max(framerange0);ax.XLim(1)=min(framerange0);
             title(ax,'Profile along z for x=0, y=0');
             
-            legend('individual PSFs','average PSF','smoothed spline')
+            legend([h1(1),h2,h3],'individual PSFs','average PSF','smoothed spline')
             
             xrange=-halfroisizebig:halfroisizebig;
              ax=axes(uitab(p.tabgroup,'Title','PSFx'));
             hold(ax,'off')
-            plot(ax,xrange,xpall,'c')
+            h1=plot(ax,xrange,xpall,'c');
             hold(ax,'on')
-            plot(ax,xrange,xprofile,'k*-')
-            plot(ax,(xxx-(b3_0.dataSize(1)+1)/2),xbs,'b','LineWidth',2)
+            h2=plot(ax,xrange,xprofile,'k*');
+            h3=plot(ax,(xxx-(b3_0.dataSize(1)+1)/2),xbs,'b','LineWidth',2);
             xlabel(ax,'x (pixel)')
             ylabel(ax,'normalized intensity')
             title(ax,'Profile along x for y=0, z=0');
-             legend('individual PSFs','average PSF','smoothed spline')
+             legend([h1(1),h2,h3],'individual PSFs','average PSF','smoothed spline')
             
             drawnow
             
@@ -229,8 +231,9 @@ if nargin<4
 elseif ~iscell(linepar)
     linepar={linepar};
 end
-d=round((size(teststack,1)-p.ROIxy)/2);
-            range=d+1:d+p.ROIxy;
+fitsize=min(p.ROIxy,21);
+d=round((size(teststack,1)-fitsize)/2);
+            range=d+1:d+fitsize;
 
 numstack=size(teststack,4);
 t=tic;

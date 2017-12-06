@@ -177,7 +177,7 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.filelist.Value=1;
             if isempty(obj.guihandles.outputfile.String)
                 [path,file]=fileparts(sf.filelist{1});
-                obj.guihandles.outputfile.String=[path file '_3Dcorr.mat'];
+                obj.guihandles.outputfile.String=[path filesep file '_3Dcorr.mat'];
                 
             end
         end
@@ -195,7 +195,7 @@ classdef calibrate3D_GUI_g<handle
             of=obj.guihandles.Tfile.String;
             if isempty(of)
                 fl=obj.guihandles.filelist.String;
-                of=[fileparts(fl{1}) '*.mat'];
+                of=[fileparts(fl{1}) filesep '*.mat'];
             end
             [f,p]=uigetfile(of);
             if f

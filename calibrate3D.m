@@ -18,12 +18,7 @@
 %  
 %  
 %  Additional permission under GNU GPL version 3 section 7
-%  
-%  If you modify this Program, or any covered work, by
-%  linking or combining it with libraries required for interaction
-%  with analysis programs such as Igor Pro or Matlab,
-%  the licensors of this Program grant you additional permission
-%  to convey the resulting work.
+
 %%
 function calibrate3D(p)
 % p.filelist
@@ -55,6 +50,15 @@ end
 if ~isfield(p,'xrange')
     p.xrange=[-inf inf]; p.yrange=[-inf inf]; 
 end
+
+if ~isfield(p,'emgain')
+    p.emgain=0;
+end
+
+if ~isfield(p,'smoothxy')
+    p.smoothxy=0;
+end
+
 %get bead positions
 p.status.String='Load files and segment beads';drawnow
 f=figure('Name','Bead calibration');
@@ -88,15 +92,20 @@ if isfield(p,'mindistance')&&~isempty(p.mindistance)
     end 
     beads=beads(indgood); 
 end  
+if isempty(beads)
+    warndlg('Could not find and segment any bead. ROI size too large?')
+    p.status.String='error: could not find and segment any bead...';
+    return
+end
 
 p.midpoint=round(size(beads(1).stack.image,3)/2); %reference for beads
 p.ploton=false;
 
 % beads=beads([2 3])
-% beads(2)=beads(1);
+% beads(2)=beads(1); 
 % beads(3:end)=[];
 
-if contains(p.modality,'astig') || contains(p.modality,'2D')
+if contains(p.modality,'astig') % || contains(p.modality,'2D') 2D treated now as arbitrary
     %determine sx,sy
 %     disp('fit beads to get sx,sy')
     t=tic;
@@ -107,19 +116,19 @@ if contains(p.modality,'astig') || contains(p.modality,'2D')
         d=round((s(1)-p.gaussroi)/2);
         stack=stackh(d+1:end-d,d+1:end-d,:);
         %fit bead bead stacks with Gaussian model
-        if contains(p.modality,'astig')
+%         if contains(p.modality,'astig')
             P=mleFit_LM(stack,4,100,1,0,1);
             beads(k).loc.PSFxpix=P(:,5);
             beads(k).loc.PSFypix=P(:,6);
             beads(k).loc.phot=P(:,3);
             beads(k).f0=stackas2z_so(beads(k).loc.PSFxpix,beads(k).loc.PSFypix,beads(k).loc.frames,beads(k).loc.phot,p);
-        else
-            P=mleFit_LM(stack,2,100,1,0,1);
-            beads(k).loc.PSFxpix=P(:,5);
-            beads(k).loc.PSFypix=P(:,5);
-            beads(k).loc.phot=P(:,3);
-            beads(k).f0=stackas2z2D_so(beads(k).loc.PSFxpix,beads(k).loc.frames,beads(k).loc.phot,p);
-        end
+%         else
+%             P=mleFit_LM(stack,2,100,1,0,1);
+%             beads(k).loc.PSFxpix=P(:,5);
+%             beads(k).loc.PSFypix=P(:,5);
+%             beads(k).loc.phot=P(:,3);
+%             beads(k).f0=stackas2z2D_so(beads(k).loc.PSFxpix,beads(k).loc.frames,beads(k).loc.phot,p);
+%         end
         
         beads(k).loc.bg=P(:,4);
         %determine true position of the beads as the position, where PSFx==PSFy
@@ -131,7 +140,7 @@ if contains(p.modality,'astig') || contains(p.modality,'2D')
         beads(k).psfx0=beads(k).loc.PSFxpix(ind);
         beads(k).psfy0=beads(k).loc.PSFypix(ind);
         if toc(t)>1
-            p.status.String=['Gaussian fit of beads to get spatial paramters: ' num2str(k) ' of ' num2str(length(beads))];
+            p.status.String=['Gaussian fit of beads to get spatial parameters: ' num2str(k) ' of ' num2str(length(beads))];
             drawnow
             t=tic;
         end
@@ -162,7 +171,7 @@ for X=1:length(p.xrange)-1
             p.tabgroup=uitabgroup(ht);
         end
         
-        indgood=beadposxs< p.xrange(X+1) & beadposxs>p.xrange(X) & beadposys<p.yrange(Y+1) & beadposys>p.yrange(Y);
+        indgood=beadposxs+imageRoi(1)< p.xrange(X+1) & beadposxs+imageRoi(1)>p.xrange(X) & beadposys+imageRoi(2)<p.yrange(Y+1) & beadposys+imageRoi(2)>p.yrange(Y);
         beadsh=beads(indgood);
         
         for k=1:max(beadfilenumber)
@@ -230,9 +239,10 @@ for X=1:length(p.xrange)-1
             
         end
         cspline_all=csplinecal;
+        PSF=csplinecal.PSF;
         SXY(X,Y)=struct('gausscal',gausscal,'cspline_all',cspline_all,'gauss_sx2_sy2',gauss_sx2_sy2,'gauss_zfit',gauss_zfit,...
             'cspline',cspline,'Xrangeall',p.xrange+imageRoi(1),'Yrangeall',p.yrange+imageRoi(2),'Xrange',p.xrange([X X+1])+imageRoi(1),...
-            'Yrange',p.yrange([Y Y+1])+imageRoi(2),'posind',[X,Y],'EMon',p.emgain);
+            'Yrange',p.yrange([Y Y+1])+imageRoi(2),'posind',[X,Y],'EMon',p.emgain,'PSF',PSF);
     end
 end
     
