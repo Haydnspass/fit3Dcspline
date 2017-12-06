@@ -18,12 +18,7 @@
 %  
 %  
 %  Additional permission under GNU GPL version 3 section 7
-%  
-%  If you modify this Program, or any covered work, by
-%  linking or combining it with libraries required for interaction
-%  with analysis programs such as Igor Pro or Matlab,
-%  the licensors of this Program grant you additional permission
-%  to convey the resulting work.
+
 %%
 function [out] = simSplinePSF(Npixels,coeff,I,bg,cor)
 t=tic;

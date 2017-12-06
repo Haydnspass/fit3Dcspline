@@ -93,7 +93,7 @@ sstack=size(beads(1).stack.image);
         x=round((scorrPSF(1)+1)/2);y=round((scorrPSF(2)+1)/2);
 
         dRx=round((p.ROIxy-1)/2);
-        if isnan(p.ROIz)
+        if ~isfield(p,'ROIz') || isnan(p.ROIz)
             p.ROIz=size(corrPSF,3);
         end
             dzroi=round((p.ROIz-1)/2);

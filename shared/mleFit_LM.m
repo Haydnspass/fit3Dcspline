@@ -1,6 +1,6 @@
 function [P,CRLB,LogL]=mleFit_LM(varargin)
 % varargin:
-%imstack, startpsf/coeff, iterations, fitmode, isemccd, hidereport
+%imstack, startpsf/coeff, iterations, fitmode, isemccd, hidereport,initZ
 % 1. imagestack (single)
 % 2. fitmode
 %   1 fix PSF

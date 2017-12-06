@@ -19,11 +19,6 @@
 %  
 %  Additional permission under GNU GPL version 3 section 7
 %  
-%  If you modify this Program, or any covered work, by
-%  linking or combining it with libraries required for interaction
-%  with analysis programs such as Igor Pro or Matlab,
-%  the licensors of this Program grant you additional permission
-%  to convey the resulting work.
 %%
 classdef calibrate3D_GUI<handle
     properties
@@ -172,7 +167,7 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.filelist.Value=1;
             if isempty(obj.guihandles.outputfile.String)|| strcmp(obj.guihandles.outputfile.String,'bead_3dcal.mat')
                 [path,file]=fileparts(sf.filelist{1});
-                obj.guihandles.outputfile.String=[path filesep file '_3Dcal.mat'];
+                obj.guihandles.outputfile.String=[path filesep file '_3Dcorr.mat'];
                 
             end
         end
