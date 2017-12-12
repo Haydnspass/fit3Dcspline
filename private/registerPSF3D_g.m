@@ -26,10 +26,7 @@ if numbeads==1
     indgood=true;
     return
 end
-
-
-
-lx=length(p.xrange);
+% lx=length(p.xrange);
 
 if ~isempty(p.zshiftf0)
     zshiftf0=p.zshiftf0;
@@ -37,31 +34,31 @@ else
     zshiftf0=zeros(numbeads,1);
 end
 
-%make big image, shift target image according to shiftxy
-imina=zeros(size(imin,1)*2,size(imin,2),size(imin,3),size(imin,4));
-for k=1:size(imin,4)
-    imina(1:size(imin,1),:,:,k)=imin(:,:,:,k);
-    imina(size(imin,1)+1:end,:,:,k)=shiftimagexy(imint(:,:,:,k),-p.shiftxy(k,:));
+if ~isempty(imint)
+    %make big image, shift target image according to shiftxy
+    imina=zeros(size(imin,1)*2,size(imin,2),size(imin,3),size(imin,4));
+    for k=1:size(imin,4)
+        imina(1:size(imin,1),:,:,k)=imin(:,:,:,k);
+        imina(size(imin,1)+1:end,:,:,k)=shiftimagexy(imint(:,:,:,k),-p.shiftxy(k,:));
+    end
+else 
+    imina=imin;
 end
 
-% xrange=[p.xrange p.xrange+size(imin,1)];
-% smallim=zeros(length(xrange),length(p.yrange),length(p.framerange),size(imin,4));
-% for k=1:size(imin,4)
-%     frh=round(p.framerange-zshiftf0(k)); %makes sure, all beads are at same z position
-%     try
-%     smallim(:,:,:,k)=imina(xrange,p.yrange,frh,k);
-%     catch err %range out 
-%     end
-% end
 numref=max(round(size(imina,4)*.5),min(5,size(imina,4)));
 % numref=1;
 avim=nanmean(imina(:,:,:,p.sortind(1:numref)),4);
-% avim=nanmean(smallim,4);
+
 ph=p;
 lcc=ceil((min(13,length(p.yrange))-1)/2);
 mp=ceil(((length(p.yrange))-1)/2)+1;
 ph.yrange=p.yrange(mp-lcc:mp+lcc);
-ph.xrange=[p.xrange(mp-lcc:mp+lcc) p.xrange(mp-lcc:mp+lcc)+size(imin,1)];
+
+if ~isempty(imint)
+    ph.xrange=[p.xrange(mp-lcc:mp+lcc) p.xrange(mp-lcc:mp+lcc)+size(imin,1)];
+else
+    ph.xrange=p.xrange(mp-lcc:mp+lcc);
+end
 
 %new algorithm to try:
 %1. align with all frames

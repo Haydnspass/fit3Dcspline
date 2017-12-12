@@ -11,9 +11,13 @@ b=[];
 ht=uitab(p.tabgroup,'Title','Files');
 tg=uitabgroup(ht);
 l=load(p.Tfile);
-transform=l.transformation;
-p.transformation=transform;
-p.mirror=contains(transform.tinfo.mirror.targetmirror,'up-down');
+if p.isglobalfit
+    transform=l.transformation;
+    p.transformation=transform;
+    p.mirror=contains(transform.tinfo.mirror.targetmirror,'up-down');
+else
+    p.mirror=false;
+end
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
     p.fileax(k)=ax;
@@ -33,7 +37,10 @@ for k=1:length(filelist)
         imstack=imstack(:,end:-1:1);
     end
        
-     
+    if isfield(p,'framerangeuse')
+        imstack=imstack(:,:,p.framerangeuse(1):p.framerangeuse(end));
+    end
+    
     imstack=imstack-min(imstack(:)); %fast fix for offset;
     
 %     imageslicer(imstack)%%%%%%%%XXXXXXX
@@ -51,11 +58,12 @@ for k=1:length(filelist)
         int=maxima(:,3);
         try
         mimc=mim(roisize:end-roisize,roisize:end-roisize);
-        mmed=quantile(mimc(:),0.2);
+        mmed=quantile(mimc(:),0.3);
         imt=mimc(mimc<mmed);
             sm=sort(int);
         mv=mean(sm(end-5:end));
-        cutoff=mean(imt(:))+max(2.5*std(imt(:)),(mv-mean(imt(:)))/10);
+%         cutoff=mean(imt(:))+max(2.5*std(imt(:)),(mv-mean(imt(:)))/10);
+        cutoff=mean(imt(:))+max(2.5*std(imt(:)),(mv-mean(imt(:)))/15);
         catch
             cutoff=quantile(mimc(:),.95);
         end
@@ -81,44 +89,49 @@ for k=1:length(filelist)
         maxima=maxima(indgoodb,:);
     end 
     
-    %calculate in nm on chip (reference for transformation)
-    maximanm=(maxima(:,1:2)+p.smappos.roi{k}([1 2]));
-    maximanm(:,1)=maximanm(:,1)*p.smappos.pixelsize{k}(1)*1000;
-    maximanm(:,2)=maximanm(:,2)*p.smappos.pixelsize{k}(end)*1000;
-    
-    %transform reference to target
-
-    indref=transform.getRef(maximanm(:,1),maximanm(:,2));
-    maximaref=maxima(indref,:);
-    [x,y]=transform.transformCoordinatesFwd(maximanm(indref,1),maximanm(indref,2));
-%     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,2),maximanm(indref,1));
-   
-    maximatargetf=[];
-    maximatargetf(:,1)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
-    maximatargetf(:,2)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
-%     maximatargetf(:,2)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
-%     maximatargetf(:,1)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
-    
-   
-    if 0 %for testing
-        maximatargetf(:,1)=maximatargetf(:,1)+1;
-        maximatargetf(:,2)=maximatargetf(:,2)+0.5;
-    maximatargetfm(:,1)=maximatargetf(:,1)-0.1+2;
-    maximatargetfm(:,2)=maximatargetf(:,2)+0.1;
-    maximatar=round(maximatargetfm);
-    else 
-    maximatar=round(maximatargetf);
-    end
-    dxy=maximatargetf-maximatar;
-    
-    
     hold (ax,'on')
-    plot(ax,maximaref(:,1),maximaref(:,2),'ko',maximatar(:,1),maximatar(:,2),'kd')
+    if p.isglobalfit
+        %calculate in nm on chip (reference for transformation)
+        maximanm=(maxima(:,1:2)+p.smappos.roi{k}([1 2]));
+        maximanm(:,1)=maximanm(:,1)*p.smappos.pixelsize{k}(1)*1000;
+        maximanm(:,2)=maximanm(:,2)*p.smappos.pixelsize{k}(end)*1000;
+
+        %transform reference to target
+
+        indref=transform.getRef(maximanm(:,1),maximanm(:,2));
+        maximaref=maxima(indref,:);
+        [x,y]=transform.transformCoordinatesFwd(maximanm(indref,1),maximanm(indref,2));
+    %     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,2),maximanm(indref,1));
+
+        maximatargetf=[];
+        maximatargetf(:,1)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
+        maximatargetf(:,2)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
+    %     maximatargetf(:,2)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
+    %     maximatargetf(:,1)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
+
+
+        if 0 %for testing
+            maximatargetf(:,1)=maximatargetf(:,1)+1;
+            maximatargetf(:,2)=maximatargetf(:,2)+0.5;
+        maximatargetfm(:,1)=maximatargetf(:,1)-0.1+2;
+        maximatargetfm(:,2)=maximatargetf(:,2)+0.1;
+        maximatar=round(maximatargetfm);
+        else 
+        maximatar=round(maximatargetf);
+        end
+        dxy=maximatargetf-maximatar;       
+        plot(ax,maximaref(:,1),maximaref(:,2),'ko',maximatar(:,1),maximatar(:,2),'kd')   
+    else
+        plot(ax,maxima(:,1),maxima(:,2),'ko')
+        maximaref=maxima;
+        maximatar=maxima;
+        dxy=zeros(size(maximatar));
+    end
     hold (ax,'off')
     drawnow
     numframes=size(imstack,3);
     bind=length(b)+size(maximaref,1);
-%     bold=size(maxima,1);
+
     for l=1:size(maximaref,1)
         b(bind).loc.frames=(1:numframes)';
         b(bind).loc.filenumber=zeros(numframes,1)+k;
@@ -146,7 +159,7 @@ b=b([b(:).isstack]);
 
 p.fminmax=[1 fmax];
 
-        if isfield(p,'files')
+        if isfield(p,'files')&&~isempty(p.files)
             p.cam_pixelsize_um=p.files(k).info.cam_pixelsize_um;
         else
             p.cam_pixelsize_um=[1 1]/10; %?????

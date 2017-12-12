@@ -184,7 +184,7 @@ classdef calibrate3D_GUI_g<handle
         function selectoutputfile_callback(obj,a,b)
             of=obj.guihandles.outputfile.String;
             if isempty(of)
-                of='_corr3D.mat';
+                of='_cal3D.mat';
             end
             [f,p]=uiputfile(of);
             if f
@@ -259,11 +259,24 @@ classdef calibrate3D_GUI_g<handle
                 if obj.guihandles.posfromsmap.Value %use positions passed on from SMAP
                     p.beadpos=obj.smappos.positions;
                 end
+                
+                if isfield(obj.smappos,'framerangeuse')
+                    p.framerangeuse=obj.smappos.framerangeuse;
+                end
                 p.files=obj.smappos.files;
                 %determine xrange, yrange for spatial calibration
                 switch obj.guihandles.spatialmode.Value
                     case 1 %all
-                        p.xrange=[-inf inf];p.yrange=[-inf inf];
+                        if isfield(obj.smappos,'xrange')
+                            p.xrange=obj.smappos.xrange;
+                        else
+                            p.xrange=[-inf inf];
+                        end
+                        if isfield(obj.smappos,'yrange')
+                            p.yrange=obj.smappos.yrange;
+                        else
+                            p.yrange=[-inf inf];
+                        end  
                     case 2%split horz
                         midp=str2double(obj.guihandles.spatial_xval.String);
                         p.xrange=[-inf  inf];p.yrange=[-inf midp inf];

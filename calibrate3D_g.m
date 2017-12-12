@@ -58,16 +58,31 @@ end
 if ~isfield(p,'xrange')
     p.xrange=[-inf inf]; p.yrange=[-inf inf]; 
 end
+if ~isfield(p,'emgain')
+    p.emgain=0;
+end
+
+if ~isfield(p,'smoothxy')
+    p.smoothxy=0;
+end
+
+if ~isfield(p,'isglobalfit')
+    p.isglobalfit=0;
+end
+if ~isfield(p,'transformation')
+    p.transformation=[];
+end
+
 %get bead positions
 p.status.String='Load files and segment beads';drawnow
 f=figure('Name','Bead calibration');
 p.tabgroup=uitabgroup(f);
 %get beads from images
-if isfield(p,'isglobalfit')&&p.isglobalfit
+% if isfield(p,'isglobalfit')&&p.isglobalfit
     [beads,p]=images2beads_globalfit(p);
-else
-    [beads,p]=images2beads_so(p);
-end
+% else
+%     [beads,p]=images2beads_so(p);
+% end
 
 %get positions of beads
 for k=length(beads):-1:1
@@ -82,19 +97,20 @@ if isfield(p,'fov')&&~isempty(p.fov)
 end
 
 
-%remove beads that are closer together than mindistance
-if isfield(p,'mindistance')&&~isempty(p.mindistance)
-    indgood=true(length(beads),1);
-    for k=1:length(beads)
-        for l=k+1:length(beads)
-            if beads(k).filenumber == beads(l).filenumber && sum((beads(k).pos-beads(l).pos).^2)<p.mindistance^2
-                indgood(k)=false;
-                indgood(l)=false;
-            end
-        end
-    end 
-    beads=beads(indgood); 
-end  
+%remove beads that are closer together than mindistance %should have
+%happened in the segmentation
+% if isfield(p,'mindistance')&&~isempty(p.mindistance)
+%     indgood=true(length(beads),1);
+%     for k=1:length(beads)
+%         for l=k+1:length(beads)
+%             if beads(k).filenumber == beads(l).filenumber && sum((beads(k).pos-beads(l).pos).^2)<p.mindistance^2
+%                 indgood(k)=false;
+%                 indgood(l)=false;
+%             end
+%         end
+%     end 
+%     beads=beads(indgood); 
+% end  
 
 p.midpoint=round(size(beads(1).stack.image,3)/2); %reference for beads
 p.ploton=false;
@@ -103,7 +119,7 @@ p.ploton=false;
 % beads(2)=beads(1);
 % beads(3:end)=[];
 
-if contains(p.modality,'astig') || contains(p.modality,'2D')
+if contains(p.modality,'astig') || contains(p.modality,'2D') %XXXX %needs to be fixed and extended to global
     %determine sx,sy
 %     disp('fit beads to get sx,sy')
     t=tic;
