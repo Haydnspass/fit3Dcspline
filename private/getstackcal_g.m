@@ -217,11 +217,11 @@ sstack=size(beads(1).stack.image);
             zzz=1:dxxx:b3_0r.dataSize(3);xxxt=0*zzz+b3_0r.dataSize(1)/2+.5;
             zbsr= interp3_0(b3_0r,xxxt,xxxt,zzz); 
             hold(ax,'off')
-            plot(ax,framerange0,zpallr(1:length(framerange0),:),'c')
+            h1=plot(ax,framerange0,zpallr(1:length(framerange0),:),'c');
             hold(ax,'on')
             dF=max(framerange0);
-            plot(ax,framerange0',zprofiler(1:length(framerange0)),'k*')
-            plot(ax,zzz+rangez(1)+framerange0(1)-2,zbsr,'b','LineWidth',2)
+            h2=plot(ax,framerange0',zprofiler(1:length(framerange0)),'k*');
+            h3=plot(ax,zzz+rangez(1)+framerange0(1)-2,zbsr,'b','LineWidth',2);
             xlabel(ax,'frames')
             ylabel(ax,'normalized intensity')
             ax.XLim(1)=min(framerange0);
@@ -241,7 +241,7 @@ sstack=size(beads(1).stack.image);
                 ax.XLim(2)=max(framerange0+dF);
                 
             end
-            legend(ax,'individual PSFs','average PSF','smoothed spline')
+            legend([h1(1),h2,h3],'individual PSFs','average PSF','smoothed spline')
 %             mpzhd=round((size(corrPSFhdr,3)+1)/2+1);
 %             dzzz=round((size(corrPSFnr,3)-1)/2+1)-mpzhd;
 
@@ -253,10 +253,10 @@ sstack=size(beads(1).stack.image);
            
 
             if p.isglobalfit
-                plot(ax,[xrange xrange+dL],xpall,'c')
+                h1=plot(ax,[xrange xrange+dL],xpall,'c');
                 hold(ax,'on')
-                plot(ax,[xrange xrange+dL],vertcat(xprofiler,xprofilet),'k*-')
-                plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2),xbsr,'b','LineWidth',2)
+                h2=plot(ax,[xrange xrange+dL],vertcat(xprofiler,xprofilet),'k*-');
+                h3=plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2),xbsr,'b','LineWidth',2);
                 plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2)+dL,xbst,'b','LineWidth',2) 
             else
                 plot(ax,xrange,xpall,'c')
@@ -268,7 +268,7 @@ sstack=size(beads(1).stack.image);
             xlabel(ax,'x (pixel)')
             ylabel(ax,'normalized intensity')
             title(ax,'Profile along x for y=0, z=0');
-            legend(ax,'individual PSFs','average PSF','smoothed spline')
+            legend([h1(1),h2,h3],'individual PSFs','average PSF','smoothed spline')
             
             drawnow
             %quality control: refit all beads

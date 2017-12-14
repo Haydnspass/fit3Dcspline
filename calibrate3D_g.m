@@ -96,32 +96,21 @@ if isfield(p,'fov')&&~isempty(p.fov)
     beads=beads(~indbad);
 end
 
+if isempty(beads)
+    warndlg('Could not find and segment any bead. ROI size too large?')
+    p.status.String='error: could not find and segment any bead...';
+    return
+end
 
-%remove beads that are closer together than mindistance %should have
-%happened in the segmentation
-% if isfield(p,'mindistance')&&~isempty(p.mindistance)
-%     indgood=true(length(beads),1);
-%     for k=1:length(beads)
-%         for l=k+1:length(beads)
-%             if beads(k).filenumber == beads(l).filenumber && sum((beads(k).pos-beads(l).pos).^2)<p.mindistance^2
-%                 indgood(k)=false;
-%                 indgood(l)=false;
-%             end
-%         end
-%     end 
-%     beads=beads(indgood); 
-% end  
 
 p.midpoint=round(size(beads(1).stack.image,3)/2); %reference for beads
 p.ploton=false;
 
-% beads=beads([2 3])
-% beads(2)=beads(1);
-% beads(3:end)=[];
+
 
 if contains(p.modality,'astig') || contains(p.modality,'2D') %XXXX %needs to be fixed and extended to global
     %determine sx,sy
-%     disp('fit beads to get sx,sy')
+
     t=tic;
     p.status.String=['Gaussian fit of beads to get spatial parameters '];drawnow
     for k=1:length(beads)

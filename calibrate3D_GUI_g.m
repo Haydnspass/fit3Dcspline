@@ -69,7 +69,7 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.filelist.TooltipString='List of image files used for calibration. To change this list, use select camera files';
             obj.guihandles.selectoutputfile=uicontrol('style','pushbutton','String','Select output file','Position',[xpos1,top-5*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutputfile_callback);
             obj.guihandles.selectoutputfile.TooltipString='Select file name for output calibration file. E.g. bead_astig_3dcal.mat or bead2d_3dcal.mat';
-            obj.guihandles.outputfile=uicontrol('style','edit','String','data/bead_3dcal.mat','Position',[xpos1+1.5*xw,top-5*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.outputfile=uicontrol('style','edit','String','bead_3dcal.mat','Position',[xpos1+1.5*xw,top-5*vsep,xw*2.5,vsep],'FontSize',fontsize);
             obj.guihandles.outputfile.TooltipString='Name of the output file';
             
           
@@ -81,7 +81,7 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.dzt.TooltipString=obj.guihandles.dz.TooltipString;
             
             obj.guihandles.modalityt=uicontrol('style','text','String','3D modality ','Position',[xpos1,top-9*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
+            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Value',2,'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
             obj.guihandles.modality.TooltipString='Select the kind of PSF. Astigmatic, arbitrary (e.g. saddle-point, double-helix), or unmodified 2D';
             obj.guihandles.modalityt.TooltipString=obj.guihandles.modality.TooltipString;
             
@@ -104,13 +104,13 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.filtert.TooltipString=obj.guihandles.filter.TooltipString;
             
             obj.guihandles.mindistancet=uicontrol('style','text','String','Minimum distance (pixels)','Position',[xpos1,top-13*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.mindistance=uicontrol('style','edit','String','15','Position',[xpos1+2.5*xw,top-13*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.mindistance=uicontrol('style','edit','String','25','Position',[xpos1+2.5*xw,top-13*vsep,xw*1,vsep],'FontSize',fontsize);
             obj.guihandles.mindistance.TooltipString=sprintf('Minimum distance between beads (in pixels). If beads are closer together, they are removed and not used for averaging. Helps eliminating background contaminations from close by beads');
             obj.guihandles.mindistancet.TooltipString=obj.guihandles.mindistance.TooltipString;           
      
             obj.guihandles.csplinet=uicontrol('style','text','String','Cspline parameters: ','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             obj.guihandles.roisizet=uicontrol('style','text','String','ROI size: X,Y (pixels): ','Position',[xpos1,top-16*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.ROIxy=uicontrol('style','edit','String','21','Position',[xpos1+2*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.ROIxy=uicontrol('style','edit','String','27','Position',[xpos1+2*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizezt=uicontrol('style','text','String','Z (frames): ','Position',[xpos1+2.5*xw,top-16*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.ROIz=uicontrol('style','edit','String','','Position',[xpos1+3.5*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizet.TooltipString=sprintf('Size of the volume for which cspline coefficients are calculated. \n Should be larger than the ROI used for fitting. \n x,y: typically 17-31 pixels, z: number of frames in stack');
@@ -168,6 +168,7 @@ classdef calibrate3D_GUI_g<handle
             else
                 set(h, 'HandleVisibility', 'off'); %not affected by close all command
             end
+            modality_callback(obj,0,0)
         end
         function selectfiles_callback(obj,a,b)
             sf=selectManyFiles;
@@ -175,16 +176,16 @@ classdef calibrate3D_GUI_g<handle
             waitfor(sf.handle);
             obj.guihandles.filelist.String=sf.filelist;
             obj.guihandles.filelist.Value=1;
-            if isempty(obj.guihandles.outputfile.String)
+            if isempty(obj.guihandles.outputfile.String)|| strcmp(obj.guihandles.outputfile.String,'bead_3dcal.mat')
                 [path,file]=fileparts(sf.filelist{1});
-                obj.guihandles.outputfile.String=[path filesep file '_3Dcorr.mat'];
+                obj.guihandles.outputfile.String=[path filesep file '_3dcal.mat'];
                 
             end
         end
         function selectoutputfile_callback(obj,a,b)
             of=obj.guihandles.outputfile.String;
             if isempty(of)
-                of='_cal3D.mat';
+                of='_3dcal.mat';
             end
             [f,p]=uiputfile(of);
             if f
