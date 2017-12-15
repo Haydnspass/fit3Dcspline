@@ -25,7 +25,7 @@
 %  the licensors of this Program grant you additional permission
 %  to convey the resulting work.
 %%
-function calibrate3D_g(p)
+function [SXY,beadpos]=calibrate3D_g(p)
 % p.filelist
 % p.outputfile
 % p.dz
@@ -75,8 +75,11 @@ end
 
 %get bead positions
 p.status.String='Load files and segment beads';drawnow
-f=figure('Name','Bead calibration');
-p.tabgroup=uitabgroup(f);
+
+if ~isfield(p,'tabgroup')
+    f=figure('Name','Bead calibration');
+    p.tabgroup=uitabgroup(f);
+end
 %get beads from images
 % if isfield(p,'isglobalfit')&&p.isglobalfit
     [beads,p]=images2beads_globalfit(p);
@@ -204,7 +207,7 @@ for X=1:length(p.xrange)-1
 
         % get cspline calibration
         p.status.String='get cspline calibration';drawnow
-        [csplinecal,indgoods]=getstackcal_g(beadsh(indgoodc),p);
+        [csplinecal,indgoods,beadpos{X,Y}]=getstackcal_g(beadsh(indgoodc),p);
         icf=find(indgoodc);
         icfs=icf(indgoods);
         for k=1:length(csplinecal.cspline.coeff)
@@ -261,10 +264,12 @@ end
 parameters=rmfield(p,{'tabgroup','status','ax_z','ax_sxsy','fileax'});
     
 p.status.String='save calibration';drawnow
-if p.smap
-    save(p.outputfile,'SXY','parameters');
-else
-    save(p.outputfile,'gausscal','cspline_all','gauss_sx2_sy2','gauss_zfit','cspline','parameters');
+if ~isempty(p.outputfile)
+    if p.smap
+        save(p.outputfile,'SXY','parameters');
+    else
+        save(p.outputfile,'gausscal','cspline_all','gauss_sx2_sy2','gauss_zfit','cspline','parameters');
+    end
 end
 p.status.String='Calibration done';drawnow
 end

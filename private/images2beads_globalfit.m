@@ -10,9 +10,14 @@ filelist=p.filelist;
 b=[];
 ht=uitab(p.tabgroup,'Title','Files');
 tg=uitabgroup(ht);
-l=load(p.Tfile);
+
 if p.isglobalfit
-    transform=l.transformation;
+   if ischar(p.Tfile)
+        l=load(p.Tfile);
+        transform=l.transformation;
+   else
+       transform=p.Tfile;
+   end
     p.transformation=transform;
     p.mirror=contains(transform.tinfo.mirror.targetmirror,'up-down');
 else
@@ -22,8 +27,18 @@ for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
     p.fileax(k)=ax;
     if isfield(p,'smap') && p.smap
-        
-        imstack=readfile_ome(filelist{k});
+        try
+             r=imageloaderAll(filelist{k},[],p.smappos.P);
+
+             imstack=r.getmanyimages(1:r.metadata.numberOfFrames,'mat');
+             p.roi{k}=r.metadata.roi;
+             p.pixelsize{k}=r.metadata.cam_pixelsize_um;
+             r.close;
+        catch
+            imstack=readfile_ome(filelist{k});
+            p.roi{k}=p.smappos.roi{k};
+            p.pixelsize{k}=p.smappos.pixelsize{k};
+        end
         if isempty(imstack)
             disp('using simple reader')
             imstack=readfile_tif(filelist{k});
@@ -31,6 +46,7 @@ for k=1:length(filelist)
           
     else
         imstack=readfile_tif(filelist{k});
+        p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
     end
     
     if p.emgain
@@ -92,20 +108,26 @@ for k=1:length(filelist)
     hold (ax,'on')
     if p.isglobalfit
         %calculate in nm on chip (reference for transformation)
-        maximanm=(maxima(:,1:2)+p.smappos.roi{k}([1 2]));
-        maximanm(:,1)=maximanm(:,1)*p.smappos.pixelsize{k}(1)*1000;
-        maximanm(:,2)=maximanm(:,2)*p.smappos.pixelsize{k}(end)*1000;
+        maximanm=(maxima(:,1:2)+p.roi{k}([1 2]));
+        
+        if isfield(transform.tinfo,'units') &&strcmp(transform.tinfo.units,'pixels')
+            pixfac=[1 1];
+        else
+            pixfac=[p.pixelsize{k}(1)*1000 p.pixelsize{k}(end)*1000];
+        end
+            maximanm(:,1)=maximanm(:,1)*pixfac(1);
+            maximanm(:,2)=maximanm(:,2)*pixfac(end);
 
         %transform reference to target
 
-        indref=transform.getRef(maximanm(:,1),maximanm(:,2));
-        maximaref=maxima(indref,:);
-        [x,y]=transform.transformCoordinatesFwd(maximanm(indref,1),maximanm(indref,2));
-    %     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,2),maximanm(indref,1));
+            indref=transform.getRef(maximanm(:,1),maximanm(:,2));
+            maximaref=maxima(indref,:);
+            [x,y]=transform.transformCoordinatesFwd(maximanm(indref,1),maximanm(indref,2));
+        %     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,2),maximanm(indref,1));
 
-        maximatargetf=[];
-        maximatargetf(:,1)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
-        maximatargetf(:,2)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
+            maximatargetf=[];
+            maximatargetf(:,1)=x/pixfac(1)-p.roi{k}(1);
+            maximatargetf(:,2)=y/pixfac(end)-p.roi{k}(2);
     %     maximatargetf(:,2)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
     %     maximatargetf(:,1)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
 
@@ -150,7 +172,7 @@ for k=1:length(filelist)
 %             err
         end
         
-            b(bind).roi=p.smappos.roi{k};
+            b(bind).roi=p.roi{k};
         bind=bind-1;
     end
     fmax=max(fmax,numframes);

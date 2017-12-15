@@ -1,4 +1,4 @@
-function zs=testfit_spline(teststack,coeff,shiftxy, p,linepar,ax)
+function posbeads=testfit_spline(teststack,coeff,shiftxy, p,linepar,ax)
 if nargin<4
     linepar={};
 elseif ~iscell(linepar)
@@ -67,7 +67,11 @@ t=tic;
         xlabel(ax,'frame')
         ylabel(ax,'zfit (nm)')
         zs(:,k)=P(:,zind);
-%         
+        posbeads.z(:,k)=P(:,zind);
+        dn=ceil((size(fitstack,1)+1)/2);
+        posbeads.x(:,k)=P(:,2)-dn;
+        posbeads.y(:,k)=P(:,1)-dn;
+        posbeads.frame(:,k)=1:length(z);
 % 
 % plot(ax2,P(:,1),P(:,2),'.')
 % hold(ax2,'on')

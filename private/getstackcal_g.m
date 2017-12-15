@@ -1,4 +1,4 @@
-function [splinefit,indgood]=getstackcal_g(beads,p)
+function [splinefit,indgood,posbeads]=getstackcal_g(beads,p)
 global stackcal_testfit
 isastig=contains(p.modality,'astig')||contains(p.modality,'2D');
 alignzastig=isastig&contains(p.zcorr,'astig');
@@ -285,8 +285,21 @@ sstack=size(beads(1).stack.image);
                 
                 zref=testfit_spline(corrPSFfitf,cspline.coeff,[0 0],p,{'k','LineWidth',2},ax);
                 testallrois(isnan(testallrois))=0;
-                zall=testfit_spline(testallrois,cspline.coeff,shiftxy(beadgood,:),p,{},ax);
+                posbeads=testfit_spline(testallrois,cspline.coeff,shiftxy(beadgood,:),p,{},ax);
                 drawnow
+                
+                %add coordinates of rois
+                
+                
+                for k=1:size(posbeads.x,2)
+                   %test if right roi!
+                    posbeads.x(:,k)=posbeads.x(:,k)+beads(k).pos(1)+beads(k).roi(1);
+                    posbeads.y(:,k)=posbeads.y(:,k)+beads(k).pos(2)+beads(k).roi(2);
+                end
+                
+
+            else
+                posbeads=[];
             end
         end 
 end
