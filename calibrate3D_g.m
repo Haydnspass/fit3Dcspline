@@ -111,7 +111,7 @@ p.ploton=false;
 
 
 
-if contains(p.modality,'astig') || contains(p.modality,'2D') %XXXX %needs to be fixed and extended to global
+if contains(p.modality,'astig') %|| contains(p.modality,'2D') %XXXX %needs to be fixed and extended to global
     %determine sx,sy
 
     t=tic;
@@ -266,6 +266,7 @@ parameters=rmfield(p,{'tabgroup','status','ax_z','ax_sxsy','fileax'});
 p.status.String='save calibration';drawnow
 if ~isempty(p.outputfile)
     if p.smap
+        parameters.smappos.P=[];
         save(p.outputfile,'SXY','parameters');
     else
         save(p.outputfile,'gausscal','cspline_all','gauss_sx2_sy2','gauss_zfit','cspline','parameters');

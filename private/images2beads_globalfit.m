@@ -34,7 +34,8 @@ for k=1:length(filelist)
              p.roi{k}=r.metadata.roi;
              p.pixelsize{k}=r.metadata.cam_pixelsize_um;
              r.close;
-        catch
+        catch err
+            err
             imstack=readfile_ome(filelist{k});
             p.roi{k}=p.smappos.roi{k};
             p.pixelsize{k}=p.smappos.pixelsize{k};

@@ -14,11 +14,19 @@ splitpos=256;% later to GUI?
 
 switch p.Tmode
     case {'up-down','up-down mirror'}
-        yrange=unique([p.yrange/2 splitpos p.yrange/2+splitpos]);
-        yrange1=yrange(yrange<=splitpos);yrange2=yrange(yrange>=splitpos);
+        if max(p.yrange)<splitpos %defined only in upper part
+            yrange1=p.yrange;
+            yrange2=p.yrange+splitpos;yrange2(yrange2<splitpos)=splitpos;
+        else
+            yrange1=([p.yrange splitpos]);yrange1(yrange1>splitpos)=splitpos;yrange1=unique(yrange1);
+            yrange2=([p.yrange+ splitpos]);yrange2(yrange2>splitpos)=splitpos;yrange2=unique(yrange2);
+        end
+            
+%         yrange=unique([p.yrange splitpos p.yrange+splitpos]);
+%         yrange1=yrange(yrange<=splitpos);yrange2=yrange(yrange>=splitpos);
         xrange1=p.xrange;xrange2=p.xrange;
     case {'right-left','right-left mirror'}
-        xrange=unique([p.xrange/2 splitpos p.xrange/2+splitpos]);  
+        xrange=unique([p.xrange splitpos p.xrange+splitpos]);  
         xrange1=xrange(xrange<=splitpos);xrange2=xrange(xrange>=splitpos);
         yrange1=p.xrange;yrange2=p.xrange;
 end

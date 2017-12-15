@@ -19,27 +19,27 @@ if exist(tfile,'file')
 else %all initial estimation:
 %     approximate shift from size and position
     separator=256;
-    sepscale=5; %maximum separation measure
+    sepscale=1; %maximum separation measure
     loctT=loctarget;
     separators=[512 512];
     switch p.Tmode
         case 'up-down'
-            loctT.x=loctarget.x(:)-separator;
+            loctT.y=loctarget.y(:)-separator;
             targetmirror='no mirror';
             targetpos='bottom';
             separators(2)=separator;
         case 'up-down mirror'
-            loctT.x=-loctarget.x(:)+2*separator;
+            loctT.y=-loctarget.y(:)+2*separator;
             targetpos='bottom';
             targetmirror='up-down';
             separators(2)=separator;
         case 'right-left'
-            loctT.y=loctarget.y(:)-separator;
+            loctT.x=loctarget.x(:)-separator;
             targetmirror='no mirror';
             targetpos='right';
             separators(1)=separator;
         case 'right-left mirror'
-            loctT.y=-loctarget.y(:)+2*separator;   
+            loctT.x=-loctarget.x(:)+2*separator;   
             targetmirror='left-right';
             targetpos='right';
             separators(1)=separator;
@@ -62,8 +62,8 @@ else %all initial estimation:
 
 end
 
-figure(88);plot(locref.x,locref.y,'b.',loctT.x,loctT.y,'r+',loctT.x-dx0,loctT.y-dy0,'g.')
-[iAa,iBa,na,nb,nseen]=matchlocsall(locref,loctT,-dx0,-dy0,3*sepscale,1e5);
+
+[iAa,iBa,na,nb,nseen]=matchlocsall(locref,loctT,-dx0,-dy0,2*sepscale,1e5);
 
 transform=interfaces.LocTransform;
 t.type='polynomial';
@@ -75,6 +75,9 @@ transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(i
  [xa, ya, za]=transform.transformCoordinatesInv((loctarget.x(iBa)),(loctarget.y(iBa)),(loctarget.z(iBa)));
     dx=xa-locref.x(iAa);
    dy=ya-locref.y(iAa);
+   
+  figure(88);plot(locref.x,locref.y,'b.',loctT.x,loctT.y,'r+',loctT.x-dx0,loctT.y-dy0,'g.',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
+   
 if isfield(p,'tabgroup')
     axh=axes(p.tabgroup);
 else
