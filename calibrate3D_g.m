@@ -25,7 +25,7 @@
 %  the licensors of this Program grant you additional permission
 %  to convey the resulting work.
 %%
-function [SXY,beadpos]=calibrate3D_g(p)
+function [SXY,beadpos,parameters]=calibrate3D_g(p)
 % p.filelist
 % p.outputfile
 % p.dz
