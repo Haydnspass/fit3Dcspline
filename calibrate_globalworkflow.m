@@ -76,11 +76,12 @@ ph.yrange=yrange1;ph.xrange=xrange1;
 SXY(1:length(S1))=S1;
 SXY(end+1:end+length(S2))=S2;
 SXY_g=S;
+transformation=parameters_g.transformation;
 
 if ~isempty(p.outputfile)
     if p.smap
         parameters1.smappos.P=[]; parameters2.smappos.P=[]; parameters_g.smappos.P=[];
-        save(p.outputfile,'SXY','SXY_g','parameters_g','parameters1','parameters2');
+        save(p.outputfile,'SXY','SXY_g','parameters_g','parameters1','parameters2','transformation');
     else
         save(p.outputfile,'gausscal','cspline_all','gauss_sx2_sy2','gauss_zfit','cspline','parameters');
     end
