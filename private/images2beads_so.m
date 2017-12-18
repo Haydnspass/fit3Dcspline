@@ -109,7 +109,7 @@ p.fminmax=[1 fmax];
         if isfield(p,'files')
             p.cam_pixelsize_um=p.files(k).info.cam_pixelsize_um;
         else
-            p.cam_pixelsize_um=[1 1]/1000; %?????
+            p.cam_pixelsize_um=[1 1]/10; %?????
         end      
 
 p.pathhere=fileparts(filelist{1});

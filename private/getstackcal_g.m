@@ -1,6 +1,6 @@
-function [splinefit,indgood]=getstackcal_g(beads,p)
+function [splinefit,indgood,posbeads]=getstackcal_g(beads,p)
 global stackcal_testfit
-isastig=contains(p.modality,'astig')||contains(p.modality,'2D');
+isastig=contains(p.modality,'astig');%||contains(p.modality,'2D');
 alignzastig=isastig&contains(p.zcorr,'astig');
 zcorr=contains(p.zcorr,'corr');
 sstack=size(beads(1).stack.image);
@@ -33,13 +33,18 @@ sstack=size(beads(1).stack.image);
     goodvs=[];
     for B=length(beads):-1:1
         allstacks(:,:,:,B)=beads(B).stack.image;
-        if ~p.mirror
-            allstackst(:,:,:,B)=beads(B).stack.imagetar;
-            shiftxy(B,1:2)=beads(B).shiftxy;
+        
+        if p.isglobalfit
+            if ~p.mirror
+                allstackst(:,:,:,B)=beads(B).stack.imagetar;
+                shiftxy(B,1:2)=beads(B).shiftxy;
+            else
+                allstackst(:,:,:,B)=beads(B).stack.imagetar(end:-1:1,:,:);
+                shiftxy(B,1:2)=beads(B).shiftxy;
+                shiftxy(B,2)=-shiftxy(B,2);
+            end
         else
-            allstackst(:,:,:,B)=beads(B).stack.imagetar(end:-1:1,:,:);
-            shiftxy(B,1:2)=beads(B).shiftxy;
-            shiftxy(B,2)=-shiftxy(B,2);
+            shiftxy(B,1:2)=[0 0];
         end
         stackh=allstacks(:,:,:,B);
         goodvs(B)=sum(~isnan(stackh(:)))/numel(stackh);
@@ -57,44 +62,42 @@ sstack=size(beads(1).stack.image);
     end
     dstack=dstack/mean(dstack);  
     
-    mstack=nanmean(allstackst,4);
-    mstack=mstack-nanmin(mstack(:));
-    mstack=mstack/nansum(mstack(:));
-    for k=length(beads):-1:1
-    	stackh=(allstackst(:,:,:,k));
-        stackh=stackh-nanmin(stackh(:));
-        stackh=stackh/nansum(stackh(:));
-        dstackt(k)=sum((stackh(:)-mstack(:)).^2);
-    end
-    dstackt=dstackt/mean(dstackt);  
-    
-    devs=(dpsfx.^2+dpsfy.^2+dstack+dstackt)./goodvs;
+    if p.isglobalfit
+        mstack=nanmean(allstackst,4);
+        mstack=mstack-nanmin(mstack(:));
+        mstack=mstack/nansum(mstack(:));
+        for k=length(beads):-1:1
+            stackh=(allstackst(:,:,:,k));
+            stackh=stackh-nanmin(stackh(:));
+            stackh=stackh/nansum(stackh(:));
+            dstackt(k)=sum((stackh(:)-mstack(:)).^2);
+        end
+        dstackt=dstackt/mean(dstackt);  
 
-    if zcorr
-        
+       
+    else
+        dstackt=0;
+        allstackst=[];
+    end
+        devs=(dpsfx.^2+dpsfy.^2+dstack+dstackt)./goodvs;
+
+
+    if zcorr  
         fw2=round((p.zcorrframes-1)/2);
         
     else
         fw2=2;
     end
    
-%     ax=axes('Parent',uitab(p.tabgroup,'Title','scatter'));
 
     [~,sortinddev]=sort(devs);
-%     
-%     sortinddev=1:length(sortinddev);%XXXXX
-%     
-%     allrois=allstacks(:,:,:,sortinddev);
-%     allroist=allstackst(:,:,:,sortinddev);
-%     shiftxys=shiftxy(sortinddev,:);
+
     if alignzastig
-%         zshift=dframe(sortinddev)-round(median(dframe));
          zshift=dframe-round(median(dframe));
     else
         zshift=[];
     end
     
-%     focusreference=round(median(dframe));
     midrange=halfstoreframes+1-round(median(dframe));
      framerange=max(1,midrange-fw2):min(midrange+fw2,size(stackh,3));
     p.status.String='calculate shift of individual PSFs';drawnow
@@ -104,88 +107,85 @@ sstack=size(beads(1).stack.image);
     
 
     corrPSFr=corrPSF(1:size(allstacks,1),:,:);
-    corrPSFt=corrPSF(size(allstacks,1)+1:end,:,:);
-    
-
-    %undo sorting by deviation to associate beads again to their
-    %bead number
-%     [~,sortback]=sort(sortinddev);
-%     shiftedstack=shiftedstack(:,:,:,sortback);
-%     beadgood=beadgood(sortback);
-%     shiftxys=shiftxys(sortback,:);
     indgood=beadgood;
     allrois=allstacks;
-  allroist=allstackst;
+     %cut out the central part of the PSF correspoinding to the set
+    %Roisize in x,y and z
 
-        %cut out the central part of the PSF correspoinding to the set
-        %Roisize in x,y and z
+    scorrPSF=size(corrPSFr);
+    x=round((scorrPSF(1)+1)/2);y=round((scorrPSF(2)+1)/2);
 
-        scorrPSF=size(corrPSFr);
-        x=round((scorrPSF(1)+1)/2);y=round((scorrPSF(2)+1)/2);
+    dRx=round((p.ROIxy-1)/2);
+    if isnan(p.ROIz)
+        p.ROIz=size(corrPSFr,3);
+    end
+        dzroi=round((p.ROIz-1)/2);
 
-        dRx=round((p.ROIxy-1)/2);
-        if isnan(p.ROIz)
-            p.ROIz=size(corrPSFr,3);
-        end
-            dzroi=round((p.ROIz-1)/2);
+    rangex=x-dRx:x+dRx;
+    rangey=y-dRx:y+dRx;
+    z=midrange;%always same reference: z=f0
+    rangez=max(1,z-dzroi):min(size(corrPSFr,3),z+dzroi);
+    z0reference=find(rangez>=z,1,'first');
+
+    %careful: like this each PSF is normalized individually. This might
+    %not be the right approahc. Then normalize by one only
+    %normalize PSF
+    centpsfr=corrPSFr(rangex,rangey,z-1:z+1); %cut out rim from shift    
+    minPSFr=nanmin(centpsfr(:));
+    corrPSFnr=corrPSFr-minPSFr;
+    intglobalr=nanmean(nansum(nansum(corrPSFnr(rangex,rangey,z-1:z+1),1),2));
+    corrPSFnr=corrPSFnr/intglobalr;   
+    shiftedstack(1:size(allrois,1),:,:,:)=shiftedstack(1:size(allrois,1),:,:,:)/intglobalr;
+    corrPSFnr(isnan(corrPSFnr))=0;
+    corrPSFnr(corrPSFnr<0)=0;
+    corrPSFsr=corrPSFnr(rangex,rangey,rangez);   
         
-        rangex=x-dRx:x+dRx;
-        rangey=y-dRx:y+dRx;
+    PSFgood=true;
 
-        z=midrange;%always same reference: z=f0
-        rangez=max(1,z-dzroi):min(size(corrPSFr,3),z+dzroi);
-        z0reference=find(rangez>=z,1,'first');
+    %calculate effective smoothing factor. For dz=10 nm, pixelsize= 130
+    %nm, a value around 1 produces visible but not too much smoothing.
+    lambdax=p.smoothxy/p.cam_pixelsize_um(1)/100000;
+    lambdaz=p.smoothz/p.dz*100;
+    lambda=[lambdax lambdax lambdaz];
+    %calculate smoothed bsplines
+    b3_0r=bsarray(double(corrPSFsr),'lambda',lambda);
+     %calculate smoothed volume
+    zhd=1:1:b3_0r.dataSize(3);
+    dxxhd=1;
+    [XX,YY,ZZ]=meshgrid(1:dxxhd:b3_0r.dataSize(1),1:dxxhd:b3_0r.dataSize(2),zhd);
+    p.status.String='calculating cspline coefficients in progress';drawnow
+    corrPSFhdr = interp3_0(b3_0r,XX,YY,ZZ,0);
+    %calculate cspline coefficients
+    coeffr = Spline3D_interp(corrPSFhdr);
         
-        %careful: like this each PSF is normalized individually. This might
-        %not be the right approahc. Then normalize by one only
-        %normalize PSF
-        centpsfr=corrPSFr(rangex,rangey,z-1:z+1); %cut out rim from shift
-         centpsft=corrPSFt(rangex,rangey,z-1:z+1);
-%         centpsf=corrPSF(2:end-1,2:end-1,2:end-1); %cut out rim from shift
-        minPSFr=nanmin(centpsfr(:));minPSFt=nanmin(centpsft(:));
-        corrPSFnr=corrPSFr-minPSFr;corrPSFnt=corrPSFt-minPSFt;
-%         corrPSFn=corrPSF;
-        intglobalr=nanmean(nansum(nansum(corrPSFnr(rangex,rangey,z-1:z+1),1),2));
+    if p.isglobalfit
+        corrPSFt=corrPSF(size(allstacks,1)+1:end,:,:);
+        allroist=allstackst;
+        centpsft=corrPSFt(rangex,rangey,z-1:z+1);
+        minPSFt=nanmin(centpsft(:));
+        corrPSFnt=corrPSFt-minPSFt;
         intglobalt=nanmean(nansum(nansum(corrPSFnt(rangex,rangey,z-1:z+1),1),2));
-        corrPSFnr=corrPSFnr/intglobalr;corrPSFnt=corrPSFnt/intglobalt;
-
-        shiftedstack(1:size(allrois,1),:,:,:)=shiftedstack(1:size(allrois,1),:,:,:)/intglobalr;
-        corrPSFnr(isnan(corrPSFnr))=0;
-        corrPSFnr(corrPSFnr<0)=0;
-        corrPSFsr=corrPSFnr(rangex,rangey,rangez);
+        corrPSFnt=corrPSFnt/intglobalt;
         shiftedstack(size(allrois,1)+1:end,:,:,:)=shiftedstack(size(allrois,1)+1:end,:,:,:)/intglobalt;        
         corrPSFnt(isnan(corrPSFnt))=0;
         corrPSFnt(corrPSFnt<0)=0;
         corrPSFst=corrPSFnt(rangex,rangey,rangez);
-        
-        PSFgood=true;
-
-        %calculate effective smoothing factor. For dz=10 nm, pixelsize= 130
-        %nm, a value around 1 produces visible but not too much smoothing.
-        lambdax=p.smoothxy/p.cam_pixelsize_um(1)/100000;
-        lambdaz=p.smoothz/p.dz*100;
-        lambda=[lambdax lambdax lambdaz];
-        %calculate smoothed bsplines
-        b3_0r=bsarray(double(corrPSFsr),'lambda',lambda);
         b3_0t=bsarray(double(corrPSFst),'lambda',lambda);
-
-        %calculate smoothed volume
-        zhd=1:1:b3_0r.dataSize(3);
-        dxxhd=1;
-        [XX,YY,ZZ]=meshgrid(1:dxxhd:b3_0r.dataSize(1),1:dxxhd:b3_0r.dataSize(2),zhd);
-        p.status.String='calculating cspline coefficients in progress';drawnow
-        corrPSFhdr = interp3_0(b3_0r,XX,YY,ZZ,0);
         corrPSFhdt = interp3_0(b3_0t,XX,YY,ZZ,0);
-        
-        %calculate cspline coefficients
-%         spline = Spline3D_v2(corrPSFhd);
-%         coeff = spline.coeff;
-        coeffr = Spline3D_interp(corrPSFhdr);
         coefft = Spline3D_interp(corrPSFhdt);
-       
         %assemble output structure for saving
         bspline.bslpine={b3_0r,b3_0t};
         cspline.coeff={coeffr, coefft};
+        splinefit.PSF={corrPSFr,corrPSFt};
+        splinefit.PSFsmooth={corrPSFhdr,corrPSFhdt};
+    else
+        bspline.bslpine={b3_0r};
+        cspline.coeff={coeffr};    
+        splinefit.PSF={corrPSFr};
+        splinefit.PSFsmooth={corrPSFhdr};       
+    end
+   
+        
         cspline.z0=z0reference;%round((b3_0.dataSize(3)+1)/2);
         cspline.dz=p.dz;
         cspline.x0=dRx+1;
@@ -194,9 +194,7 @@ sstack=size(beads(1).stack.image);
         splinefit.bspline=bspline;
         p.z0=cspline.z0;
         
-        splinefit.PSF={corrPSFr,corrPSFt};
-        
-        splinefit.PSFsmooth={corrPSFhdr,corrPSFhdt};
+
         splinefit.cspline=cspline;
 
         %plot graphs
@@ -209,78 +207,99 @@ sstack=size(beads(1).stack.image);
             xt=x;
             yt=y;
             zpallr=squeeze(shiftedstack(xt,yt,:,beadgood));
-            zpallt=squeeze(shiftedstack(xt+dL,yt,:,beadgood));
-%             zpall2=squeeze(allrois(xt,yt,:,beadgood));
             xpall=squeeze(shiftedstack(:,yt,ftest,beadgood));
-%             xpall2=squeeze(allrois(:,yt,ftest,beadgood));
-%             for k=1:size(zpall,2)
-%                 zpall2(:,k)=zpall2(:,k)/nanmax(zpall2(:,k));
-%                 xpall2(:,k)=xpall2(:,k)/nanmax(xpall2(:,k));                
-%             end           
             zprofiler=squeeze(corrPSFnr(xt,yt,:));
-            zprofilet=squeeze(corrPSFnt(xt,yt,:));
-%             mphd=round((size(corrPSFhd,1)+1)/2);
-                 
             xprofiler=squeeze(corrPSFnr(:,yt,ftest));
-             xprofilet=squeeze(corrPSFnt(:,yt,ftest));
-            mpzhd=round((size(corrPSFhdr,3)+1)/2+1);
-            dzzz=round((size(corrPSFnr,3)-1)/2+1)-mpzhd;
             dxxx=0.1;
-            xxx=1:dxxx:b3_0r.dataSize(1);
-%             zzzt=0*xxx+mpzhd+dzzz-1;
+            xxx=1:dxxx:b3_0r.dataSize(1);            
             zzzt=0*xxx+ftest;
             xbsr= interp3_0(b3_0r,0*xxx+b3_0r.dataSize(1)/2+.5,xxx,zzzt);
-            xbst= interp3_0(b3_0t,0*xxx+b3_0t.dataSize(1)/2+.5,xxx,zzzt);
             zzz=1:dxxx:b3_0r.dataSize(3);xxxt=0*zzz+b3_0r.dataSize(1)/2+.5;
             zbsr= interp3_0(b3_0r,xxxt,xxxt,zzz); 
-            zbst= interp3_0(b3_0t,xxxt,xxxt,zzz); 
             hold(ax,'off')
-             plot(ax,framerange0,zpallr(1:length(framerange0),:),'c')
-             hold(ax,'on')
-             dF=max(framerange0);
-             plot(ax,framerange0+dF,zpallt(1:length(framerange0),:),'c')
-            plot(ax,framerange0',zprofiler(1:length(framerange0)),'k*')
-            plot(ax,framerange0'+dF,zprofilet(1:length(framerange0)),'k*')
-            plot(ax,zzz+rangez(1)+framerange0(1)-2,zbsr,'b','LineWidth',2)
-             plot(ax,zzz+rangez(1)+framerange0(1)-2+dF,zbst,'b','LineWidth',2)
+            h1=plot(ax,framerange0,zpallr(1:length(framerange0),:),'c');
+            hold(ax,'on')
+            dF=max(framerange0);
+            h2=plot(ax,framerange0',zprofiler(1:length(framerange0)),'k*');
+            h3=plot(ax,zzz+rangez(1)+framerange0(1)-2,zbsr,'b','LineWidth',2);
             xlabel(ax,'frames')
             ylabel(ax,'normalized intensity')
-            ax.XLim(2)=max(framerange0+dF);ax.XLim(1)=min(framerange0);
-            title(ax,'Profile along z for x=0, y=0');
-            
-            legend(ax,'individual PSFs','average PSF','smoothed spline')
+            ax.XLim(1)=min(framerange0);
+            title(ax,'Profile along z for x=0, y=0');          
+            ax.XLim(2)=max(framerange0);
+             
+            if p.isglobalfit
+                zpallt=squeeze(shiftedstack(xt+dL,yt,:,beadgood));
+                zprofilet=squeeze(corrPSFnt(xt,yt,:));
+                xprofilet=squeeze(corrPSFnt(:,yt,ftest));
+                
+                xbst= interp3_0(b3_0t,0*xxx+b3_0t.dataSize(1)/2+.5,xxx,zzzt);
+                zbst= interp3_0(b3_0t,xxxt,xxxt,zzz); 
+                plot(ax,framerange0+dF,zpallt(1:length(framerange0),:),'c')
+                plot(ax,framerange0'+dF,zprofilet(1:length(framerange0)),'k*')
+                plot(ax,zzz+rangez(1)+framerange0(1)-2+dF,zbst,'b','LineWidth',2)
+                ax.XLim(2)=max(framerange0+dF);
+                
+            end
+            legend([h1(1),h2,h3],'individual PSFs','average PSF','smoothed spline')
+%             mpzhd=round((size(corrPSFhdr,3)+1)/2+1);
+%             dzzz=round((size(corrPSFnr,3)-1)/2+1)-mpzhd;
+
+%             zzzt=0*xxx+mpzhd+dzzz-1;
             
             xrange=-halfroisizebig:halfroisizebig;
-             ax=axes(uitab(p.tabgroup,'Title','PSFx'));
+            ax=axes(uitab(p.tabgroup,'Title','PSFx'));
             hold(ax,'off')
-            plot(ax,[xrange xrange+dL],xpall,'c')
-            hold(ax,'on')
-            plot(ax,[xrange xrange+dL],vertcat(xprofiler,xprofilet),'k*-')
-            plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2),xbsr,'b','LineWidth',2)
-            plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2)+dL,xbst,'b','LineWidth',2)
+           
+
+            if p.isglobalfit
+                h1=plot(ax,[xrange xrange+dL],xpall,'c');
+                hold(ax,'on')
+                h2=plot(ax,[xrange xrange+dL],vertcat(xprofiler,xprofilet),'k*-');
+                h3=plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2),xbsr,'b','LineWidth',2);
+                plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2)+dL,xbst,'b','LineWidth',2) 
+            else
+                plot(ax,xrange,xpall,'c')
+                hold(ax,'on')
+                plot(ax,xrange,vertcat(xprofiler),'k*-')
+                plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2),xbsr,'b','LineWidth',2)         
+            end
+            
             xlabel(ax,'x (pixel)')
             ylabel(ax,'normalized intensity')
             title(ax,'Profile along x for y=0, z=0');
-             legend(ax,'individual PSFs','average PSF','smoothed spline')
+            legend([h1(1),h2,h3],'individual PSFs','average PSF','smoothed spline')
             
             drawnow
-            
             %quality control: refit all beads
             if isempty(stackcal_testfit)||stackcal_testfit  %not implemented yet in fitter. Fix later
                 ax=axes(uitab(p.tabgroup,'Title','validate'));
-                testallrois(:,:,:,:,1)=allrois(:,:,:,beadgood);
-                testallrois(:,:,:,:,2)=allroist(:,:,:,beadgood);
-                
+                testallrois(:,:,:,:,1)=allrois(:,:,:,beadgood); 
                 corrPSFfit=corrPSF/max(corrPSF(:))*max(testallrois(:)); %bring back to some reasonable photon numbers;
                 corrPSFfitf(:,:,:,1,1)=corrPSFfit(1:size(corrPSFfit,2),:,:);
-                corrPSFfitf(:,:,:,1,2)=corrPSFfit(size(corrPSFfit,2)+1:end,:,:);
+                
+                if p.isglobalfit
+                    testallrois(:,:,:,:,2)=allroist(:,:,:,beadgood);
+                    corrPSFfitf(:,:,:,1,2)=corrPSFfit(size(corrPSFfit,2)+1:end,:,:);
+                end
+                
                 zref=testfit_spline(corrPSFfitf,cspline.coeff,[0 0],p,{'k','LineWidth',2},ax);
+                testallrois(isnan(testallrois))=0;
+                posbeads=testfit_spline(testallrois,cspline.coeff,shiftxy(beadgood,:),p,{},ax);
+                drawnow
+                
+                %add coordinates of rois
+                
+                
+                for k=1:size(posbeads.x,2)
+                   %test if right roi!
+                    posbeads.x(:,k)=posbeads.x(:,k)+beads(k).pos(1)+beads(k).roi(1);
+                    posbeads.y(:,k)=posbeads.y(:,k)+beads(k).pos(2)+beads(k).roi(2);
+                end
                 
 
-                
-                testallrois(isnan(testallrois))=0;
-                zall=testfit_spline(testallrois,cspline.coeff,shiftxy(beadgood,:),p,{},ax);
-                drawnow
+            else
+                posbeads=[];
             end
         end 
 end

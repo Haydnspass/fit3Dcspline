@@ -167,14 +167,14 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.filelist.Value=1;
             if isempty(obj.guihandles.outputfile.String)|| strcmp(obj.guihandles.outputfile.String,'bead_3dcal.mat')
                 [path,file]=fileparts(sf.filelist{1});
-                obj.guihandles.outputfile.String=[path filesep file '_3Dcorr.mat'];
+                obj.guihandles.outputfile.String=[path filesep file '_3dcal.mat'];
                 
             end
         end
         function selectoutputfile_callback(obj,a,b)
             of=obj.guihandles.outputfile.String;
             if isempty(of)
-                of='_corr3D.mat';
+                of='_3dcal.mat';
             end
             [f,p]=uiputfile(of);
             if f
