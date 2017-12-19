@@ -81,7 +81,7 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.dzt.TooltipString=obj.guihandles.dz.TooltipString;
             
             obj.guihandles.modalityt=uicontrol('style','text','String','3D modality ','Position',[xpos1,top-9*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Value',2,'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
+            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF','4Pi'},'Value',2,'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
             obj.guihandles.modality.TooltipString='Select the kind of PSF. Astigmatic, arbitrary (e.g. saddle-point, double-helix), or unmodified 2D';
             obj.guihandles.modalityt.TooltipString=obj.guihandles.modality.TooltipString;
             
@@ -98,13 +98,18 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.zcorrframes.TooltipString=sprintf('Number of frames around focus used to calculate 3D cross-correlation and thus x, y and z shifts. \n Should correspond to 300-1500 nm (depends on dz). \n Too small value leads to poor z alignment.');
             obj.guihandles.zcorrframest.TooltipString=obj.guihandles.zcorrframes.TooltipString;
             
-            obj.guihandles.filtert=uicontrol('style','text','String','Filter size for peak finding','Position',[xpos1,top-12*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.filter=uicontrol('style','edit','String','2','Position',[xpos1+2.5*xw,top-12*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.filtert=uicontrol('style','text','String','Filter size for peak finding','Position',[xpos1,top-12*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.filter=uicontrol('style','edit','String','2','Position',[xpos1+2*xw,top-12*vsep,xw*0.5,vsep],'FontSize',fontsize);
             obj.guihandles.filter.TooltipString=sprintf('Gaussian filter for peak finding (sigma in pixels). For split PSFs (e.g. double-helix) choose larger value to segment centroid positions of the beads, not individual lobes.');
             obj.guihandles.filtert.TooltipString=obj.guihandles.filter.TooltipString;
+ 
+            obj.guihandles.cutoffrelt=uicontrol('style','text','String','Relative cutoff','Position',[xpos1+2.5*xw,top-12*vsep,xw*1.,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.cutoffrel=uicontrol('style','edit','String','1','Position',[xpos1+3.5*xw,top-12*vsep,xw*0.5,vsep],'FontSize',fontsize);
+            obj.guihandles.cutoffrel.TooltipString=sprintf('Sometimes, the automatically determined cutoff does not work. If beads are not found, increase this value, if too many beads are found, decrease it.');
+            obj.guihandles.cutoffrelt.TooltipString=obj.guihandles.cutoffrel.TooltipString;
             
-            obj.guihandles.mindistancet=uicontrol('style','text','String','Minimum distance (pixels)','Position',[xpos1,top-13*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.mindistance=uicontrol('style','edit','String','25','Position',[xpos1+2.5*xw,top-13*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.mindistancet=uicontrol('style','text','String','Minimum distance (pixels)','Position',[xpos1,top-13*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.mindistance=uicontrol('style','edit','String','25','Position',[xpos1+2*xw,top-13*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.mindistance.TooltipString=sprintf('Minimum distance between beads (in pixels). If beads are closer together, they are removed and not used for averaging. Helps eliminating background contaminations from close by beads');
             obj.guihandles.mindistancet.TooltipString=obj.guihandles.mindistance.TooltipString;           
      
@@ -264,6 +269,7 @@ classdef calibrate3D_GUI_g<handle
             p.gaussroi=str2double(obj.guihandles.gaussroi.String);
             p.status=obj.guihandles.status;
             p.mindistance=str2double(obj.guihandles.mindistance.String);
+            p.cutoffrel=str2double(obj.guihandles.cutoffrel.String);
             if isempty(p.filelist)
                 warndlg('please select image files first')
                 return
@@ -327,7 +333,12 @@ classdef calibrate3D_GUI_g<handle
             p.makeT=obj.guihandles.makeT.Value;
             p.Tmode = obj.guihandles.Tmode.String{obj.guihandles.Tmode.Value};
             
-            calibrate_globalworkflow(p);
+            if strcmp(p.modality,'4Pi')
+                calibrate_4pi(p);
+            else
+            
+                calibrate_globalworkflow(p);
+            end
 %             calibrate3D_g(p);
         end    
         function help_callback(obj,a,b)

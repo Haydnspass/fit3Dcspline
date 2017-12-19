@@ -1,13 +1,14 @@
-function transform=transform_locs_simple(locrefi,loctargeti,p)
-df=10;
+function transform=transform_locs_simpleN(transform,locrefi,loctargeti,p)
+% locref , target: Mx2 or Mx3 array
+%p directly relates to transform, used for setTransform
+%
+
 locref=reducepos(locrefi,df);
 loctarget=reducepos(loctargeti,df);
 
 
-tfile=p.Tfile;
-
-if exist(tfile,'file')
-    Tinitial=load(tfile);
+if isfield(p,'Tfile') && exist(p.tfile,'file')
+    Tinitial=load(p.tfile);
     [loctT.x,loctT.y]=Tinitial.transformCoordinatesInv(loctarget.x(:),loctarget.y(:));
     mirrorinfo=Tinitial.tinfo.mirror;
     dx=0;dy=0;
@@ -18,14 +19,10 @@ if exist(tfile,'file')
 %     size=Tinitial.size;
 else %all initial estimation:
 %     approximate shift from size and position
-if isfield(p,'separator')
-    separator=p.separator;
-else
     separator=256;
-end
     sepscale=1; %maximum separation measure
     loctT=loctarget;
-    separators=[2 2]*separator;
+    separators=[512 512];
     switch p.Tmode
         case 'up-down'
             loctT.y=loctarget.y(:)-separator;
@@ -71,7 +68,7 @@ end
 
 transform=interfaces.LocTransform;
 t.type='polynomial';
-t.type='affine';
+% t.type='affine';
 t.parameter=3;
 transform.findTransform(locref.x(iAa),locref.y(iAa),loctarget.x(iBa),loctarget.y(iBa),t)
 transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(iBa),loctarget.y(iBa),loctarget.z(iBa),t)

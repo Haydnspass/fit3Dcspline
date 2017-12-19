@@ -1,4 +1,4 @@
-function [splinefit,indgood,posbeads]=getstackcal_g(beads,p)
+function [splinefit,indgood,posbeads,shift]=getstackcal_g(beads,p)
 global stackcal_testfit
 isastig=contains(p.modality,'astig');%||contains(p.modality,'2D');
 alignzastig=isastig&contains(p.zcorr,'astig');
@@ -135,7 +135,7 @@ sstack=size(beads(1).stack.image);
     corrPSFnr=corrPSFr-minPSFr;
     intglobalr=nanmean(nansum(nansum(corrPSFnr(rangex,rangey,z-1:z+1),1),2));
     corrPSFnr=corrPSFnr/intglobalr;   
-    shiftedstack(1:size(allrois,1),:,:,:)=shiftedstack(1:size(allrois,1),:,:,:)/intglobalr;
+    shiftedstack(1:size(allrois,1),:,:,:)=(shiftedstack(1:size(allrois,1),:,:,:)-minPSFr)/intglobalr;
     corrPSFnr(isnan(corrPSFnr))=0;
     corrPSFnr(corrPSFnr<0)=0;
     corrPSFsr=corrPSFnr(rangex,rangey,rangez);   
@@ -166,7 +166,7 @@ sstack=size(beads(1).stack.image);
         corrPSFnt=corrPSFt-minPSFt;
         intglobalt=nanmean(nansum(nansum(corrPSFnt(rangex,rangey,z-1:z+1),1),2));
         corrPSFnt=corrPSFnt/intglobalt;
-        shiftedstack(size(allrois,1)+1:end,:,:,:)=shiftedstack(size(allrois,1)+1:end,:,:,:)/intglobalt;        
+        shiftedstack(size(allrois,1)+1:end,:,:,:)=(shiftedstack(size(allrois,1)+1:end,:,:,:)-minPSFt)/intglobalt;        
         corrPSFnt(isnan(corrPSFnt))=0;
         corrPSFnt(corrPSFnt<0)=0;
         corrPSFst=corrPSFnt(rangex,rangey,rangez);

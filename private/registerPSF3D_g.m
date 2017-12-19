@@ -1,4 +1,4 @@
-function [imout,shiftedstackn,shift,indgood]=registerPSF3D_g(imin,imint,p,axs,filenumber)
+function [imout,shiftedstackn,shifto,indgood]=registerPSF3D_g(imin,imint,p,axs,filenumber)
 if nargin<3
     axs={};
 end
@@ -74,6 +74,8 @@ meanim=nanmean(shiftedstack(:,:,:,indgood),4);meanim(isnan(meanim))=avim(isnan(m
 %do central correlation using shiftedstack
 ph.framerange=p.framerange;
 [shiftedstack,shift2,cc]=aligntoref(meanim,shiftedstack, 0*zshiftf0,ph);
+
+shifto=shift2+shift;
 % cca(:,1)=cc;
 % for k=1:2
 % shiftedstackn=normalizstack(shiftedstack,p);

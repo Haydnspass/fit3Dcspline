@@ -84,6 +84,7 @@ for k=1:length(filelist)
         catch
             cutoff=quantile(mimc(:),.95);
         end
+        cutoff=cutoff*p.cutoffrel;
         if any(int>cutoff)
             maxima=maxima(int>cutoff,:);
         else
@@ -106,7 +107,7 @@ for k=1:length(filelist)
         maxima=maxima(indgoodb,:);
     end 
     
-    hold (ax,'on')
+  
     if p.isglobalfit
         %calculate in nm on chip (reference for transformation)
         maximanm=(maxima(:,1:2)+p.roi{k}([1 2]));
@@ -140,18 +141,17 @@ for k=1:length(filelist)
         maximatargetfm(:,2)=maximatargetf(:,2)+0.1;
         maximatar=round(maximatargetfm);
         else 
-        maximatar=round(maximatargetf);
+            maximatar=round(maximatargetf);
         end
         dxy=maximatargetf-maximatar;       
-        plot(ax,maximaref(:,1),maximaref(:,2),'ko',maximatar(:,1),maximatar(:,2),'kd')   
+          
     else
-        plot(ax,maxima(:,1),maxima(:,2),'ko')
+        
         maximaref=maxima;
         maximatar=maxima;
         dxy=zeros(size(maximatar));
     end
-    hold (ax,'off')
-    drawnow
+   
     numframes=size(imstack,3);
     bind=length(b)+size(maximaref,1);
 
@@ -178,8 +178,19 @@ for k=1:length(filelist)
     end
     fmax=max(fmax,numframes);
 end
-b=b([b(:).isstack]);
+indgoodbead=[b(:).isstack];
+b=b(indgoodbead);
 
+% plot
+  hold (ax,'on')
+if p.isglobalfit
+    plot(ax,maximaref(indgoodbead,1),maximaref(indgoodbead,2),'ko',maximatar(indgoodbead,1),maximatar(indgoodbead,2),'kd') 
+else
+    plot(ax,maxima(indgoodbead,1),maxima(indgoodbead,2),'ko')
+end
+hold (ax,'off')
+drawnow
+    
 p.fminmax=[1 fmax];
 
         if isfield(p,'files')&&~isempty(p.files)
