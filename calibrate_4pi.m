@@ -6,7 +6,7 @@ tg=uitabgroup(f);
 t1=uitab(tg,'Title','prefit');
 tgprefit=uitabgroup(t1);
 ph.tabgroup=   tgprefit;
-ph.isglobal=false;
+ph.isglobalfit=false;
 ph.outputfile={};
     
     
@@ -31,27 +31,26 @@ for k=1:length(y4pi)
     ph.tabgroup=uitabgroup(uitab(tgprefit,'Title',num2str(k)));
     [splinefit,indgood,posbeads,shift]=getstackcal_g(beads(indbh),ph);
     
-    beadtrue{k}(:,1)=xposh(indgood)+shift(indgood,1); %could also be -shift. Test later!
-    beadtrue{k}(:,2)=yposh(indgood)+shift(indgood,2);
-    beadtrue{k}(:,3)=shift(indgood,3);
+    beadtrue{k}(:,1)=xposh(indgood)-shift(indgood,2); %experimentally: this works :)
+    beadtrue{k}(:,2)=yposh(indgood)-shift(indgood,1);
+    beadtrue{k}(:,3)=shift(indgood,3); %this is not yet tested, could be minus
     
 end
 %calculate transformN
-%transform_simple for transformN: 
-figure(88);hold off
 transform=interfaces.LocTransformN;
-pt.mirror=mirror4pi(1)*2;
+pt.mirror=mirror4pi(1)*2; %2 for y coordinate
 pt.xrange=[x4pi(1) x4pi(1)+width4pi];
 pt.yrange=[y4pi(1) y4pi(1)+height4pi];
 pt.units='pixel';
+pt.type='projective';
 transform.setTransform(1,pt)
 for k=2:length(beadtrue)
-    plot(beadtrue{k}(:,1),beadtrue{k}(:,2),'.');hold on
-    pt.mirror=(k)*2;
+    pt.mirror=mirror4pi(k)*2;
     pt.xrange=[x4pi(k) x4pi(k)+width4pi];
     pt.yrange=[y4pi(k) y4pi(k)+height4pi];
     transform.setTransform(k,pt)
-    transform_locs_simpleN(transform, beadtrue{1},beadtrue{k},p)
+    tab=(uitab(tgprefit,'Title',['T' num2str(k)]));ph.ax=axes(tab);
+    transform_locs_simpleN(transform,1, beadtrue{1},k,beadtrue{k},ph)
 end
 
 
