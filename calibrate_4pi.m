@@ -275,6 +275,10 @@ function [I,A,B]=make4Pimodel(allPSFs,phaseshifts,frequency)
 [A41,B41]=makeAB(allPSFs(:,:,:,4),allPSFs(:,:,:,1),Iall,z,frequency,phaseshifts(4),phaseshifts(1));
 [A23,B23]=makeAB(allPSFs(:,:,:,2),allPSFs(:,:,:,3),Iall,z,frequency,phaseshifts(2),phaseshifts(3));
 [A34,B34]=makeAB(allPSFs(:,:,:,3),allPSFs(:,:,:,4),Iall,z,frequency,phaseshifts(3),phaseshifts(4));
+A=(A12+A23+A34+A41)/4;
+B=(B12+B23+B34+B41)/4;
+I=Iall;
+
 end
 
 function [A,B]=makeAB(P1,P2,I,z,frequency,phase1,phase2)
