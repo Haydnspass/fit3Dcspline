@@ -1,6 +1,12 @@
 function [imout,shiftedstackn,shifto,indgood]=registerPSF3D_g(imin,imint,p,axs,filenumber)
-if nargin<3
+if nargin<4
     axs={};
+end
+if nargin<3
+    p=[];
+end
+if nargin<5
+    filenumber=[];
 end
 % perform correlation on:
 % p.xrange
@@ -17,6 +23,26 @@ end
 if ~isfield(p,'framerange')
     p.framerange=1:size(imin,3);
 end
+if ~isfield(p,'shiftxy')
+    p.shiftxy=zeros(size(imin,4),2);
+end
+if ~isfield(p,'alignz')
+    p.alignz='cross-correlation';
+end
+if ~isfield(p,'beadfilterf0')
+    p.beadfilterf0=false;
+end
+if ~isfield(p,'status')
+    p.status=[];
+end
+
+if ~isfield(p,'sortind')
+    p.sortind=1:size(imin,4);
+end
+
+if ~isfield(p,'removeoutliers')
+    p.removeoutliers=true;
+end
 
 numbeads=size(imin,4);
 if numbeads==1
@@ -28,7 +54,7 @@ if numbeads==1
 end
 % lx=length(p.xrange);
 
-if ~isempty(p.zshiftf0)
+if isfield(p,'zshift0') && ~isempty(p.zshiftf0)
     zshiftf0=p.zshiftf0;
 else
     zshiftf0=zeros(numbeads,1);
@@ -68,7 +94,9 @@ ph.framerange=1:size(avim,3);
 %calculate good ones, 
 shiftedstackn=normalizstack(shiftedstack,p);
 indgood=true(1,size(shiftedstackn,4));
+if p.removeoutliers
 [indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
+end
 meanim=nanmean(shiftedstack(:,:,:,indgood),4);meanim(isnan(meanim))=avim(isnan(meanim));   
 
 %do central correlation using shiftedstack
@@ -136,17 +164,20 @@ shifto=shift2+shift;
 shiftedstackn=normalizstack(shiftedstack,p);
 
 indgood=true(1,size(shiftedstackn,4));
+if p.removeoutliers
 [indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
 [indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
 [indgood,res,normglobal,co,cc2]=getoverlap(shiftedstackn,shift,ph,indgood);
 shiftedstackn=shiftedstackn/normglobal;
+end
 
 imout=nanmean(shiftedstackn(:,:,:,indgood),4);
 shiftedstackn(1,end,:,~indgood)=nanmax(shiftedstackn(:));
 shiftedstackn(1,:,1,~indgood)=nanmax(shiftedstackn(:));
 
-col=lines(max(filenumber));
+
 if length(axs)>0
+    col=lines(max(filenumber));
     leg={};
     hold(axs{1},'off')
     for k=1:max(filenumber)
