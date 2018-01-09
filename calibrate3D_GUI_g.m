@@ -165,18 +165,23 @@ classdef calibrate3D_GUI_g<handle
             if extended  %called from our propriety fitting software SMAP: extended funtionality. Hidden if called directly          
                 obj.guihandles.posfromsmap=uicontrol('style','checkbox','String','SMAP positions','Position',[xpos1,top-3*vsep,xw*1.5,vsep],'FontSize',fontsize,'Value',false);
                 obj.guihandles.posfromsmap.TooltipString='Use positions determined by SMAP. This allows for filtering and manual deletion of beads, as well as the use of ROIs.';
-                
+            else
+                set(h, 'HandleVisibility', 'off'); %not affected by close all command
+            end      
+            
                 obj.guihandles.spatialcalt=uicontrol('style','text','String','Spatially resolved calibration: ','Position',[xpos1,top-27*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
                 obj.guihandles.spatialmode=uicontrol('style','popupmenu','String',{'none','horizontal split','vertical split','M x N tiles','coordinates'},'Position',[xpos1,top-28*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',{@spatialselect_callback,obj});
                 obj.guihandles.spatial_xtext=uicontrol('style','text','String','xtext','Position',[xpos1,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
                 obj.guihandles.spatial_xval=uicontrol('style','edit','String','','Position',[xpos1+xw,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
                 obj.guihandles.spatial_ytext=uicontrol('style','text','String','ytext','Position',[xpos1+2*xw,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
                 obj.guihandles.spatial_yval=uicontrol('style','edit','String','','Position',[xpos1+3*xw,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');   
+                obj.guihandles.setframes=uicontrol('style','checkbox','String','set frames','Position',[xpos1+2*xw,top-28*vsep,xw*1,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',@obj.setframes_callback);
+                obj.guihandles.framerange=uicontrol('style','edit','String','50 250','Position',[xpos1+3*xw,top-28*vsep,xw,vsep],'FontSize',fontsize);
+                
+                
                 obj.guihandles.emgain=uicontrol('style','checkbox','String','EM gain used (mirrored)','Position',[xpos1,top-30*vsep,2*xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha); 
                 obj.smappos=varargin{1};
-            else
-                set(h, 'HandleVisibility', 'off'); %not affected by close all command
-            end
+
             modality_callback(obj,0,0)
             obj.global_callback(0,0);
         end
@@ -252,6 +257,14 @@ classdef calibrate3D_GUI_g<handle
                 obj.guihandles.(corrg{k}).Visible=vis;
             end
         end
+        function setframes_callback(obj,a,b)
+            if a.Value
+                v='on';
+            else
+                v='off';
+            end
+            obj.guihandles.framerange.Visible=v;     
+        end
         function out=run_callback(obj,a,b)
             p.filelist=obj.guihandles.filelist.String;
             p.outputfile=obj.guihandles.outputfile.String;
@@ -322,11 +335,14 @@ classdef calibrate3D_GUI_g<handle
                         p.xrange=str2num(obj.guihandles.spatial_xval.String);
                         p.yrange=str2num(obj.guihandles.spatial_yval.String);
                 end
+                
                 p.emgain=obj.guihandles.emgain.Value;
             else
                 p.emgain=false;
             end
-            
+            if obj.guihandles.setframes.Value
+                p.framerange=str2num(obj.guihandles.framerange.String);
+            end
             
             p.isglobalfit=obj.guihandles.isglobalfit.Value;
             p.Tfile=obj.guihandles.Tfile.String;
