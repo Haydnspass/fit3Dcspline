@@ -16,13 +16,15 @@ if p.isglobalfit
         l=load(p.Tfile);
         transform=l.transformation;
    else
-       transform=p.Tfile;
+       transform=p.Tfiles;
    end
     p.transformation=transform;
     p.mirror=contains(transform.tinfo.mirror.targetmirror,'up-down');
 else
     p.mirror=false;
 end
+
+offset=3;
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
     p.fileax(k)=ax;
@@ -72,6 +74,8 @@ for k=1:length(filelist)
         maxima=round(p.beadpos{k});
     else
         maxima=maximumfindcall(mim);
+        %XXXXXXXXXXX
+%         maxima(:,1)=(maxima(:,1)+2*round(rand(size(maxima,1),1)))-1; % for testing if positions match
         int=maxima(:,3);
         try
         mimc=mim(roisize:end-roisize,roisize:end-roisize);

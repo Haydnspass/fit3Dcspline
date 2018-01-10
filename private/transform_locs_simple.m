@@ -5,12 +5,14 @@ loctarget=reducepos(loctargeti,df);
 
 
 tfile=p.Tfile;
-
+ sepscale=1; %maximum separation measure
 if exist(tfile,'file')
-    Tinitial=load(tfile);
+    l=load(tfile,'transformation');
+    Tinitial=l.transformation;
     [loctT.x,loctT.y]=Tinitial.transformCoordinatesInv(loctarget.x(:),loctarget.y(:));
+    loctT.frame=loctarget.frame;
     mirrorinfo=Tinitial.tinfo.mirror;
-    dx=0;dy=0;
+    dx0=0;dy0=0;
 %     if contains(mirrorinfo.targetmirror,'no')
 %     cutout=true;
 %     end
@@ -23,7 +25,7 @@ if isfield(p,'separator')
 else
     separator=256;
 end
-    sepscale=1; %maximum separation measure
+   
     loctT=loctarget;
     separators=[2 2]*separator;
     switch p.Tmode
@@ -71,7 +73,7 @@ end
 
 transform=interfaces.LocTransform;
 t.type='polynomial';
-% t.type='affine';
+t.type='projective';
 t.parameter=3;
 transform.findTransform(locref.x(iAa),locref.y(iAa),loctarget.x(iBa),loctarget.y(iBa),t)
 transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(iBa),loctarget.y(iBa),loctarget.z(iBa),t)
@@ -80,7 +82,7 @@ transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(i
     dx=xa-locref.x(iAa);
    dy=ya-locref.y(iAa);
    
-  figure(88);plot(locref.x,locref.y,'b.',loctT.x,loctT.y,'r+',loctT.x-dx0,loctT.y-dy0,'g.',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
+  figure(88);plot(locref.x,locref.y,'b.',loctT.x-dx0,loctT.y-dy0,'r+',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
    
 if isfield(p,'tabgroup')
     axh=axes(p.tabgroup);

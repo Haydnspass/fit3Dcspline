@@ -17,7 +17,11 @@ switch p.Tmode
     case {'up-down','up-down mirror'}
         if max(p.yrange)<splitpos %defined only in upper part
             yrange1=p.yrange;
-            yrange2=p.yrange+splitpos;yrange2(yrange2<splitpos)=splitpos;
+            if contains(p.Tmode,'mirror')
+                yrange2=sort(-p.yrange+2*splitpos);yrange2(yrange2<splitpos)=splitpos;
+            else
+                yrange2=sort(p.yrange+splitpos);yrange2(yrange2<splitpos)=splitpos;
+            end
         else
             yrange1=([p.yrange splitpos]);yrange1(yrange1>splitpos)=splitpos;yrange1=unique(yrange1);
             yrange2=([p.yrange+ splitpos]);yrange2(yrange2<splitpos)=splitpos;yrange2=unique(yrange2);
@@ -76,7 +80,8 @@ p.separator=splitpos;
 if p.makeT || isempty(p.Tfile)
     transform=transform_locs_simple(beadpos1{1},beadpos2{1},p);
 else
-    transform=load(p.Tfile);
+    l=load(p.Tfile);
+    transform=l.transformation;
 end
 
 ph=p;
