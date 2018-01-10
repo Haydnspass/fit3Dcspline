@@ -71,7 +71,7 @@ end
 
 transform=interfaces.LocTransform;
 t.type='polynomial';
-t.type='affine';
+% t.type='affine';
 t.parameter=3;
 transform.findTransform(locref.x(iAa),locref.y(iAa),loctarget.x(iBa),loctarget.y(iBa),t)
 transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(iBa),loctarget.y(iBa),loctarget.z(iBa),t)

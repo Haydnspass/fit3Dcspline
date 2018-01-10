@@ -11,7 +11,7 @@ ph.isglobalfit=false;
 %set spatial calibration
 ph.outputfile={};
 splitpos=256;% later to GUI?
-splitpos=150 %challenge
+% splitpos=150 %challenge
 
 switch p.Tmode
     case {'up-down','up-down mirror'}
