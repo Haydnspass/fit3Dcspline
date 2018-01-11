@@ -251,18 +251,24 @@ sstack=size(beads(1).stack.image);
             ax=axes(uitab(p.tabgroup,'Title','PSFx'));
             hold(ax,'off')
            
-
+            axp=(uitab(p.tabgroup,'Title','PSF'));
+            
             if p.isglobalfit
                 h1=plot(ax,[xrange xrange+dL],xpall,'c');
                 hold(ax,'on')
                 h2=plot(ax,[xrange xrange+dL],vertcat(xprofiler,xprofilet),'k*-');
                 h3=plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2),xbsr,'b','LineWidth',2);
                 plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2)+dL,xbst,'b','LineWidth',2) 
+                
+                cp(:,:,:,1)=corrPSFnr;
+                 cp(:,:,:,2)=corrPSFnt;
+                imageslicer(cp,'Parent',axp);
             else
                 plot(ax,xrange,xpall,'c')
                 hold(ax,'on')
                 plot(ax,xrange,vertcat(xprofiler),'k*-')
-                plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2),xbsr,'b','LineWidth',2)         
+                plot(ax,(xxx-(b3_0r.dataSize(1)+1)/2),xbsr,'b','LineWidth',2)  
+                imageslicer(corrPSFnr,'Parent',axp);
             end
             
             xlabel(ax,'x (pixel)')
@@ -270,6 +276,7 @@ sstack=size(beads(1).stack.image);
             title(ax,'Profile along x for y=0, z=0');
             legend([h1(1),h2,h3],'individual PSFs','average PSF','smoothed spline')
             
+
             drawnow
             %quality control: refit all beads
             if isempty(stackcal_testfit)||stackcal_testfit  %not implemented yet in fitter. Fix later
@@ -290,11 +297,16 @@ sstack=size(beads(1).stack.image);
                 
                 %add coordinates of rois
                 
+                beadshere=beads(indgood);
+                posbeads.filenumber=0*posbeads.x;
                 
                 for k=1:size(posbeads.x,2)
                    %test if right roi!
-                    posbeads.x(:,k)=posbeads.x(:,k)+beads(k).pos(1)+beads(k).roi(1);
-                    posbeads.y(:,k)=posbeads.y(:,k)+beads(k).pos(2)+beads(k).roi(2);
+                    posbeads.xim(:,k)=posbeads.x(:,k)+beadshere(k).pos(1)+1; %%%just to make fit  somethign still wrong with T
+                    posbeads.yim(:,k)=posbeads.y(:,k)+beadshere(k).pos(2)+1;
+                    posbeads.x(:,k)=posbeads.xim(:,k)+beadshere(k).roi(1);
+                    posbeads.y(:,k)=posbeads.yim(:,k)+beadshere(k).roi(2);
+                    posbeads.filenumber(:,k)=beadshere(k).filenumber;
                 end
                 
 

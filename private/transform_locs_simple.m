@@ -73,7 +73,7 @@ end
 
 transform=interfaces.LocTransform;
 t.type='polynomial';
-t.type='projective';
+% t.type='projective';
 t.parameter=3;
 transform.findTransform(locref.x(iAa),locref.y(iAa),loctarget.x(iBa),loctarget.y(iBa),t)
 transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(iBa),loctarget.y(iBa),loctarget.z(iBa),t)
@@ -82,8 +82,8 @@ transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(i
     dx=xa-locref.x(iAa);
    dy=ya-locref.y(iAa);
    
-  figure(88);plot(locref.x,locref.y,'b.',loctT.x-dx0,loctT.y-dy0,'r+',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
-   
+%   figure(88);plot(locref.x,locref.y,'b.',loctT.x-dx0,loctT.y-dy0,'r+',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
+%    
 if isfield(p,'tabgroup')
     axh=axes(p.tabgroup);
 else

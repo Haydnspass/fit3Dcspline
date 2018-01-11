@@ -208,6 +208,13 @@ for X=1:length(p.xrange)-1
         % get cspline calibration
         p.status.String='get cspline calibration';drawnow
         [csplinecal,indgoods,beadpos{X,Y}]=getstackcal_g(beadsh(indgoodc),p);
+        
+        for f=1:max(beadpos{X,Y}.filenumber(:))
+            indfile=(beadpos{X,Y}.filenumber==f);
+            p.fileax(f).NextPlot='add';
+            plot(p.fileax(f),beadpos{X,Y}.xim(indfile),beadpos{X,Y}.yim(indfile),'m+')
+        end
+        
         icf=find(indgoodc);
         icfs=icf(indgoods);
         for k=1:length(csplinecal.cspline.coeff)

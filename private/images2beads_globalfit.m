@@ -16,7 +16,7 @@ if p.isglobalfit
         l=load(p.Tfile);
         transform=l.transformation;
    else
-       transform=p.Tfiles;
+       transform=p.Tfile;
    end
     p.transformation=transform;
     p.mirror=contains(transform.tinfo.mirror.targetmirror,'up-down');
