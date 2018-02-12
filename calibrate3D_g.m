@@ -49,7 +49,7 @@ function [SXY,beadpos,parameters]=calibrate3D_g(p)
 % isglobalfit
 % Tfile
 
-if ~isfield(p,'smap')&& (~p.globalfit)
+if ~isfield(p,'smap')&& (~p.isglobalfit)
     p.smap=false;
     imageRoi=zeros(2,1); 
 else
