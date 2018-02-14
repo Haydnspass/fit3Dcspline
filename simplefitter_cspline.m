@@ -92,6 +92,9 @@ if exist(p.calfile,'file')
     p.dz=cal.cspline.dz;  %coordinate system of spline PSF is corner based and in units pixels / planes
     p.z0=cal.cspline.z0;
     p.coeff=cal.cspline.coeff;
+    if iscell(p.coeff)
+        p.coeff=p.coeff{1};
+    end
     p.isspline=true;
 else
 %     errordlg('please select 3D calibration file')
@@ -273,9 +276,11 @@ end
 function results=fitspline(imstack,peakcoordinates,p,varstack)
 if p.isspline
     if p.bidirectional
-        fitmode=6;
+        fitmode=5;
+        zstart=[-300 300]/p.dz;
     else
         fitmode=5;
+        zstart=0;
     end
     fitpar=single(p.coeff);
 else
@@ -287,7 +292,7 @@ else
     fitpar=single(1);
 end
 
-[Pcspline,CRLB,LL]=mleFit_LM(imstack,fitmode,50,fitpar,varstack,1);
+[Pcspline,CRLB,LL]=mleFit_LM(imstack,fitmode,50,fitpar,varstack,1,zstart);
 results=zeros(size(imstack,3),12);
 results(:,1)=peakcoordinates(:,3);
 if  p.mirror
