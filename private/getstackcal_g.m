@@ -144,7 +144,8 @@ sstack=size(beads(1).stack.image);
 
     %calculate effective smoothing factor. For dz=10 nm, pixelsize= 130
     %nm, a value around 1 produces visible but not too much smoothing.
-    lambdax=p.smoothxy/p.cam_pixelsize_um(1)/100000;
+%     lambdax=p.smoothxy/p.cam_pixelsize_um(1)/100000;
+    lambdax=p.smoothxy/p.pixelsize{1}(1)/100000;
     lambdaz=p.smoothz/p.dz*100;
     lambda=[lambdax lambdax lambdaz];
     %calculate smoothed bsplines

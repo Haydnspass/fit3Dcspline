@@ -198,11 +198,11 @@ b=b(indgoodbead);
     
 p.fminmax=[1 fmax];
 
-        if isfield(p,'files')&&~isempty(p.files)
-            p.cam_pixelsize_um=p.files(k).info.cam_pixelsize_um;
-        else
-            p.cam_pixelsize_um=[1 1]/10; %?????
-        end      
+%         if isfield(p,'files')&&~isempty(p.files)
+%             p.cam_pixelsize_um=p.files(k).info.cam_pixelsize_um;
+%         else
+%             p.cam_pixelsize_um=[1 1]/10; %?????
+%         end      
 
 p.pathhere=fileparts(filelist{1});
 end

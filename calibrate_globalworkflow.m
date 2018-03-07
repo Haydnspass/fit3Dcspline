@@ -103,12 +103,15 @@ else
 end
 SXY_g=S;
 transformation=parameters_g.transformation;
-
+calibrationfigure=f;
 if ~isempty(p.outputfile)
     if p.smap
         parameters1.smappos.P=[]; parameters2.smappos.P=[]; parameters_g.smappos.P=[];
         save(p.outputfile,'SXY','SXY_g','parameters_g','parameters1','parameters2','transformation');
+        
     else
         save(p.outputfile,'gausscal','cspline_all','gauss_sx2_sy2','gauss_zfit','cspline','parameters');
     end
+    filefig=strrep(p.outputfile,'.mat','.fig');
+    savefig(calibrationfigure,filefig,'compact');
 end
