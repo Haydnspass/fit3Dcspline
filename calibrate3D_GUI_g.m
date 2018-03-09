@@ -149,8 +149,8 @@ classdef calibrate3D_GUI_g<handle
             
             obj.guihandles.globalt=uicontrol('style','text','String','Global fit parameters: ','Position',[xpos1,top-23*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             obj.guihandles.isglobalfit=uicontrol('style','checkbox','String','global','Position',[xpos1,top-24*vsep,xw*1,vsep],'FontSize',fontsize,'Callback',@obj.global_callback);
-            obj.guihandles.loadtransform=uicontrol('style','pushbutton','String','load','Position',[xpos1+1*xw,top-24*vsep,xw*.5,vsep],'FontSize',fontsize,'Callback',@obj.loadT_callback);
-            obj.guihandles.Tfile=uicontrol('style','edit','String','','Position',[xpos1+1.5*xw,top-24*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.loadtransform=uicontrol('style','pushbutton','String','load T','Position',[xpos1+1*xw,top-24*vsep,xw*.75,vsep],'FontSize',fontsize,'Callback',@obj.loadT_callback);
+            obj.guihandles.Tfile=uicontrol('style','edit','String','','Position',[xpos1+1.75*xw,top-24*vsep,xw*2.25,vsep],'FontSize',fontsize);
             
             obj.guihandles.makeT=uicontrol('style','checkbox','String','make transformation','Position',[xpos1,top-25*vsep,xw*2,vsep],'FontSize',fontsize);
             obj.guihandles.Tmode=uicontrol('style','popupmenu','String',{'up-down','up-down mirror','right-left','right-left mirror'},'Position',[xpos1+2*xw,top-25*vsep,xw*2,vsep],'FontSize',fontsize);
