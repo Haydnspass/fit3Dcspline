@@ -34,9 +34,15 @@ classdef calibrate3D_GUI_g<handle
         function obj=calibrate3D_GUI_g(varargin)  
             %constructur: make GUI   
             if ~isdeployed
-            addpath('shared')
-            addpath('bfmatlab')
-            javaaddpath('ImageJ/plugins/bioformats_package.jar')
+                if exist('shared','file')
+                    addpath('shared')
+                end
+                if exist('bfmatlab','file')
+                    addpath('bfmatlab')
+                end
+                if exist('ImageJ/plugins/bioformats_package.jar','file')
+                    javaaddpath('ImageJ/plugins/bioformats_package.jar')
+                end
             end
             
             if nargin>0 %called from our propriety fitting software SMAP: extended funtionality. Hidden if called directly
