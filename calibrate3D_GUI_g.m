@@ -55,7 +55,7 @@ classdef calibrate3D_GUI_g<handle
             
             if nargin>0 %called from our propriety fitting software SMAP: extended funtionality. Hidden if called directly
                 extended=true;
-                figureheight=830;
+                figureheight=770;
             else
                 extended=false;
                 figureheight=730;
@@ -145,13 +145,13 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.smoothz.TooltipString=sprintf('Smoothing paramter in z. Too large values lead to a broadened PSF and loss in accuracy, too small value leads to stripe artifacts. Typically 0.3-5');
             obj.guihandles.smootht.TooltipString=obj.guihandles.smoothz.TooltipString;
             
-            obj.guihandles.gausst=uicontrol('style','text','String','Gauss fit parameters: ','Position',[xpos1,top-19*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
-            obj.guihandles.gaussmint=uicontrol('style','text','String','Range (nm). minimum: ','Position',[xpos1,top-20*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.gaussmin=uicontrol('style','edit','String','-700','Position',[xpos1+2*xw,top-20*vsep,xw*.5,vsep],'FontSize',fontsize);
-            obj.guihandles.gaussmaxt=uicontrol('style','text','String','maximum: ','Position',[xpos1+2.5*xw,top-20*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.gaussmax=uicontrol('style','edit','String','700','Position',[xpos1+3.5*xw,top-20*vsep,xw*.5,vsep],'FontSize',fontsize);
-            obj.guihandles.gaussroit=uicontrol('style','text','String','ROI size (pixels): ','Position',[xpos1,top-21*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.gaussroi=uicontrol('style','edit','String','19','Position',[xpos1+2*xw,top-21*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.gausst=uicontrol('style','text','String','Gauss fit parameters: ','Position',[xpos1,top-18*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.gaussmint=uicontrol('style','text','String','Range (nm). minimum: ','Position',[xpos1,top-19*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.gaussmin=uicontrol('style','edit','String','-700','Position',[xpos1+2*xw,top-19*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.gaussmaxt=uicontrol('style','text','String','maximum: ','Position',[xpos1+2.5*xw,top-19*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.gaussmax=uicontrol('style','edit','String','700','Position',[xpos1+3.5*xw,top-19*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.gaussroit=uicontrol('style','text','String','ROI size (pixels): ','Position',[xpos1,top-20*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.gaussroi=uicontrol('style','edit','String','19','Position',[xpos1+2*xw,top-20*vsep,xw*.5,vsep],'FontSize',fontsize);
            
             
             obj.guihandles.gaussmint.TooltipString=sprintf('z-range (nm) around focus for which to caluclate Gaussian z-calibration. \n Use this to exclude parts with systematically bad fits. This also depends on the ROI size.');
@@ -161,21 +161,24 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.gaussroit.TooltipString=sprintf('Size of ROI (in pixels) used for Gaussian fitting. Use the same as in later experiments. \n Larger size gives higher accuracy (maximum 21 pixels allowed by fitter). \n For dense data use smaller ROI sizes to avoid contamination with close-by fluorophores.');
             obj.guihandles.gaussroi.TooltipString=obj.guihandles.gaussroit.TooltipString;
             
-            obj.guihandles.globalt=uicontrol('style','text','String','Global fit parameters: ','Position',[xpos1,top-23*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
-            obj.guihandles.isglobalfit=uicontrol('style','checkbox','String','global','Position',[xpos1,top-24*vsep,xw*1,vsep],'FontSize',fontsize,'Callback',@obj.global_callback);
-            obj.guihandles.loadtransform=uicontrol('style','pushbutton','String','load T','Position',[xpos1+1*xw,top-24*vsep,xw*.75,vsep],'FontSize',fontsize,'Callback',@obj.loadT_callback);
-            obj.guihandles.Tfile=uicontrol('style','edit','String','','Position',[xpos1+1.75*xw,top-24*vsep,xw*2.25,vsep],'FontSize',fontsize);
+            obj.guihandles.globalt=uicontrol('style','text','String','Global fit parameters: ','Position',[xpos1,top-21*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.isglobalfit=uicontrol('style','checkbox','String','global','Position',[xpos1,top-22*vsep,xw*1,vsep],'FontSize',fontsize,'Callback',@obj.global_callback);
+            obj.guihandles.loadtransform=uicontrol('style','pushbutton','String','load T','Position',[xpos1+1*xw,top-22*vsep,xw*.75,vsep],'FontSize',fontsize,'Callback',@obj.loadT_callback);
+            obj.guihandles.Tfile=uicontrol('style','edit','String','','Position',[xpos1+1.75*xw,top-22*vsep,xw*2.25,vsep],'FontSize',fontsize);
             
-            obj.guihandles.makeT=uicontrol('style','checkbox','String','make T','Position',[xpos1,top-25*vsep,xw*1,vsep],'FontSize',fontsize);
-            obj.guihandles.Tmode=uicontrol('style','popupmenu','String',{'up-down','up-down mirror','right-left','right-left mirror'},'Position',[xpos1+1*xw,top-25*vsep,xw*1.5,vsep],'FontSize',fontsize);
-            obj.guihandles.tform=uicontrol('style','popupmenu','String',{'projective','affine','polynomial','lwm','pwl'},'Position',[xpos1+2.5*xw,top-25*vsep,xw*1.5,vsep],'FontSize',fontsize,'Value',3);
-          
+            obj.guihandles.makeT=uicontrol('style','checkbox','String','make T','Position',[xpos1,top-23*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.Tmode=uicontrol('style','popupmenu','String',{'up-down','up-down mirror','right-left','right-left mirror'},'Position',[xpos1+1*xw,top-23*vsep,xw*1.5,vsep],'FontSize',fontsize);
+            obj.guihandles.tform=uicontrol('style','popupmenu','String',{'projective','affine','polynomial','lwm','pwl'},'Position',[xpos1+2.5*xw,top-23*vsep,xw*1.5,vsep],'FontSize',fontsize,'Value',3);
+            
+            obj.guihandles.Tsplitpost=uicontrol('style','text','String','Split at (pix):','Position',[xpos1+2*xw,top-24*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.Tsplitpos=uicontrol('style','edit','String','255','Position',[xpos1+3*xw,top-24*vsep,xw*1,vsep],'FontSize',fontsize);
+                   
             
          
-            obj.guihandles.run=uicontrol('style','pushbutton','String','Calculate bead calibration','Position',[xpos1,2.5*vsep,xw*4,vsep],'FontSize',fontsize,'Callback',@obj.run_callback);
+            obj.guihandles.run=uicontrol('style','pushbutton','String','Calculate bead calibration','Position',[xpos1,1.5*vsep,xw*4,vsep],'FontSize',fontsize,'Callback',@obj.run_callback);
             %obj.guihandles.help=uicontrol('style','pushbutton','String','Help','Position',[xpos1+xw,top-23*vsep,xw*2,vsep],'FontSize',fontsize,'Callback',@obj.help_callback);
                       
-            obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,1*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment','left');
+            obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,.5*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment','left');
             
             if extended  %called from our propriety fitting software SMAP: extended funtionality. Hidden if called directly          
                 obj.guihandles.posfromsmap=uicontrol('style','checkbox','String','SMAP positions','Position',[xpos1,top-3*vsep,xw*1.5,vsep],'FontSize',fontsize,'Value',false);
@@ -184,17 +187,17 @@ classdef calibrate3D_GUI_g<handle
                 set(h, 'HandleVisibility', 'off'); %not affected by close all command
             end      
             
-                obj.guihandles.spatialcalt=uicontrol('style','text','String','Spatially resolved calibration: ','Position',[xpos1,top-27*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
-                obj.guihandles.spatialmode=uicontrol('style','popupmenu','String',{'none','horizontal split','vertical split','M x N tiles','coordinates'},'Position',[xpos1,top-28*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',{@spatialselect_callback,obj});
-                obj.guihandles.spatial_xtext=uicontrol('style','text','String','xtext','Position',[xpos1,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
-                obj.guihandles.spatial_xval=uicontrol('style','edit','String','','Position',[xpos1+xw,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
-                obj.guihandles.spatial_ytext=uicontrol('style','text','String','ytext','Position',[xpos1+2*xw,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
-                obj.guihandles.spatial_yval=uicontrol('style','edit','String','','Position',[xpos1+3*xw,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');   
-                obj.guihandles.setframes=uicontrol('style','checkbox','String','set frames','Position',[xpos1+2*xw,top-28*vsep,xw*1,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',@obj.setframes_callback);
-                obj.guihandles.framerange=uicontrol('style','edit','String','50 250','Position',[xpos1+3*xw,top-28*vsep,xw,vsep],'FontSize',fontsize);
+                obj.guihandles.spatialcalt=uicontrol('style','text','String','Spatially resolved calibration: ','Position',[xpos1,top-25*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+                obj.guihandles.spatialmode=uicontrol('style','popupmenu','String',{'none','horizontal split','vertical split','M x N tiles','coordinates'},'Position',[xpos1,top-26*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',{@spatialselect_callback,obj});
+                obj.guihandles.spatial_xtext=uicontrol('style','text','String','xtext','Position',[xpos1,top-27*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
+                obj.guihandles.spatial_xval=uicontrol('style','edit','String','','Position',[xpos1+xw,top-27*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
+                obj.guihandles.spatial_ytext=uicontrol('style','text','String','ytext','Position',[xpos1+2*xw,top-27*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
+                obj.guihandles.spatial_yval=uicontrol('style','edit','String','','Position',[xpos1+3*xw,top-27*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');   
+                obj.guihandles.setframes=uicontrol('style','checkbox','String','set frames','Position',[xpos1+2*xw,top-26*vsep,xw*1,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',@obj.setframes_callback);
+                obj.guihandles.framerange=uicontrol('style','edit','String','50 250','Position',[xpos1+3*xw,top-26*vsep,xw,vsep],'FontSize',fontsize,'Visible','off');
                 
                 
-                obj.guihandles.emgain=uicontrol('style','checkbox','String','EM gain used (mirrored)','Position',[xpos1,top-30*vsep,2*xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha); 
+                obj.guihandles.emgain=uicontrol('style','checkbox','String','EM gain used (mirrored)','Position',[xpos1,top-28*vsep,2*xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha); 
                 
 
             modality_callback(obj,0,0)
@@ -262,7 +265,7 @@ classdef calibrate3D_GUI_g<handle
             end
         end
         function global_callback(obj,a,b)
-            corrg={'loadtransform','Tfile','makeT','Tmode','tform'};
+            corrg={'loadtransform','Tfile','makeT','Tmode','tform','Tsplitpos','Tsplitpost'};
             if obj.guihandles.isglobalfit.Value
                 vis='on';
             else
@@ -363,7 +366,7 @@ classdef calibrate3D_GUI_g<handle
             p.Tfile=obj.guihandles.Tfile.String;
             p.makeT=obj.guihandles.makeT.Value;
             p.Tmode = obj.guihandles.Tmode.String{obj.guihandles.Tmode.Value};
-            
+            p.Tsplitpos=num2str(obj.guihandles.Tsplitpos.String);
             if strcmp(p.modality,'4Pi')
                 calibrate_4pi(p);
             else

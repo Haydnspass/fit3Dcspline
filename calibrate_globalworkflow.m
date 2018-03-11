@@ -10,7 +10,8 @@ ph=p;
 ph.isglobalfit=false;
 %set spatial calibration
 ph.outputfile={};
-splitpos=256;% later to GUI?
+splitpos=p.Tsplitpos;
+% splitpos=256;% later to GUI?
 % splitpos=150 %challenge
 
 if ~isfield(p,'yrange')
