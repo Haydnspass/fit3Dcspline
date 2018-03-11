@@ -13,6 +13,13 @@ ph.outputfile={};
 splitpos=256;% later to GUI?
 % splitpos=150 %challenge
 
+if ~isfield(p,'yrange')
+    p.yrange=[-inf inf];
+end
+if  ~isfield(p,'xrange')
+    p.xrange=[-inf inf];
+end
+
 switch p.Tmode
     case {'up-down','up-down mirror'}
         if max(p.yrange)<splitpos %defined only in upper part

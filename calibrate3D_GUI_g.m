@@ -32,13 +32,21 @@ classdef calibrate3D_GUI_g<handle
     end
     methods
         function obj=calibrate3D_GUI_g(varargin)  
-            %constructur: make GUI   
+            %constructur: make GUI 
+            if nargin>0
+                obj.smappos=varargin{1};
+                if isfield(obj.smappos,'fit3ddir')
+                    thisdir=obj.smappos.fit3ddir;
+                else
+                    thisdir=pwd;
+                end
+            end
             if ~isdeployed
                 if exist('shared','file')
                     addpath('shared')
                 end
-                if exist('bfmatlab','file')
-                    addpath('bfmatlab')
+                if exist([pwd filesep 'bfmatlab'],'file')
+                    addpath([pwd filesep 'bfmatlab'])
                 end
                 if exist('ImageJ/plugins/bioformats_package.jar','file')
                     javaaddpath('ImageJ/plugins/bioformats_package.jar')
@@ -158,8 +166,9 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.loadtransform=uicontrol('style','pushbutton','String','load T','Position',[xpos1+1*xw,top-24*vsep,xw*.75,vsep],'FontSize',fontsize,'Callback',@obj.loadT_callback);
             obj.guihandles.Tfile=uicontrol('style','edit','String','','Position',[xpos1+1.75*xw,top-24*vsep,xw*2.25,vsep],'FontSize',fontsize);
             
-            obj.guihandles.makeT=uicontrol('style','checkbox','String','make transformation','Position',[xpos1,top-25*vsep,xw*2,vsep],'FontSize',fontsize);
-            obj.guihandles.Tmode=uicontrol('style','popupmenu','String',{'up-down','up-down mirror','right-left','right-left mirror'},'Position',[xpos1+2*xw,top-25*vsep,xw*2,vsep],'FontSize',fontsize);
+            obj.guihandles.makeT=uicontrol('style','checkbox','String','make T','Position',[xpos1,top-25*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.Tmode=uicontrol('style','popupmenu','String',{'up-down','up-down mirror','right-left','right-left mirror'},'Position',[xpos1+1*xw,top-25*vsep,xw*1.5,vsep],'FontSize',fontsize);
+            obj.guihandles.tform=uicontrol('style','popupmenu','String',{'projective','affine','polynomial','lwm','pwl'},'Position',[xpos1+2.5*xw,top-25*vsep,xw*1.5,vsep],'FontSize',fontsize,'Value',3);
           
             
          
@@ -186,7 +195,7 @@ classdef calibrate3D_GUI_g<handle
                 
                 
                 obj.guihandles.emgain=uicontrol('style','checkbox','String','EM gain used (mirrored)','Position',[xpos1,top-30*vsep,2*xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha); 
-                obj.smappos=varargin{1};
+                
 
             modality_callback(obj,0,0)
             obj.global_callback(0,0);
@@ -253,7 +262,7 @@ classdef calibrate3D_GUI_g<handle
             end
         end
         function global_callback(obj,a,b)
-            corrg={'loadtransform','Tfile','makeT','Tmode'};
+            corrg={'loadtransform','Tfile','makeT','Tmode','tform'};
             if obj.guihandles.isglobalfit.Value
                 vis='on';
             else

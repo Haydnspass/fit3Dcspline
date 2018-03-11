@@ -72,9 +72,19 @@ end
 [iAa,iBa,na,nb,nseen]=matchlocsall(locref,loctT,-dx0,-dy0,2*sepscale,1e5);
 
 transform=interfaces.LocTransform;
-t.type='polynomial';
+
+t.type=p.Tform;
+switch t.type
+    case 'polynomial'
+        t.parameter=3;
+    case 'lwm'
+        disp('lwm not implemented')
+    case 'pwl'
+        disp('pwl not implemented')
+end
+% t.type='polynomial';
 % t.type='projective';
-t.parameter=3;
+
 transform.findTransform(locref.x(iAa),locref.y(iAa),loctarget.x(iBa),loctarget.y(iBa),t)
 transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(iBa),loctarget.y(iBa),loctarget.z(iBa),t)
 
