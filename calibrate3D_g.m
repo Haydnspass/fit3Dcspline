@@ -51,10 +51,11 @@ function [SXY,beadpos,parameters]=calibrate3D_g(p)
 
 if ~isfield(p,'smap')&& (~p.isglobalfit)
     p.smap=false;
-    imageRoi=zeros(2,1); 
+%     imageRoi=zeros(2,1); 
 else
-    imageRoi=p.imageRoi; %position of image on Chip. This is important, if the calibration file used a different ROI than the actual measurement
+%     imageRoi=p.imageRoi; %position of image on Chip. This is important, if the calibration file used a different ROI than the actual measurement
 end
+
 if ~isfield(p,'xrange')
     p.xrange=[-inf inf]; p.yrange=[-inf inf]; 
 end
@@ -86,7 +87,7 @@ end
 % else
 %     [beads,p]=images2beads_so(p);
 % end
-
+imageRoi=p.roi{1};
 %get positions of beads
 for k=length(beads):-1:1
     beadposx(k)=beads(k).pos(1);

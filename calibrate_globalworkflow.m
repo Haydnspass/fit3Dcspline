@@ -39,6 +39,8 @@ switch p.Tmode
 %         yrange1=yrange(yrange<=splitpos);yrange2=yrange(yrange>=splitpos);
         xrange1=p.xrange;xrange2=p.xrange;
         yrangeall=[yrange1(1:end-1) splitpos yrange2(2:end)];
+        yrange1(end)=yrange1(end)-p.mindistance; %do not take into account locs too close to separator
+        yrange2(1)=yrange2(1)+p.mindistance;
         xrangeall=p.xrange;
         XYpos=[1,2];
         
