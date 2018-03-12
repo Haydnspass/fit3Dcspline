@@ -92,7 +92,7 @@ transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(i
     dx=xa-locref.x(iAa);
    dy=ya-locref.y(iAa);
    
-   figure(88);plot(locref.x,locref.y,'b.',loctT.x-dx0,loctT.y-dy0,'r+',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
+%    figure(88);plot(locref.x,locref.y,'b.',loctT.x-dx0,loctT.y-dy0,'r+',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
 %    
 if isfield(p,'tabgroup')
     axh=axes(p.tabgroup);
