@@ -73,6 +73,7 @@ for k=1:length(filelist)
     if isfield(p,'beadpos') %passed on externally
         maxima=round(p.beadpos{k});
     else
+
         maxima=maximumfindcall(mim);
         %XXXXXXXXXXX
 %         maxima(:,1)=(maxima(:,1)+2*round(rand(size(maxima,1),1)))-1; % for testing if positions match
@@ -108,7 +109,9 @@ for k=1:length(filelist)
                 end
             end
         end 
-        maxima=maxima(indgoodb,:);
+        indgoodr=maxima(:,1)>p.xrange(1)&maxima(:,1)<p.xrange(end)&maxima(:,2)>p.yrange(1)&maxima(:,2)<p.yrange(end);
+%         maxima=maxima(indgoodb,:);
+         maxima=maxima(indgoodb&indgoodr,:);
     end 
     
   
