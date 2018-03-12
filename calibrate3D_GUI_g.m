@@ -366,6 +366,7 @@ classdef calibrate3D_GUI_g<handle
             p.Tfile=obj.guihandles.Tfile.String;
             p.makeT=obj.guihandles.makeT.Value;
             p.Tmode = obj.guihandles.Tmode.String{obj.guihandles.Tmode.Value};
+            p.Tform = obj.guihandles.tform.String{obj.guihandles.tform.Value};
             p.Tsplitpos=str2num(obj.guihandles.Tsplitpos.String);
             if strcmp(p.modality,'4Pi')
                 calibrate_4pi(p);
