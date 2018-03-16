@@ -164,6 +164,20 @@ ylabel(ax2,'corrected z (nm)')
 
 zcorr=ZcorrInterp.interp;    
 
+ax2=axes(uitab(p.tabgroup,'Title','dz vs Zfit'));
+ax3=axes(uitab(p.tabgroup,'Title','f vs Zfit'));
+objectivepos=0:100:p.axhere.XLim(2);
+
+objectivepos=linspace(0,p.axhere.XLim(2),9);
+zfit=-800:800;
+col=jet(length(objectivepos));
+for k=1:length(objectivepos)
+    dzh=zcorr(objectivepos(k)*ones(size(zfit)),zfit);
+    plot(ax2,zfit, (dzh),'Color',col(k,:))
+    hold(ax2,'on');
+    plot(ax3,zfit, (dzh+zfit)./zfit,'Color',col(k,:))
+    hold(ax3,'on');
+end
 end
 
 
@@ -188,6 +202,10 @@ else
     zzax=zglassall;
 end
 
+%XXXtry
+% zplot=zplot./zfitall;
+% zplot=zfitall./(zfitall+zplot);
+
 qzfit=myquantile(zfitall,[0.05,0.95]);
 qzfit(1)=qzfit(1)+p.dz;qzfit(2)=qzfit(2)-p.dz;
 inz=abs(z0relativeall)<p.maxrange;
@@ -206,12 +224,19 @@ zfitallh=vertcat(zfitall(inz),zfitx,zfitx,zfitx);
 zploth=vertcat(zplot(inz),0*zfitx,0*zfitx,0*zfitx);
 zzaxh=vertcat(zzax(inz),min(zzax)+0*zfitx,min(zfitx)+0*zfitx,mean([min(zfitx),min(zzax)])+0*zfitx);          
 
-xrange=min(zzax(inz)):100:max(zzax(inz));
+xrange=round(min(zzax(inz))/100)*100:100:max(zzax(inz));
 
-yrange=[qzfit(1):10: qzfit(2)];
+yrange=[round(qzfit(1)/10)*10:10: qzfit(2)];
 [X,Y]=meshgrid(xrange,yrange);  
+
+%set dz=0 for zfit =0
+% zfitallh=vertcat(zfitallh,0*zfitallh);
+% zploth=vertcat(zploth,0*zploth);
+% zzaxh=vertcat(zzaxh,zzaxh);
 %interpolation
 Z=RegularizeData3D(zzaxh,zfitallh,zploth,xrange,yrange,'smoothness',[p.smoothframe p.smoothz],'extend','always');
+% Z(find(yrange==0),:)=0;
+
 Zint.interp=griddedInterpolant(X',Y',Z');
 Zint.zaxis=zaxis;
 
@@ -227,6 +252,7 @@ if ~isempty(p.axhere)
     s.FaceAlpha=0.8;
     s.EdgeColor='none';
     p.axhere.ZLim(1)=minzp;
+%      p.axhere.ZLim=[0 4];
 end
 
 end
