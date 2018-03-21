@@ -46,18 +46,38 @@ switch p.Tmode
         
         split='ud';
     case {'right-left','right-left mirror'}
-        if max(p.xrange)<splitpos %defined only in upper part
+         if max(p.xrange)<splitpos %defined only in upper part
             xrange1=p.xrange;
-            xrange2=p.xrange+splitpos;xrange2(xrange2<splitpos)=splitpos;
+            if contains(p.Tmode,'mirror')
+                xrange2=sort(-p.xrange+2*splitpos);xrange2(xrange2<splitpos)=splitpos;
+            else
+                xrange2=sort(p.xrange+splitpos);xrange2(xrange2<splitpos)=splitpos;
+            end
         else
             xrange1=([p.xrange splitpos]);xrange1(xrange1>splitpos)=splitpos;xrange1=unique(xrange1);
             xrange2=([p.xrange+ splitpos]);xrange2(xrange2<splitpos)=splitpos;xrange2=unique(xrange2);
-        end
+         end
+            
         yrange1=p.yrange;yrange2=p.yrange;
-        yrangeall=p.yrange;
         xrangeall=[xrange1(1:end-1) splitpos xrange2(2:end)];
+        xrange1(end)=xrange1(end)-p.mindistance; %do not take into account locs too close to separator
+        xrange2(1)=xrange2(1)+p.mindistance;
+        yrangeall=p.yrange;
         XYpos=[2,1];
+        
         split='rl';
+%         if max(p.xrange)<splitpos %defined only in upper part
+%             xrange1=p.xrange;
+%             xrange2=p.xrange+splitpos;xrange2(xrange2<splitpos)=splitpos;
+%         else
+%             xrange1=([p.xrange splitpos]);xrange1(xrange1>splitpos)=splitpos;xrange1=unique(xrange1);
+%             xrange2=([p.xrange+ splitpos]);xrange2(xrange2<splitpos)=splitpos;xrange2=unique(xrange2);
+%         end
+%         yrange1=p.yrange;yrange2=p.yrange;
+%         yrangeall=p.yrange;
+%         xrangeall=[xrange1(1:end-1) splitpos xrange2(2:end)];
+%         XYpos=[2,1];
+%         split='rl';
 end
 
 

@@ -39,9 +39,16 @@ sstack=size(beads(1).stack.image);
                 allstackst(:,:,:,B)=beads(B).stack.imagetar;
                 shiftxy(B,1:2)=beads(B).shiftxy;
             else
-                allstackst(:,:,:,B)=beads(B).stack.imagetar(end:-1:1,:,:);
-                shiftxy(B,1:2)=beads(B).shiftxy;
-                shiftxy(B,2)=-shiftxy(B,2);
+                if contains(p.Tmode,'up-down')
+                %this is for up down mirror. add also for right left mirror
+                    allstackst(:,:,:,B)=beads(B).stack.imagetar(end:-1:1,:,:);
+                    shiftxy(B,1:2)=beads(B).shiftxy;
+                    shiftxy(B,2)=-shiftxy(B,2);
+                else %right left
+                    allstackst(:,:,:,B)=beads(B).stack.imagetar(:,end:-1:1,:);
+                    shiftxy(B,1:2)=beads(B).shiftxy;
+                    shiftxy(B,1)=-shiftxy(B,1);
+                end
             end
         else
             shiftxy(B,1:2)=[0 0];

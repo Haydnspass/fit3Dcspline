@@ -19,7 +19,7 @@ if p.isglobalfit
        transform=p.Tfile;
    end
     p.transformation=transform;
-    p.mirror=contains(transform.tinfo.mirror.targetmirror,'up-down');
+    p.mirror=contains(transform.tinfo.mirror.targetmirror,'up-down')|contains(transform.tinfo.mirror.targetmirror,'left-right');
 else
     p.mirror=false;
 end
