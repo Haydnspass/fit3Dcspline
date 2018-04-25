@@ -140,8 +140,8 @@ indgood=true(1,size(shiftedstackn,4));
 shiftedstackn=shiftedstackn/normglobal;
 
 imout=mean(shiftedstackn(:,:,:,indgood),4,'omitnan');
-shiftedstackn(1,end,:,~indgood)=nanmax(shiftedstackn(:));
-shiftedstackn(1,:,1,~indgood)=nanmax(shiftedstackn(:));
+shiftedstackn(1,end,:,~indgood)=max(shiftedstackn(:),[],'omitnan');
+shiftedstackn(1,:,1,~indgood)=max(shiftedstackn(:),[],'omitnan');
 
 col=lines(max(filenumber));
 if length(axs)>0
@@ -237,7 +237,7 @@ for k=size(shiftedstackn,4):-1:1
     cc(k)=sum(refimn(~badind).*imh(~badind))/(sum(refimn(~badind))*sum(imh(~badind)))*sum(~badind(:));  
 end
 
-normamp=nanmax(refimn(:));
+normamp=max(refimn(:),[],'omitnan');
 shiftedstackn=shiftedstackn/normamp;
 refimn=refimn/normamp;
 for k=size(shiftedstackn,4):-1:1

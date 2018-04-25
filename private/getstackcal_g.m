@@ -52,11 +52,11 @@ sstack=size(beads(1).stack.image);
     end
     
     mstack=mean(allstacks,4,'omitnan');
-    mstack=mstack-nanmin(mstack(:));
+    mstack=mstack-min(mstack(:),[],'omitnan');
     mstack=mstack/nansum(mstack(:));
     for k=length(beads):-1:1
     	stackh=(allstacks(:,:,:,k));
-        stackh=stackh-nanmin(stackh(:));
+        stackh=stackh-min(stackh(:),[],'omitnan');
         stackh=stackh/nansum(stackh(:));
         dstack(k)=sum((stackh(:)-mstack(:)).^2);
     end
@@ -64,11 +64,11 @@ sstack=size(beads(1).stack.image);
     
     if p.isglobalfit
         mstack=mean(allstackst,4,'omitnan');
-        mstack=mstack-nanmin(mstack(:));
+        mstack=mstack-min(mstack(:),[],'omitnan');
         mstack=mstack/nansum(mstack(:));
         for k=length(beads):-1:1
             stackh=(allstackst(:,:,:,k));
-            stackh=stackh-nanmin(stackh(:));
+            stackh=stackh-min(stackh(:),[],'omitnan');
             stackh=stackh/nansum(stackh(:));
             dstackt(k)=sum((stackh(:)-mstack(:)).^2);
         end
@@ -131,7 +131,7 @@ sstack=size(beads(1).stack.image);
     %not be the right approahc. Then normalize by one only
     %normalize PSF
     centpsfr=corrPSFr(rangex,rangey,z-1:z+1); %cut out rim from shift    
-    minPSFr=nanmin(centpsfr(:));
+    minPSFr=min(centpsfr(:),[],'omitnan');
     corrPSFnr=corrPSFr-minPSFr;
     intglobalr=mean(nansum(sum(corrPSFnr(rangex,rangey,z-1:z+1),1),2,'omitnan'),'omitnan');
     corrPSFnr=corrPSFnr/intglobalr;   
@@ -162,7 +162,7 @@ sstack=size(beads(1).stack.image);
         corrPSFt=corrPSF(size(allstacks,1)+1:end,:,:);
         allroist=allstackst;
         centpsft=corrPSFt(rangex,rangey,z-1:z+1);
-        minPSFt=nanmin(centpsft(:));
+        minPSFt=min(centpsft(:),[],'omitnan');
         corrPSFnt=corrPSFt-minPSFt;
         intglobalt=mean(sum(sum(corrPSFnt(rangex,rangey,z-1:z+1),1,'omitnan'),2,'omitnan'),'omitnan');
         corrPSFnt=corrPSFnt/intglobalt;

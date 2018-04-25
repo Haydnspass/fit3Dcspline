@@ -38,11 +38,11 @@ sstack=size(beads(1).stack.image);
     
     mstack=mean(allstacks,4,'omitnan');
     mstacks=mstack(3:end-2);
-    mstack=mstack-nanmin(mstacks(:));
+    mstack=mstack-min(mstacks(:),[],'omitnan');
     mstack=mstack/nansum(mstack(:));
     for k=length(beads):-1:1
     	stackh=(allstacks(:,:,:,k));
-        stackh=stackh-nanmin(stackh(:));
+        stackh=stackh-min(stackh(:),[],'omitnan');
         stackh=stackh/nansum(stackh(:));
         dstack(k)=sum((stackh(:)-mstack(:)).^2);
     end
@@ -108,7 +108,7 @@ sstack=size(beads(1).stack.image);
         %normalize PSF
         centpsf=corrPSF(rangex,rangey,z-1:z+1); %cut out rim from shift
 %         centpsf=corrPSF(2:end-1,2:end-1,2:end-1); %cut out rim from shift
-        minPSF=nanmin(centpsf(:));
+        minPSF=min(centpsf(:),[],'omitnan');
         corrPSFn=corrPSF-minPSF;
 %         corrPSFn=corrPSF;
         intglobal=mean(sum(sum(corrPSFn(rangex,rangey,z-1:z+1),1,'omitnan'),2,'omitnan'),'omitnan');
@@ -170,8 +170,8 @@ sstack=size(beads(1).stack.image);
             xpall=squeeze(shiftedstack(:,yt,ftest,beadgood));
             xpall2=squeeze(allrois(:,yt,ftest,beadgood));
             for k=1:size(zpall,2)
-                zpall2(:,k)=zpall2(:,k)/nanmax(zpall2(:,k));
-                xpall2(:,k)=xpall2(:,k)/nanmax(xpall2(:,k));                
+                zpall2(:,k)=zpall2(:,k)/max(zpall2(:,k),[],'omitnan');
+                xpall2(:,k)=xpall2(:,k)/max(xpall2(:,k),[],'omitnan');                
             end           
             zprofile=squeeze(corrPSFn(xt,yt,:));
 %             mphd=round((size(corrPSFhd,1)+1)/2);
