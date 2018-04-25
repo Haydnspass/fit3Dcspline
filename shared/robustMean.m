@@ -90,12 +90,12 @@ if fit
     % minimize the median deviation from the mean
     medianData = fminsearch(@(x)(median(abs(data-x))),median(data));
 else
-    medianData = nanmedian(data,dim);
+    medianData = median(data,dim,'omitnan');
 end
 
 % calculate statistics
 res2 = (data-repmat(medianData,blowUpDataSize)).^2;
-medRes2 = max(nanmedian(res2,dim),eps);
+medRes2 = max(median(res2,dim,'omitnan'),eps);
 
 %testvalue to calculate weights
 testValue=res2./repmat(magicNumber2*medRes2,blowUpDataSize);

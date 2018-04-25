@@ -15,7 +15,7 @@ sstack=size(beads(1).stack.image);
         end
         
     %remove outliers:
-        badind=abs(dframe-nanmedian(dframe))>10|isnan(dframe);
+        badind=abs(dframe-median(dframe,'omitnan'))>10|isnan(dframe);
         beads(badind)=[];
     
 

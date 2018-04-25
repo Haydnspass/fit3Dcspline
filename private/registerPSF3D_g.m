@@ -287,7 +287,7 @@ else %use fitting
             indg=~isn&intcutoff;
             ratio=ims(indg)./meanims(indg);
             
-            factor=nanmedian(ratio(:));
+            factor=median(ratio(:),'omitnan');
             if factor>0
                 out(:,:,:,k)=imh/factor;
             end
