@@ -306,8 +306,8 @@ ax2=axes(ax.Parent);
 subplot(1,2,1,ax);
 subplot(1,2,2,ax2);
 findx=find(~indx);findy=find(~indy);
-plot(ax,zr(2:end-2),hz,zr(2:end-2),hzx/max(hzx)*(quantile(hz,.99)));
-ax.YLim(2)=(quantile(hz,.99))*1.1;
-ax.YLim(1)=min(quantile(hz,.01),quantile(hzx/max(hzx)*(quantile(hz,.99)),.01));
+plot(ax,zr(2:end-2),hz,zr(2:end-2),hzx/max(hzx)*(myquantile(hz,.99)));
+ax.YLim(2)=(myquantile(hz,.99))*1.1;
+ax.YLim(1)=min(myquantile(hz,.01),myquantile(hzx/max(hzx)*(myquantile(hz,.99)),.01));
 plot(ax2,xr(findx(2:end-1)),hx,xr(findx(2:end-1)),hxx/max(hxx)*max(hx),xr(findy(2:end-1)),hy,xr(findy(2:end-1)),hyx/max(hyx)*max(hy));
 end

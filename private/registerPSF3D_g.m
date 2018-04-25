@@ -283,7 +283,7 @@ else %use fitting
             ims=imh(xr,yr,p.framerange);
             meanims=meanim(xr,yr,p.framerange);
             isn=isnan(ims)|isnan(meanims);
-            intcutoff=meanims>quantile(meanims(:),0.75);
+            intcutoff=meanims>myquantile(meanims(:),0.75);
             indg=~isn&intcutoff;
             ratio=ims(indg)./meanims(indg);
             
