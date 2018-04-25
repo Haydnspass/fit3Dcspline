@@ -185,7 +185,7 @@ rescc=res./cc;
 rescc(abs(shift(:,1))>3|abs(shift(:,2))>3)=NaN;
 [a,b]=robustMean(rescc(cc>0));
 if isnan(b)
-    a=mean(rescc,'omitnan');b=nanstd(rescc);
+    a=mean(rescc,'omitnan');b=std(rescc,'omitnan');
 end
 co=a+2.5.*b;
 indgood=rescc<=co;

@@ -250,7 +250,7 @@ rescc(abs(shift(:,1))>3|abs(shift(:,2))>3)=NaN;
 indtest=indgood&(cc>0);
 [a,b]=robustMean(rescc(indtest));
 if isnan(b)
-    a=mean(rescc,'omitnan');b=nanstd(rescc);
+    a=mean(rescc,'omitnan');b=std(rescc,'omitnan');
 end
 co=a+2.*b;
 indgood=indgood&(rescc<=co);

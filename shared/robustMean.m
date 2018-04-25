@@ -61,7 +61,7 @@ if sum(isfinite(data(:))) < 4
     end
     finalMean = mean(data,dim,'omitnan');
 %     stdSample = NaN(size(finalMean));-
-    stdSample=nanstd(data,[],dim);
+    stdSample=std(data,[],dim,'omitnan');
     inlierIdx = find(isfinite(data));
     outlierIdx = [];
     return
