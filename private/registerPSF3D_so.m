@@ -103,7 +103,7 @@ shiftedstackn(1,:,1,~indgood)=max(shiftedstackn(:),[],'omitnan');
 % shiftedstack=zeros(simin(1),simin(2),simin(3),numbeads)+NaN;
 % 
 % for k=1:numbeads
-%     goodframes=squeeze(nansum(nansum(smallim(:,:,:,k),1),2))>0;
+%     goodframes=squeeze(sum(sum(smallim(:,:,:,k),1,'omitnan'),2,'omitnan'))>0;
 %     if p.alignz
 %         [shift(k,:),cc(k)]=get3Dcorrshift(refim(:,:,goodframes),smallim(:,:,goodframes,k));
 %     else
@@ -252,7 +252,7 @@ shiftedstack=zeros(simin(1),simin(2),simin(3),numbeads)+NaN;
 
 for k=1:numbeads
         p.status.String=['calculate shift of individual PSFs: ' num2str(k) ' of ' num2str(numbeads)]; drawnow
-    goodframes=squeeze(nansum(nansum(smallim(:,:,:,k),1),2))>0;
+    goodframes=squeeze(sum(sum(smallim(:,:,:,k),1,'omitnan'),2,'omitnan'))>0;
     if p.alignz
         [shift(k,:),cc(k)]=get3Dcorrshift(refim(:,:,goodframes),smallim(:,:,goodframes,k));
     else

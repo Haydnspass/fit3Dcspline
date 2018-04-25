@@ -140,7 +140,7 @@ else
         % standard deviation
         goodIdx = sum(isfinite(res2),dim) > 4;
         stdSample = NaN(size(goodIdx));
-        stdSample(goodIdx)=sqrt(nansum(res2(goodIdx),dim)./(nInliers(goodIdx)-4));
+        stdSample(goodIdx)=sqrt(sum(res2(goodIdx),dim,'omitnan')./(nInliers(goodIdx)-4));
     end
     
     %====END LMS=========

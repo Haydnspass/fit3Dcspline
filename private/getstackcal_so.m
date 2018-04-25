@@ -39,11 +39,11 @@ sstack=size(beads(1).stack.image);
     mstack=mean(allstacks,4,'omitnan');
     mstacks=mstack(3:end-2);
     mstack=mstack-min(mstacks(:),[],'omitnan');
-    mstack=mstack/nansum(mstack(:));
+    mstack=mstack/sum(mstack(:),'omitnan');
     for k=length(beads):-1:1
     	stackh=(allstacks(:,:,:,k));
         stackh=stackh-min(stackh(:),[],'omitnan');
-        stackh=stackh/nansum(stackh(:));
+        stackh=stackh/sum(stackh(:),'omitnan');
         dstack(k)=sum((stackh(:)-mstack(:)).^2);
     end
     dstack=dstack/mean(dstack);    
@@ -261,7 +261,7 @@ t=tic;
         zs(:,k)=P(:,5);
 % test for the returned photons and photons in the raw image        
 %         phot=P(:,3); bg=P(:,4);
-%         totsum=squeeze(nansum( nansum(teststack(range,range,:,k),1),2));
+%         totsum=squeeze(sum( sum(teststack(range,range,:,k),1,'omitnan'),2,'omitnan'));
 %         totsum=totsum-squeeze(min(min(teststack(range,range,:,k),[],1),[],2))*length(range)^2;
 %         photsum=phot+0*bg*length(range)^2;
 %         plot(ax2,z,(photsum-totsum)./totsum,'.')

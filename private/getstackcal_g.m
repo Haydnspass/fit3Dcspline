@@ -53,11 +53,11 @@ sstack=size(beads(1).stack.image);
     
     mstack=mean(allstacks,4,'omitnan');
     mstack=mstack-min(mstack(:),[],'omitnan');
-    mstack=mstack/nansum(mstack(:));
+    mstack=mstack/sum(mstack(:),'omitnan');
     for k=length(beads):-1:1
     	stackh=(allstacks(:,:,:,k));
         stackh=stackh-min(stackh(:),[],'omitnan');
-        stackh=stackh/nansum(stackh(:));
+        stackh=stackh/sum(stackh(:),'omitnan');
         dstack(k)=sum((stackh(:)-mstack(:)).^2);
     end
     dstack=dstack/mean(dstack);  
@@ -65,11 +65,11 @@ sstack=size(beads(1).stack.image);
     if p.isglobalfit
         mstack=mean(allstackst,4,'omitnan');
         mstack=mstack-min(mstack(:),[],'omitnan');
-        mstack=mstack/nansum(mstack(:));
+        mstack=mstack/sum(mstack(:),'omitnan');
         for k=length(beads):-1:1
             stackh=(allstackst(:,:,:,k));
             stackh=stackh-min(stackh(:),[],'omitnan');
-            stackh=stackh/nansum(stackh(:));
+            stackh=stackh/sum(stackh(:),'omitnan');
             dstackt(k)=sum((stackh(:)-mstack(:)).^2);
         end
         dstackt=dstackt/mean(dstackt);  
@@ -133,7 +133,7 @@ sstack=size(beads(1).stack.image);
     centpsfr=corrPSFr(rangex,rangey,z-1:z+1); %cut out rim from shift    
     minPSFr=min(centpsfr(:),[],'omitnan');
     corrPSFnr=corrPSFr-minPSFr;
-    intglobalr=mean(nansum(sum(corrPSFnr(rangex,rangey,z-1:z+1),1),2,'omitnan'),'omitnan');
+    intglobalr=mean(sum(sum(corrPSFnr(rangex,rangey,z-1:z+1),1,'omitnan'),2,'omitnan'),'omitnan');
     corrPSFnr=corrPSFnr/intglobalr;   
     shiftedstack(1:size(allrois,1),:,:,:)=shiftedstack(1:size(allrois,1),:,:,:)/intglobalr;
     corrPSFnr(isnan(corrPSFnr))=0;
