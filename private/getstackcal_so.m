@@ -36,7 +36,7 @@ sstack=size(beads(1).stack.image);
         goodvs(B)=sum(~isnan(stackh(:)))/numel(stackh);
     end
     
-    mstack=nanmean(allstacks,4);
+    mstack=mean(allstacks,4,'omitnan');
     mstacks=mstack(3:end-2);
     mstack=mstack-nanmin(mstacks(:));
     mstack=mstack/nansum(mstack(:));
@@ -111,7 +111,7 @@ sstack=size(beads(1).stack.image);
         minPSF=nanmin(centpsf(:));
         corrPSFn=corrPSF-minPSF;
 %         corrPSFn=corrPSF;
-        intglobal=nanmean(nansum(nansum(corrPSFn(rangex,rangey,z-1:z+1),1),2));
+        intglobal=mean(sum(sum(corrPSFn(rangex,rangey,z-1:z+1),1,'omitnan'),2,'omitnan'),'omitnan');
         corrPSFn=corrPSFn/intglobal;
 
         shiftedstack=shiftedstack/intglobal;

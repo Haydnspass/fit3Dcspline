@@ -36,8 +36,8 @@ end
 imina=imin;
 numref=max(round(size(imina,4)*.5),min(5,size(imina,4))); %align to average of several beads
 numref=1; %align to a sigle bead only;
-avim=nanmean(imina(:,:,:,p.sortind(1:numref)),4);
-% avim=nanmean(smallim,4);
+avim=mean(imina(:,:,:,p.sortind(1:numref)),4,'omitnan');
+% avim=mean(smallim,4,'omitnan');
 ph=p;
 lcc=ceil((min(13,length(p.yrange))-1)/2);
 mp=ceil(((length(p.yrange))-1)/2)+1;
@@ -53,7 +53,7 @@ ph.framerange=1:size(avim,3);
 shiftedstackn=normalizstack(shiftedstack,p);
 indgood=true(1,size(shiftedstackn,4));
 [indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
-meanim=nanmean(shiftedstack(:,:,:,indgood),4);meanim(isnan(meanim))=avim(isnan(meanim));   
+meanim=mean(shiftedstack(:,:,:,indgood),4,'omitnan');meanim(isnan(meanim))=avim(isnan(meanim));   
 
 %do central correlation using shiftedstack
 ph.framerange=p.framerange;
@@ -68,7 +68,7 @@ indgood=true(1,size(shiftedstackn,4));
 [indgood,res,normglobal,co,cc2]=getoverlap(shiftedstackn,shift,ph,indgood);
 shiftedstackn=shiftedstackn/normglobal;
 
-imout=nanmean(shiftedstackn(:,:,:,indgood),4);
+imout=mean(shiftedstackn(:,:,:,indgood),4,'omitnan');
 shiftedstackn(1,end,:,~indgood)=nanmax(shiftedstackn(:));
 shiftedstackn(1,:,1,~indgood)=nanmax(shiftedstackn(:));
 
@@ -88,7 +88,7 @@ shiftedstackn(1,:,1,~indgood)=nanmax(shiftedstackn(:));
 %     catch err %range out 
 %     end
 % end
-% avim=nanmean(imin,4);
+% avim=mean(imin,4,'omitnan');
 % 
 % xn=1:size(imin,1);yn=1:size(imin,2);zn=1:size(imin,3);
 % [Xq,Yq,Zq]=meshgrid(yn,xn,zn);
@@ -118,7 +118,7 @@ shiftedstackn(1,:,1,~indgood)=nanmax(shiftedstackn(:));
 % %     
 %     shiftedh=interp3(imin(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double(zshiftf0(k)),'cubic',0);
 %     shiftedstack(:,:,:,k)=shiftedh;
-%     meanim=nanmean(shiftedstack(:,:,:,1:k),4);
+%     meanim=mean(shiftedstack(:,:,:,1:k),4,'omitnan');
 %     meanim(isnan(meanim))=avim(isnan(meanim));
 %     
 %     refim=meanim(p.xrange,p.yrange,p.framerange);
@@ -132,7 +132,7 @@ shiftedstackn(1,:,1,~indgood)=nanmax(shiftedstackn(:));
 % [indgood,res,normglobal,co,cc2]=getoverlap(shiftedstackn,shift,p,indgood);
 % shiftedstackn=shiftedstackn/normglobal;
 % 
-% imout=nanmean(shiftedstackn(:,:,:,indgood),4);
+% imout=mean(shiftedstackn(:,:,:,indgood),4,'omitnan');
 % shiftedstackn(1,end,:,~indgood)=nanmax(shiftedstackn(:));
 % shiftedstackn(1,:,1,~indgood)=nanmax(shiftedstackn(:));
 
@@ -166,7 +166,7 @@ end
 end
 
 function [indgood,res,normamp,co,cc]=getoverlap(shiftedstackn,shift,p,indgood)
-refimn=nanmean(shiftedstackn(p.xrange,p.yrange,p.framerange,indgood),4);
+refimn=mean(shiftedstackn(p.xrange,p.yrange,p.framerange,indgood),4,'omitnan');
 for k=size(shiftedstackn,4):-1:1
     imh=shiftedstackn(p.xrange,p.yrange,p.framerange,k);
     badind=isnan(imh)|isnan(refimn);
@@ -179,13 +179,13 @@ refimn=refimn/normamp;
 for k=size(shiftedstackn,4):-1:1
      sim=shiftedstackn(p.xrange(2:end-1),p.yrange(2:end-1),p.framerange,k);
      dv=(refimn(2:end-1,2:end-1,:)-sim).^2;
-    res(k)=sqrt(nanmean(dv(:)));
+    res(k)=sqrt(mean(dv(:),'omitnan'));
 end
 rescc=res./cc;
 rescc(abs(shift(:,1))>3|abs(shift(:,2))>3)=NaN;
 [a,b]=robustMean(rescc(cc>0));
 if isnan(b)
-    a=nanmean(rescc);b=nanstd(rescc);
+    a=mean(rescc,'omitnan');b=nanstd(rescc);
 end
 co=a+2.5.*b;
 indgood=rescc<=co;
@@ -200,7 +200,7 @@ if p.beadfilterf0
   
     for k=1:sin(4)
         imh=in(xr,yr,p.framerange,k);
-        nm=nanmean(imh(:));
+        nm=mean(imh(:),'omitnan');
         if nm>0
         out(:,:,:,k)=in(:,:,:,k)/nm;
         end
@@ -209,7 +209,7 @@ else %use fitting
     inh=in;
     out=0*in+NaN;
     for iter=1:4
-        meanim=nanmean(inh,4);
+        meanim=mean(inh,4,'omitnan');
         for k=1:sin(4)
             imh=inh(:,:,:,k);
             if all(isnan(imh))

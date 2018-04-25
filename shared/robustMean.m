@@ -59,7 +59,7 @@ if sum(isfinite(data(:))) < 4
     if isempty(dim)
         dim=1;
     end
-    finalMean = nanmean(data,dim);
+    finalMean = mean(data,dim,'omitnan');
 %     stdSample = NaN(size(finalMean));-
     stdSample=nanstd(data,[],dim);
     inlierIdx = find(isfinite(data));
@@ -150,5 +150,5 @@ else
     %======
     
     data(outlierIdx) = NaN;
-    finalMean = nanmean(data,dim);
+    finalMean = mean(data,dim,'omitnan');
 end
