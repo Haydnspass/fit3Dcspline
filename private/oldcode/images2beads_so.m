@@ -1,7 +1,7 @@
 function [b,p]=images2beads_so(p)
 % addpath('bfmatlab')
 fs=p.filtersize;
-h=fspecial('gaussian',2*round(fs*3/2)+1,fs);
+h=myfspecial('gaussian',2*round(fs*3/2)+1,fs);
 fmax=0;
 roisize=p.ROIxy;
 roisizeh=round(1.5*(p.ROIxy-1)/2); %create extra space if we need to shift;
@@ -44,22 +44,22 @@ for k=1:length(filelist)
     int=maxima(:,3);
     try
     mimc=mim(roisize:end-roisize,roisize:end-roisize);
-    mmed=quantile(mimc(:),0.3);
+    mmed=myquantile(mimc(:),0.3);
     imt=mimc(mimc<mmed);
         sm=sort(int);
     mv=mean(sm(end-5:end));
 %     cutoff=mean(imt(:))+max(3*std(imt(:)),(mv-mean(imt(:)))/5);
     cutoff=mean(imt(:))+max(2.5*std(imt(:)),(mv-mean(imt(:)))/15);
-%     iq=quantile(int,0.5);
+%     iq=myquantile(int,0.5);
 %    cutoff= mean(int(int<iq))+3*std(int(int<iq));
     
     
     catch
-        cutoff=quantile(mimc(:),.95);
+        cutoff=myquantile(mimc(:),.95);
     end
-%     cutoff=(quantile(mimc(:),0.8)+quantile(mimc(:),0.99))/2;
+%     cutoff=(myquantile(mimc(:),0.8)+quantile(mimc(:),0.99))/2;
 
-%    cutoff= (mv+quantile(mimc(:),0.5))/2;
+%    cutoff= (mv+myquantile(mimc(:),0.5))/2;
     if any(int>cutoff)
         maxima=maxima(int>cutoff,:);
     else

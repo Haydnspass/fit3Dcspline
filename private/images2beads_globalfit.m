@@ -80,14 +80,14 @@ for k=1:length(filelist)
         int=maxima(:,3);
         try
         mimc=mim(roisize:end-roisize,roisize:end-roisize);
-        mmed=quantile(mimc(:),0.3);
+        mmed=myquantile(mimc(:),0.3);
         imt=mimc(mimc<mmed);
             sm=sort(int);
         mv=mean(sm(end-5:end));
 %         cutoff=mean(imt(:))+max(2.5*std(imt(:)),(mv-mean(imt(:)))/10);
         cutoff=mean(imt(:))+max(2.5*std(imt(:)),(mv-mean(imt(:)))/15);
         catch
-            cutoff=quantile(mimc(:),.95);
+            cutoff=myquantile(mimc(:),.95);
         end
         cutoff=cutoff*p.cutoffrel;
         if any(int>cutoff)

@@ -8,8 +8,8 @@ if sum(refim(:))==0||sum(targetim(:))==0
     return;
 end
 
-refim=nansum(refim,3);
-targetim=nansum(targetim,3);
+refim=sum(refim,3,'omitnan');
+targetim=sum(targetim,3,'omitnan');
 sim=size(targetim);
 % if sim(3)==1 %2D
 % G = (fftshift(real(ifft2(fft2(refim).*conj(fft2(targetim))))))/...

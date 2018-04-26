@@ -99,7 +99,7 @@ phere.cutoffrefine=500;
 goodind=find(true(length(beads),1));
 beads2=beads;
 while  1% length(beads2)>length(beads)/2
-    cutoff=3*nanmean(err1);
+    cutoff=3*mean(err1,'omitnan');
     badind=(err1>cutoff|isnan(err1));
     if sum(badind)==0
         break
