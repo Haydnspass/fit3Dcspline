@@ -9,6 +9,8 @@ experimental PSFs of different modality and correct for depth induce aberrations
 
 # Requirements
   - Matlab R2016a or newer  
+    - Curve Fitting Toolbox
+    - Optimization Toolbox
 
 The GPU fitter requires:
   

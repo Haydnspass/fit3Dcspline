@@ -32,7 +32,7 @@ function out=fitsx2sy2_so(sx,sy,z,zrange,ax)
 indf=z>zrange(1)&z<zrange(2);
 
 ds=sx.^2-sy.^2;
-q=quantile(ds(indf),[0.05 0.95])+[-2 2];
+q=myquantile(ds(indf),[0.05 0.95])+[-2 2];
 
 inds=ds>q(1)&ds<q(2);
 inds=indf&inds;

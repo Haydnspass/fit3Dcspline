@@ -15,7 +15,7 @@ sstack=size(beads(1).stack.image);
         end
         
     %remove outliers:
-        badind=abs(dframe-nanmedian(dframe))>10|isnan(dframe);
+        badind=abs(dframe-median(dframe,'omitnan'))>10|isnan(dframe);
         beads(badind)=[];
     
 
@@ -51,25 +51,25 @@ sstack=size(beads(1).stack.image);
         
     end
     
-    mstack=nanmean(allstacks,4);
-    mstack=mstack-nanmin(mstack(:));
-    mstack=mstack/nansum(mstack(:));
+    mstack=mean(allstacks,4,'omitnan');
+    mstack=mstack-min(mstack(:),[],'omitnan');
+    mstack=mstack/sum(mstack(:),'omitnan');
     for k=length(beads):-1:1
     	stackh=(allstacks(:,:,:,k));
-        stackh=stackh-nanmin(stackh(:));
-        stackh=stackh/nansum(stackh(:));
+        stackh=stackh-min(stackh(:),[],'omitnan');
+        stackh=stackh/sum(stackh(:),'omitnan');
         dstack(k)=sum((stackh(:)-mstack(:)).^2);
     end
     dstack=dstack/mean(dstack);  
     
     if p.isglobalfit
-        mstack=nanmean(allstackst,4);
-        mstack=mstack-nanmin(mstack(:));
-        mstack=mstack/nansum(mstack(:));
+        mstack=mean(allstackst,4,'omitnan');
+        mstack=mstack-min(mstack(:),[],'omitnan');
+        mstack=mstack/sum(mstack(:),'omitnan');
         for k=length(beads):-1:1
             stackh=(allstackst(:,:,:,k));
-            stackh=stackh-nanmin(stackh(:));
-            stackh=stackh/nansum(stackh(:));
+            stackh=stackh-min(stackh(:),[],'omitnan');
+            stackh=stackh/sum(stackh(:),'omitnan');
             dstackt(k)=sum((stackh(:)-mstack(:)).^2);
         end
         dstackt=dstackt/mean(dstackt);  
@@ -131,9 +131,9 @@ sstack=size(beads(1).stack.image);
     %not be the right approahc. Then normalize by one only
     %normalize PSF
     centpsfr=corrPSFr(rangex,rangey,z-1:z+1); %cut out rim from shift    
-    minPSFr=nanmin(centpsfr(:));
+    minPSFr=min(centpsfr(:),[],'omitnan');
     corrPSFnr=corrPSFr-minPSFr;
-    intglobalr=nanmean(nansum(nansum(corrPSFnr(rangex,rangey,z-1:z+1),1),2));
+    intglobalr=mean(sum(sum(corrPSFnr(rangex,rangey,z-1:z+1),1,'omitnan'),2,'omitnan'),'omitnan');
     corrPSFnr=corrPSFnr/intglobalr;   
     shiftedstack(1:size(allrois,1),:,:,:)=shiftedstack(1:size(allrois,1),:,:,:)/intglobalr;
     corrPSFnr(isnan(corrPSFnr))=0;
@@ -162,9 +162,9 @@ sstack=size(beads(1).stack.image);
         corrPSFt=corrPSF(size(allstacks,1)+1:end,:,:);
         allroist=allstackst;
         centpsft=corrPSFt(rangex,rangey,z-1:z+1);
-        minPSFt=nanmin(centpsft(:));
+        minPSFt=min(centpsft(:),[],'omitnan');
         corrPSFnt=corrPSFt-minPSFt;
-        intglobalt=nanmean(nansum(nansum(corrPSFnt(rangex,rangey,z-1:z+1),1),2));
+        intglobalt=mean(sum(sum(corrPSFnt(rangex,rangey,z-1:z+1),1,'omitnan'),2,'omitnan'),'omitnan');
         corrPSFnt=corrPSFnt/intglobalt;
         shiftedstack(size(allrois,1)+1:end,:,:,:)=shiftedstack(size(allrois,1)+1:end,:,:,:)/intglobalt;        
         corrPSFnt(isnan(corrPSFnt))=0;
@@ -341,8 +341,8 @@ ax2=axes(ax.Parent);
 subplot(1,2,1,ax);
 subplot(1,2,2,ax2);
 findx=find(~indx);findy=find(~indy);
-plot(ax,zr(2:end-2),hz,zr(2:end-2),hzx/max(hzx)*(quantile(hz,.99)));
-ax.YLim(2)=(quantile(hz,.99))*1.1;
-ax.YLim(1)=min(quantile(hz,.01),quantile(hzx/max(hzx)*(quantile(hz,.99)),.01));
+plot(ax,zr(2:end-2),hz,zr(2:end-2),hzx/max(hzx)*(myquantile(hz,.99)));
+ax.YLim(2)=(myquantile(hz,.99))*1.1;
+ax.YLim(1)=min(myquantile(hz,.01),myquantile(hzx/max(hzx)*(myquantile(hz,.99)),.01));
 plot(ax2,xr(findx(2:end-1)),hx,xr(findx(2:end-1)),hxx/max(hxx)*max(hx),xr(findy(2:end-1)),hy,xr(findy(2:end-1)),hyx/max(hyx)*max(hy));
 end

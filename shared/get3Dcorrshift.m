@@ -34,7 +34,7 @@ else
     Gs = fftshift(real(ifft(ifft2(Gfft),[],3)));
     Gs(Gs<0)=NaN;
     nisn=~isnan(targetimhd);
-    G=Gs/((nanmean(refimhd(:))*nanmean(targetimhd(:))) *sum(nisn(:)))-1;
+    G=Gs/((mean(refimhd(:),'omitnan')*mean(targetimhd(:),'omitnan')) *sum(nisn(:)))-1;
     
 %     px=sum(sum(G,2),3);
 %      maxmethod='interp';
