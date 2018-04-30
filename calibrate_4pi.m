@@ -62,16 +62,34 @@ end
 
 
 %furhter align PSFs. Maybe this is not needed.
-framerange=round(sstack(3)/2-2*fw:sstack(3)/2+2*fw);
+framerange=round(max(1,sstack(3)/2-2*fw):min(sstack(3)/2+2*fw,sstack(3)));
 [~,PSFaligned,shift,indgood]=registerPSF3D_g(allPSFs,[],struct('framerange',framerange,'removeoutliers',false),{},filenumber);
 
 tab=(uitab(tgprefit,'Title','frequency'));ph.ax=axes(tab);
+
+%extend: also fix phi3-phi1=phi4-phi3=pi?
 [phaseshifts,frequency]=getphaseshifts(allPSFs,ph.ax);
 phaseshifts=phaseshifts-phaseshifts(1);
 [I,A,B]=make4Pimodel(allPSFs,phaseshifts,frequency);
 
+plotI(:,:,:,1)=I;plotI(:,:,:,2)=A;plotI(:,:,:,3)=B;
+tab=(uitab(tgprefit,'Title','IAB'));imageslicer(plotI,'Parent',tab)
 
 
+
+
+%fit with this intermediate PSF model -> x,y,z, phi for all beads
+
+% find bead pairs
+% cut out beads and move according to fit to perfect overlap
+% calculate I, A, B for every bead
+% perform registerPSF on I,A,B and all 4 channels together
+% tilted coverslip: do we need to adjust phase for every bead to have same
+% A, B, I? Use fitted phase phi for htis?
+
+%alternatively: 
+%as before for 2 channels average a 4 channel PSF (with fringes). Then use
+%this for A,B,I
 
 if ~p.isglobalfit %only normal local calibration, just call old proram
     calibrate3D_g(p);
@@ -278,7 +296,10 @@ function [I,A,B]=make4Pimodel(allPSFs,phaseshifts,frequency)
 A=(A12+A23+A34+A41)/4;
 B=(B12+B23+B34+B41)/4;
 I=Iall;
-
+figure(188)
+ax=gca;
+Aall(:,:,:,1)=A12;Aall(:,:,:,2)=A23;Aall(:,:,:,3)=A34;Aall(:,:,:,4)=A41;
+imageslicer(Aall,'Parent',ax)
 end
 
 function [A,B]=makeAB(P1,P2,I,z,frequency,phase1,phase2)

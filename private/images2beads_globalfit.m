@@ -38,9 +38,11 @@ for k=1:length(filelist)
              r.close;
         catch err
             err
-            imstack=readfile_ome(filelist{k});
-            p.roi{k}=p.smappos.roi{k};
-            p.pixelsize{k}=p.smappos.pixelsize{k};
+%             imstack=readfile_ome(filelist{k});
+%             p.roi{k}=p.smappos.roi{k};
+%             p.pixelsize{k}=p.smappos.pixelsize{k};
+            imstack=readfile_tif(filelist{k});
+            p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
         end
         if isempty(imstack)
             disp('using simple reader')
