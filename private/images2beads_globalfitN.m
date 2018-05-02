@@ -43,6 +43,10 @@ for k=1:length(filelist)
         p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
     end
     
+    if isfield(p,'settings_3D') %calibration file: cut out and mirror already here!
+        imstack=cutoutchannels(imstack,p.settings_3D);
+        p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
+    end
     if p.emgain
         imstack=imstack(:,end:-1:1);
     end
@@ -135,17 +139,22 @@ for k=1:length(filelist)
     %     maximatargetf(:,1)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
 
 
-%         if 0 %for testing
+%         if 1 %for testing
 %             maximatargetf(:,1)=maximatargetf(:,1)+1;
 %             maximatargetf(:,2)=maximatargetf(:,2)+0.5;
 %         maximatargetfm(:,1)=maximatargetf(:,1)-0.1+2;
 %         maximatargetfm(:,2)=maximatargetf(:,2)+0.1;
-%         maximatar=round(maximatargetfm);
+%         maximatar=round(maximatargetfm); 
+%         dxy=maximatargetf-maximatar;  
 %         else 
-            maximaallr=round(maximaall);
+            maximaallr=round(maximaall); 
+%             maximaallr(:,1,3)=maximaallr(:,1,3)+2;
+            
+           
+            dxy=maximaall-maximaallr;       
+
 %         end
-        dxy=maximaall-maximaallr;       
-          
+     
     else
         
         maximaref=maxima;

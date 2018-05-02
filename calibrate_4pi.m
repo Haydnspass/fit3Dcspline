@@ -1,29 +1,37 @@
 function calibrate_4pi(p)
 %for now now segmentation of calibration. 
 ph=p;
-f=figure('Name','Bead calibration');
+% f=figure('Name','Bead calibration');
+f=figure(44);
 tg=uitabgroup(f);
 t1=uitab(tg,'Title','prefit');
 tgprefit=uitabgroup(t1);
 ph.tabgroup=   tgprefit;
 ph.isglobalfit=false;
 ph.outputfile={};
-       
+
+settings_3D=readstruct('settings_3D.txt'); %later to settings, specify path in gui    
+ph.settings_3D=settings_3D;
+
 [beads,ph]=images2beads_globalfit(ph); %later extend for transformN
 sstack=size(beads(1).stack.image);
 
 ybeads=getFieldAsVectorInd(beads,'pos',2);
-y4pi=p.smappos.settings.y4pi; %later: load from here! add field to GUI for selecting file.
-x4pi=p.smappos.settings.x4pi;
-height4pi=p.smappos.settings.height4pi; 
-width4pi=p.smappos.settings.width4pi; 
-mirror4pi=p.smappos.settings.mirror4pi;
+
+
+% y4pi=settings_3D.y4pi; %later: load from here! add field to GUI for selecting file.
+% x4pi=settings_3D.x4pi;
+% height4pi=settings_3D.height4pi; 
+% width4pi=settings_3D.width4pi; 
+% mirror4pi=settings_3D.mirror4pi;
 fw=round((p.zcorrframes-1)/2);
 framerange=round(sstack(3)/2-fw:sstack(3)/2+fw);
-numchannels=length(y4pi);
+numchannels=length(settings_3D.y4pi);
 allPSFs=zeros(sstack(1),sstack(2),sstack(3),numchannels);
 for k=1:numchannels
-    indbh=ybeads>=y4pi(k)&ybeads<=y4pi(k)+height4pi;
+    h4pi=ph.settings_3D.height4pi;
+    indbh=ybeads>=(k-1)*h4pi+1 & ybeads<= k*h4pi;
+%     indbh=ybeads>=settings_3D.y4pi(k)&ybeads<=settings_3D.y4pi(k)+settings_3D.height4pi;
     
     xposh=getFieldAsVectorInd(beads(indbh),'pos',1)';
     yposh=getFieldAsVectorInd(beads(indbh),'pos',2)';
@@ -37,24 +45,7 @@ for k=1:numchannels
     beadtrue{k}(:,3)=shift(indgood,3); %this is not yet tested, could be minus
     
 end
-%calculate transformN
-transform=interfaces.LocTransformN;
-pt.mirror=mirror4pi(1)*2; %2 for y coordinate
-pt.xrange=[x4pi(1) x4pi(1)+width4pi];
-pt.yrange=[y4pi(1) y4pi(1)+height4pi];
-pt.unit='pixel';
-pt.type='projective';
-transform.setTransform(1,pt)
-iAaa=1:size(beadtrue{1},1);
-for k=2:length(beadtrue)
-    pt.mirror=mirror4pi(k)*2;
-    pt.xrange=[x4pi(k) x4pi(k)+width4pi];
-    pt.yrange=[y4pi(k) y4pi(k)+height4pi];
-    transform.setTransform(k,pt)
-    tab=(uitab(tgprefit,'Title',['T' num2str(k)]));ph.ax=axes(tab);
-    [~ ,iAa,iBa]=transform_locs_simpleN(transform,1, beadtrue{1},k,beadtrue{k},ph);
-    iAaa=intersect(iAa,iAaa);
-end
+
 
 
 
@@ -62,6 +53,30 @@ end
 %between PSFs in different channels. Not necessary to take into account?
 framerange=round(max(1,sstack(3)/2-2*fw):min(sstack(3)/2+2*fw,sstack(3)));
 [~,PSFaligned,shift,indgood]=registerPSF3D_g(allPSFs,[],struct('framerange',framerange,'removeoutliers',false),{},filenumber);
+
+%calculate transformN
+transform=interfaces.LocTransformN;
+pt.mirror=0; %mirror already taken care of when reading in images
+% pt.mirror=settings_3D.mirror4pi(1)*2; %2 for y coordinate
+% pt.xrange=[settings_3D.x4pi(1) settings_3D.x4pi(1)+settings_3D.width4pi];
+% pt.yrange=[settings_3D.y4pi(1) settings_3D.y4pi(1)+settings_3D.height4pi];
+pt.xrange=[1 settings_3D.width4pi];
+pt.yrange=[1 settings_3D.height4pi];
+pt.unit='pixel';
+pt.type='projective';
+transform.setTransform(1,pt)
+iAaa=1:size(beadtrue{1},1);
+for k=2:length(beadtrue)
+%     pt.mirror=settings_3D.mirror4pi(k)*2;
+%     pt.xrange=[settings_3D.x4pi(k) settings_3D.x4pi(k)+settings_3D.width4pi];
+    pt.yrange=[(k-1)*settings_3D.height4pi+1 k*settings_3D.height4pi];
+    transform.setTransform(k,pt)
+    tab=(uitab(tgprefit,'Title',['T' num2str(k)]));ph.ax=axes(tab);
+    [~ ,iAa,iBa]=transform_locs_simpleN(transform,1, beadtrue{1},k,beadtrue{k},ph);
+    %if use PSFaligned: add to beadtrue{k} etc the shift. sign?
+    iAaa=intersect(iAa,iAaa);
+end
+
 
 tab=(uitab(tgprefit,'Title','frequency'));ph.ax=axes(tab);
 
@@ -85,7 +100,18 @@ PSF.Aspline=getsmoothspline(A(mp-dd:mp+dd,mp-dd:mp+dd,:),p);
 PSF.Bspline=getsmoothspline(B(mp-dd:mp+dd,mp-dd:mp+dd,:),p);
 PSF.Ispline=getsmoothspline(I(mp-dd:mp+dd,mp-dd:mp+dd,:),p);
 
+%do fitting
+fitroi=13;
+sim=size(allPSFs);
+mp=floor((sim(1)-1)/2)+1;
+droi=floor((fitroi-1)/2);
+rangeh=mp-droi:mp+droi;
+phi0=phaseshifts;
+%fit calibrations stack
+shared=[0,0,1,1,1,1];
+[Pc,CRLB1, LL,update, error,residualc] =  kernel_MLEfit_Spline_LM_multichannel_4pi(allPSFs(rangeh, rangeh, :, :)*10000,PSF, shared,zeros(6,4,size(allPSFs,3)),50,phi0);
 
+mean(Pc(:,1:8),1)-mp-2
 %previous transform: corresponding beads: %this should be part of a new
 %images2beads function
     %round pos1: beadtrue{1}
@@ -99,16 +125,57 @@ sim=size(imstack);
 imsqueeze=reshape(imstack,sim(1),sim(2),[],sim(end));
 dTAll=reshape(dxy,size(dxy,1),sim(end),[]);
 % phi0 = [0, pi, pi / 2, 1.5 * pi];
-phi0=phaseshifts;
+
 shared=[1,1,1,1,1,1];
-shared=[0,0,0,0,0,0,0];
+% shared=[0,0,0,0,0,0,0];
 %     dTAll=permute(dTAll,[2 3 1]);
     
    % dT: coord, channel,loc
 % [P_EL, update_EL, error_EL, model_EL] =  kernel_MLEfit_Spline_LM_newFit(imstack(:, :, :, :), PSF, RoiPixelsize, 50, phi0, z0);
-[P,CRLB1, LL,update, error] =  kernel_MLEfit_Spline_LM_multichannel_4pi(imsqueeze(:, :, :, :),PSF, shared,dTAll,50,phi0);
 
-   
+
+
+
+global P
+[P,CRLB1, LL,update, error,residual] =  kernel_MLEfit_Spline_LM_multichannel_4pi(imsqueeze(rangeh, rangeh, :, :),PSF, shared,dTAll,50,phi0);
+% imageslicer(residual)
+ 
+phase=mod(reshape(P(:,6),[],sim(4)),2*pi);
+zphase=phase/2/frequency*p.dz;
+zastig=reshape(P(:,5),[],sim(4))*p.dz;
+
+xfit=reshape(P(:,1),[],sim(4));
+yfit=reshape(P(:,2),[],sim(4));
+
+z_phi = reshape(z_from_phi(P(:, 5), phase(:), frequency, ceil(sim(3)/2)-.7, 1),[],sim(4))*p.dz;
+figure(68)
+subplot(2,3,1)
+plot(zastig)
+xlabel('frame')
+ylabel('z_astig')
+subplot(2,3,2)
+plot(phase)
+xlabel('frame')
+ylabel('phase')
+subplot(2,3,3)
+plot(zastig,zphase)
+xlabel('z_astig')
+ylabel('z_phase')
+subplot(2,3,4)
+plot(z_phi)
+xlabel('frame')
+ylabel('z_phi')
+subplot(2,3,5)
+plot(xfit,yfit,'+')
+xlabel('x')
+ylabel('y')
+subplot(2,3,6)
+hold off
+plot(zastig,xfit)
+hold on
+xlabel('z_astig')
+ylabel('x')
+% plot(zastig,yfit)
     %cut out rois
     %fit unlinked
     %determine true x,y,z,phi for each bead
@@ -232,7 +299,7 @@ elseif length(ss)==4
         stack(:,:,:,k,:)=beads(k).stack.image;
         filenumber(k)=beads.filenumber;
         for zz=1:ss(3)
-            dT(1:2,:,zz,k)=squeeze(beads(k).shiftxy(1,1:2,:));
+            dT(1:2,:,zz,k)=squeeze(beads(k).shiftxy(1,[2 1],:));
         end
     end    
 end

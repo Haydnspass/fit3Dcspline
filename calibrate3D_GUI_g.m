@@ -184,8 +184,8 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.status=uicontrol('style','text','String','Status','Position',[xpos1,.5*vsep,xw*4,fieldheight],'FontSize',fontsize,'HorizontalAlignment','left');
             
             if extended  %called from our propriety fitting software SMAP: extended funtionality. Hidden if called directly          
-                obj.guihandles.posfromsmap=uicontrol('style','checkbox','String','SMAP positions','Position',[xpos1,top-3*vsep,xw*1.5,fieldheight],'FontSize',fontsize,'Value',false);
-                obj.guihandles.posfromsmap.TooltipString='Use positions determined by SMAP. This allows for filtering and manual deletion of beads, as well as the use of ROIs.';
+%                 obj.guihandles.posfromsmap=uicontrol('style','checkbox','String','SMAP positions','Position',[xpos1,top-3*vsep,xw*1.5,fieldheight],'FontSize',fontsize,'Value',false);
+%                 obj.guihandles.posfromsmap.TooltipString='Use positions determined by SMAP. This allows for filtering and manual deletion of beads, as well as the use of ROIs.';
             else
                 set(h, 'HandleVisibility', 'off'); %not affected by close all command
             end      
@@ -313,14 +313,14 @@ classdef calibrate3D_GUI_g<handle
                 p.smap=true;
                 p.smappos=obj.smappos;
 %                 p.imageRoi=obj.smappos.imageROI;
-                if obj.guihandles.posfromsmap.Value %use positions passed on from SMAP
-                    p.beadpos=obj.smappos.positions;
-                end
+%                 if obj.guihandles.posfromsmap.Value %use positions passed on from SMAP
+%                     p.beadpos=obj.smappos.positions;
+%                 end
                 
                 if isfield(obj.smappos,'framerangeuse')
                     p.framerangeuse=obj.smappos.framerangeuse;
                 end
-                p.files=obj.smappos.files;
+%                 p.files=obj.smappos.files;
             
                 %determine xrange, yrange for spatial calibration
                 switch obj.guihandles.spatialmode.Value
