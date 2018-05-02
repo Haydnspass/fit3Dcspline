@@ -1,4 +1,4 @@
-function transform=transform_locs_simpleN(transform,channelref,locref,channeltarget,loctarget,p)
+function [transform,iAa,iBa]=transform_locs_simpleN(transform,channelref,locref,channeltarget,loctarget,p)
 % locref , target: Mx2 or Mx3 array
 sepscale=2;
 

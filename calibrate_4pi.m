@@ -8,16 +8,12 @@ tgprefit=uitabgroup(t1);
 ph.tabgroup=   tgprefit;
 ph.isglobalfit=false;
 ph.outputfile={};
-    
-    
-[beads,ph]=images2beads_globalfit(ph);
-
-
+       
+[beads,ph]=images2beads_globalfit(ph); %later extend for transformN
 sstack=size(beads(1).stack.image);
 
-
 ybeads=getFieldAsVectorInd(beads,'pos',2);
-y4pi=p.smappos.settings.y4pi;
+y4pi=p.smappos.settings.y4pi; %later: load from here! add field to GUI for selecting file.
 x4pi=p.smappos.settings.x4pi;
 height4pi=p.smappos.settings.height4pi; 
 width4pi=p.smappos.settings.width4pi; 
@@ -34,8 +30,7 @@ for k=1:numchannels
 %     ph.tabgroup=uitabgroup(uitab(tgprefit,'Title',num2str(k)));
     [allstacks,filenumber]=bead2stack(beads(indbh));
     [allPSFs(:,:,:,k),shiftedstack,shift,indgood]=registerPSF3D_g(allstacks,[],struct('framerange',framerange));
-    
-%     [splinefit,indgood,posbeads,shift]=getstackcal_g(beads(indbh),ph);
+   
     
     beadtrue{k}(:,1)=xposh(indgood)-shift(indgood,2); %experimentally: this works :)
     beadtrue{k}(:,2)=yposh(indgood)-shift(indgood,1);
@@ -47,38 +42,77 @@ transform=interfaces.LocTransformN;
 pt.mirror=mirror4pi(1)*2; %2 for y coordinate
 pt.xrange=[x4pi(1) x4pi(1)+width4pi];
 pt.yrange=[y4pi(1) y4pi(1)+height4pi];
-pt.units='pixel';
+pt.unit='pixel';
 pt.type='projective';
 transform.setTransform(1,pt)
+iAaa=1:size(beadtrue{1},1);
 for k=2:length(beadtrue)
     pt.mirror=mirror4pi(k)*2;
     pt.xrange=[x4pi(k) x4pi(k)+width4pi];
     pt.yrange=[y4pi(k) y4pi(k)+height4pi];
     transform.setTransform(k,pt)
     tab=(uitab(tgprefit,'Title',['T' num2str(k)]));ph.ax=axes(tab);
-    transform_locs_simpleN(transform,1, beadtrue{1},k,beadtrue{k},ph)
+    [~ ,iAa,iBa]=transform_locs_simpleN(transform,1, beadtrue{1},k,beadtrue{k},ph);
+    iAaa=intersect(iAa,iAaa);
 end
 
 
 
-%furhter align PSFs. Maybe this is not needed.
+%furhter align PSFs. Maybe this is not needed. But this gives x,y shift
+%between PSFs in different channels. Not necessary to take into account?
 framerange=round(max(1,sstack(3)/2-2*fw):min(sstack(3)/2+2*fw,sstack(3)));
 [~,PSFaligned,shift,indgood]=registerPSF3D_g(allPSFs,[],struct('framerange',framerange,'removeoutliers',false),{},filenumber);
 
 tab=(uitab(tgprefit,'Title','frequency'));ph.ax=axes(tab);
 
 %extend: also fix phi3-phi1=phi4-phi3=pi?
-[phaseshifts,frequency]=getphaseshifts(allPSFs,ph.ax);
-phaseshifts=phaseshifts-phaseshifts(1);
+[phaseh,frequency]=getphaseshifts(allPSFs,ph.ax);
+phaseshifts=[phaseh(1) phaseh(2) phaseh(1)+pi phaseh(2)+pi]; 
+phaseshifts=phaseshifts-phaseshifts(1)-pi;
 [I,A,B]=make4Pimodel(allPSFs,phaseshifts,frequency);
 
-plotI(:,:,:,1)=I;plotI(:,:,:,2)=A;plotI(:,:,:,3)=B;
+plotI(:,:,:,1)=I;plotI(:,:,:,2)=A;plotI(:,:,:,3)=B;plotI(:,:,:,4)=allPSFs(:,:,:,1);
 tab=(uitab(tgprefit,'Title','IAB'));imageslicer(plotI,'Parent',tab)
 
-
-
-
 %fit with this intermediate PSF model -> x,y,z, phi for all beads
+fit4pidir=strrep(pwd,'SMAP',['ries-private' filesep 'PSF4Pi']);
+if exist(fit4pidir,'file')
+    addpath(fit4pidir);
+end
+mp=ceil((size(A,1)-1)/2);
+dd=floor((p.ROIxy-1)/2);
+PSF.Aspline=getsmoothspline(A(mp-dd:mp+dd,mp-dd:mp+dd,:),p);
+PSF.Bspline=getsmoothspline(B(mp-dd:mp+dd,mp-dd:mp+dd,:),p);
+PSF.Ispline=getsmoothspline(I(mp-dd:mp+dd,mp-dd:mp+dd,:),p);
+
+
+%previous transform: corresponding beads: %this should be part of a new
+%images2beads function
+    %round pos1: beadtrue{1}
+    ph.isglobalfit=true;
+    ph.transformation=transform;
+    [beads,ph]=images2beads_globalfitN(ph); 
+    
+
+[imstack,fn,dxy]=bead2stack(beads);
+sim=size(imstack);
+imsqueeze=reshape(imstack,sim(1),sim(2),[],sim(end));
+dTAll=reshape(dxy,size(dxy,1),sim(end),[]);
+% phi0 = [0, pi, pi / 2, 1.5 * pi];
+phi0=phaseshifts;
+shared=[1,1,1,1,1,1];
+shared=[0,0,0,0,0,0,0];
+%     dTAll=permute(dTAll,[2 3 1]);
+    
+   % dT: coord, channel,loc
+% [P_EL, update_EL, error_EL, model_EL] =  kernel_MLEfit_Spline_LM_newFit(imstack(:, :, :, :), PSF, RoiPixelsize, 50, phi0, z0);
+[P,CRLB1, LL,update, error] =  kernel_MLEfit_Spline_LM_multichannel_4pi(imsqueeze(:, :, :, :),PSF, shared,dTAll,50,phi0);
+
+   
+    %cut out rois
+    %fit unlinked
+    %determine true x,y,z,phi for each bead
+
 
 % find bead pairs
 % cut out beads and move according to fit to perfect overlap
@@ -91,6 +125,8 @@ tab=(uitab(tgprefit,'Title','IAB'));imageslicer(plotI,'Parent',tab)
 %as before for 2 channels average a 4 channel PSF (with fringes). Then use
 %this for A,B,I
 
+
+asdfd
 if ~p.isglobalfit %only normal local calibration, just call old proram
     calibrate3D_g(p);
     return
@@ -180,12 +216,25 @@ end
 end
 
 
-function [stack,filenumber]=bead2stack(beads)
+function [stack,filenumber,dT]=bead2stack(beads)
 ss=size(beads(1).stack.image);
-stack=zeros(ss(1),ss(2),ss(3),length(beads));
-for k=length(beads):-1:1
-    stack(:,:,:,k)=beads(k).stack.image;
-    filenumber(k)=beads.filenumber;
+if length(ss)==3
+    stack=zeros(ss(1),ss(2),ss(3),length(beads));
+    for k=length(beads):-1:1
+        stack(:,:,:,k)=beads(k).stack.image;
+        filenumber(k)=beads.filenumber;
+    end
+elseif length(ss)==4
+    stack=zeros(ss(1),ss(2),ss(3),length(beads),ss(4));
+    numpar=6;
+    dT=zeros(numpar,ss(4),ss(3),length(beads));
+    for k=length(beads):-1:1
+        stack(:,:,:,k,:)=beads(k).stack.image;
+        filenumber(k)=beads.filenumber;
+        for zz=1:ss(3)
+            dT(1:2,:,zz,k)=squeeze(beads(k).shiftxy(1,1:2,:));
+        end
+    end    
 end
 end
 
@@ -194,76 +243,49 @@ ss=size(allPSFs);
 range=(ss(1)+1)/2+[-1 1];
 fw=20;
 frange=round(ss(3)/2+(-fw:fw)');
-% figure(88);
+
 f=(1:ss(3))'-ss(3)/2;
-intall=[];frall=[];
-startpa=0;
-   kapprox=1*pi*4/max(f);
-   col=lines(ss(4));
+intall=[];
+ kapprox=1*pi*4/max(f);
 for k=1:ss(4)
     inth=squeeze(sum(sum(allPSFs(range,range,:,k),1),2));
-
-    lb=[0 -pi (max(inth)-min(inth))/4 -inf -inf  min(inth) -inf -inf ];
-    ub=[inf 3*pi max(inth) inf 0  max(inth) inf 0 ];
-%     fnc=@(k,phi,A1,A2,A3,B1,B2,B3,x) zint(x,k,phi,A1,A2,A3,B1,B2,B3);
-
-
-    %approximate phase from max
- 
-    [~,indmax]=max(inth(f>0));
-    phasestart=pi/2-indmax*kapprox; if phasestart<0,phasestart=phasestart+2*pi;end;
-    
-    startpar=[1*pi*4/max(f),phasestart,max(inth)/2,0,-max(inth)/max(f)^2/10,mean(inth),max(inth)/max(f)*0,-max(inth)/max(f)^2/10];
-    fitp=lsqcurvefit(@zintp,startpar,f(frange),inth(frange),lb,ub);
-  
-    intall=vertcat(intall,inth(frange));
-    frall=vertcat(frall,f(frange));
-    startpa=horzcat(startpa,fitp(2:end));
-%     fr=fit(f(frange),inth(frange),fnc,'StartPoint',startpar);
-   
-    
-    fh=f(frange);
-    plot(ax,f,inth,'-x','Color',col(k,:))
-    hold(ax,'on')
-     plot(ax,fh,zintp(fitp,fh),'r')
-%      plot(fh,fitp(3)+fitp(4)*fh+fitp(5)*fh.^2,'g');
-%      plot(fh,fitp(6)+fitp(7)*fh+fitp(8)*fh.^2,'c');
-      plot(fh,fitp(3)+fitp(4)*fh+fitp(5)*fh.^2 + fitp(6)+fitp(7)*fh+fitp(8)*fh.^2,'Color',col(k,:));
-      plot(fh,-(fitp(3)+fitp(4)*fh+fitp(5)*fh.^2) + fitp(6)+fitp(7)*fh+fitp(8)*fh.^2,'Color',col(k,:));
-%     plot(ax,fh,fr.A1+fr.A2*fh+fr.A3*fh.^2)
-   
-    frequency(k)=fitp(1)/2;
-    phaseshifts(k)=fitp(2);
-    kapprox=fitp(1);
-    
+    intall(:,k)=inth;
 end
-startpa(1)=fitp(1);
+normn=sum(intall,2)/2;   % normalize by i1+i2+i3+i4
+intnf=intall./normn;
+intn=intnf(frange,:);
+%k phi1 phi2 As Bs...
+    lb1=[(max(intn(:))-min(intn(:)))/4 -inf -inf  min(intn(:)) -inf -inf ];
+    ub1=[max(intn(:)) inf 0  max(intn(:)) inf 0 ];
+    s1=[(max(intn(:))-min(intn(:)))/2 0 0 0.5 0 0];
+    [~,indmax]=max(intn(:,1));
+     phasestart1=pi/2-indmax*kapprox+pi; if phasestart1<0,phasestart1=phasestart1+2*pi;end;
 
-%global fit with same k
-%XXXXX later:consider linking also phi1 and phi3 and phi2,phi4 to sum up to
-%pi.
+lba=horzcat(0,-pi,-pi,lb1,lb1,lb1,lb1);
+uba=horzcat(inf,3*pi,3*pi,ub1,ub1,ub1,ub1);
 
-% startparall=horzcat(startpar,startpar(2:end),startpar(2:end),startpar(2:end));
-lba=horzcat(lb,lb(2:end),lb(2:end),lb(2:end));
-uba=horzcat(ub,ub(2:end),ub(2:end),ub(2:end));
-
-fitpg=lsqcurvefit(@zintpg,startpa,f(frange),intall,lba,uba);
+startpa=[kapprox,phasestart1, phasestart1+pi/2,s1,s1,s1,s1];
+fitpg=lsqcurvefit(@zintpg,startpa,f(frange),intn,lba,uba);
 fitted=zintpg(fitpg,f(frange));
 fitted=reshape(fitted,length(frange),4);
+
+hold (ax,'off')
+plot(ax,f,intnf,'-+')
+% plot(ax,f(frange),intn)
+hold(ax,'on')
+% fst=zintpg(startpa,f(frange));
+% plot(ax,f(frange),fst(:,:))
 plot(ax,f(frange)',fitted','k');
-phaseshiftso=fitpg([2 9 16 23]);
+phaseshiftso=fitpg([2 3]);
 frequencyo=fitpg(1)/2;
-%   fnc=@(k,phi1,A11,A21,A31,B11,B21,B31,phi2,A12,A22,A32,B12,B22,B32,phi3,A13,A23,A33,B13,B23,B33,phi4,A14,A24,A34,B14,B24,B34,x) zintg(k,phi1,A11,A21,A31,B11,B21,B31,phi2,A12,A22,A32,B12,B22,B32,phi3,A13,A23,A33,B13,B23,B33,phi4,A14,A24,A34,B14,B24,B34,x);
-% 
-%  fr=fit(frall,intall,fnc,'StartPoint',startparall);
+title(ax,['frequency: ' num2str(frequencyo,2) ', phaseshift/pi: ' num2str((phaseshiftso(2)-phaseshiftso(1))/pi,2)])
+%   fnc=@(k,phi1,phi2,A11,A21,A31,B11,B21,B31,A12,A22,A32,B12,B22,B32,A13,A23,A33,B13,B23,B33,A14,A24,A34,B14,B24,B34,x) zintg(k,phi1,A11,A21,A31,B11,B21,B31,phi2,A12,A22,A32,B12,B22,B32,phi3,A13,A23,A33,B13,B23,B33,phi4,A14,A24,A34,B14,B24,B34,x);
+
 end
 
-% function into=zintg(k,phi1,A11,A21,A31,B11,B21,B31,phi2,A12,A22,A32,B12,B22,B32,phi3,A13,A23,A33,B13,B23,B33,phi4,A14,A24,A34,B14,B24,B34,x)
-% into=vertcat(zint(x,k,phi1,A11,A21,A31,B11,B21,B31),zint(x,k,phi2,A12,A22,A32,B12,B22,B32),zint(x,k,phi3,A13,A23,A33,B13,B23,B33),zint(x,k,phi4,A14,A24,A34,B14,B24,B34));
-% end
 function into=zintpg(p,xdat)
 
-into=vertcat(zintp([p(1) p(2:8)],xdat),zintp([p(1) p(9:15)],xdat),zintp([p(1) p(16:22)],xdat),zintp([p(1) p(23:29)],xdat));
+into=horzcat(zintp([p(1) p(2) p(4:9)],xdat),zintp([p(1) p(3) p(10:15)],xdat),zintp([p(1) p(2)+pi p(16:21)],xdat),zintp([p(1) p(3)+pi p(22:27)],xdat));
 % into=vertcat(zint(x,k,phi1,A11,A21,A31,B11,B21,B31),zint(x,k,phi2,A12,A22,A32,B12,B22,B32),zint(x,k,phi3,A13,A23,A33,B13,B23,B33),zint(x,k,phi4,A14,A24,A34,B14,B24,B34));
 end
 function into=zint(f,k,phi,A1,A2,A3,B1,B2,B3)
@@ -296,10 +318,10 @@ function [I,A,B]=make4Pimodel(allPSFs,phaseshifts,frequency)
 A=(A12+A23+A34+A41)/4;
 B=(B12+B23+B34+B41)/4;
 I=Iall;
-figure(188)
-ax=gca;
-Aall(:,:,:,1)=A12;Aall(:,:,:,2)=A23;Aall(:,:,:,3)=A34;Aall(:,:,:,4)=A41;
-imageslicer(Aall,'Parent',ax)
+% figure(188)
+% ax=gca;
+% Aall(:,:,:,1)=A12;Aall(:,:,:,2)=A23;Aall(:,:,:,3)=A34;Aall(:,:,:,4)=A41;
+% imageslicer(Aall,'Parent',ax)
 end
 
 function [A,B]=makeAB(P1,P2,I,z,frequency,phase1,phase2)
@@ -310,4 +332,22 @@ function [A,B]=makeAB(P1,P2,I,z,frequency,phase1,phase2)
         A(:,:,k)=(sin(a1).*(P2(:,:,k)-I(:,:,k))-sin(a2).*(P1(:,:,k)-I(:,:,k)))./(cos(a2).*sin(a1)-cos(a1).*sin(a2));
         B(:,:,k)=(-cos(a1).*(P2(:,:,k)-I(:,:,k))+cos(a2).*(P1(:,:,k)-I(:,:,k)))./(cos(a2).*sin(a1)-cos(a1).*sin(a2));
     end
+end
+
+function cspline=getsmoothspline(V,p)
+
+if ~isfield(p,'pixelsize')
+    pixelsizeh=100;
+else
+    pixelsizeh=p.pixelsize{1}(1);
+end
+lambdax=p.smoothxy/pixelsizeh/100000;
+lambdaz=p.smoothz/p.dz*100;
+lambda=[lambdax lambdax lambdaz];
+b3_0t=bsarray(double(V),'lambda',lambda);
+zhd=1:1:b3_0t.dataSize(3);
+dxxhd=1;
+[XX,YY,ZZ]=meshgrid(1:dxxhd:b3_0t.dataSize(1),1:dxxhd:b3_0t.dataSize(2),zhd);
+corrPSFhdt = interp3_0(b3_0t,XX,YY,ZZ,0);
+cspline = Spline3D_interp(corrPSFhdt);
 end
