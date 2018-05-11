@@ -171,7 +171,7 @@ classdef calibrate3D_GUI_g<handle
             
             obj.guihandles.makeT=uicontrol('style','checkbox','String','make T','Position',[xpos1,top-23*vsep,xw*1,fieldheight],'FontSize',fontsize);
             obj.guihandles.Tmode=uicontrol('style','popupmenu','String',{'up-down','up-down mirror','right-left','right-left mirror'},'Position',[xpos1+1*xw,top-23*vsep,xw*1.5,fieldheight],'FontSize',fontsize);
-            obj.guihandles.tform=uicontrol('style','popupmenu','String',{'projective','affine','polynomial','lwm','pwl'},'Position',[xpos1+2.5*xw,top-23*vsep,xw*1.5,fieldheight],'FontSize',fontsize,'Value',3);
+            obj.guihandles.tform=uicontrol('style','popupmenu','String',{'projective','affine','polynomial','lwm','pwl','nonreflectivesimilarity'},'Position',[xpos1+2.5*xw,top-23*vsep,xw*1.5,fieldheight],'FontSize',fontsize,'Value',3);
             
             obj.guihandles.Tsplitpost=uicontrol('style','text','String','Split at (pix):','Position',[xpos1+2*xw,top-24*vsep,xw*1,fieldheight],'FontSize',fontsize);
             obj.guihandles.Tsplitpos=uicontrol('style','edit','String','255','Position',[xpos1+3*xw,top-24*vsep,xw*1,fieldheight],'FontSize',fontsize);
