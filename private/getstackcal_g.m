@@ -178,6 +178,8 @@ sstack=size(beads(1).stack.image);
         minPSFt=min(centpsft(:),[],'omitnan');
         corrPSFnt=corrPSFt-minPSFt;
         intglobalt=mean(sum(sum(corrPSFnt(rangex,rangey,z-1:z+1),1,'omitnan'),2,'omitnan'),'omitnan');
+        %normalize also by the same as reference!
+        intglobalt=intglobalr;
         corrPSFnt=corrPSFnt/intglobalt;
         shiftedstack(size(allrois,1)+1:end,:,:,:)=(shiftedstack(size(allrois,1)+1:end,:,:,:)-minPSFt)/intglobalt;        
         corrPSFnt(isnan(corrPSFnt))=0;
