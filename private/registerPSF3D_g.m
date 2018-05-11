@@ -46,8 +46,13 @@ end
 
 numbeads=size(imin,4);
 if numbeads==1
+    if isempty(imint)
     imout=imin;
     shiftedstackn=imin;
+    else
+        imout=vertcat(imin, imint);
+        shiftedstackn=imout;
+    end
     shifto=[0 0 0 ];
     indgood=true;
     return
