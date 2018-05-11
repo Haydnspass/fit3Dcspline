@@ -41,10 +41,10 @@ classdef calibrate3D_GUI_g<handle
             
             if nargin>0 %called from our propriety fitting software SMAP: extended funtionality. Hidden if called directly
                 extended=true;
-                figureheight=730;
+                figureheight=830;
             else
                 extended=false;
-                figureheight=630;
+                figureheight=730;
             end
             
             h=figure('Name','3D calibration','MenuBar','none','ToolBar','none');
@@ -69,7 +69,7 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.filelist.TooltipString='List of image files used for calibration. To change this list, use select camera files';
             obj.guihandles.selectoutputfile=uicontrol('style','pushbutton','String','Select output file','Position',[xpos1,top-5*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutputfile_callback);
             obj.guihandles.selectoutputfile.TooltipString='Select file name for output calibration file. E.g. bead_astig_3dcal.mat or bead2d_3dcal.mat';
-            obj.guihandles.outputfile=uicontrol('style','edit','String','data/bead_3dcal.mat','Position',[xpos1+1.5*xw,top-5*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.outputfile=uicontrol('style','edit','String','bead_3dcal.mat','Position',[xpos1+1.5*xw,top-5*vsep,xw*2.5,vsep],'FontSize',fontsize);
             obj.guihandles.outputfile.TooltipString='Name of the output file';
             
           
@@ -81,7 +81,7 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.dzt.TooltipString=obj.guihandles.dz.TooltipString;
             
             obj.guihandles.modalityt=uicontrol('style','text','String','3D modality ','Position',[xpos1,top-9*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
+            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Value',2,'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
             obj.guihandles.modality.TooltipString='Select the kind of PSF. Astigmatic, arbitrary (e.g. saddle-point, double-helix), or unmodified 2D';
             obj.guihandles.modalityt.TooltipString=obj.guihandles.modality.TooltipString;
             
@@ -104,13 +104,13 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.filtert.TooltipString=obj.guihandles.filter.TooltipString;
             
             obj.guihandles.mindistancet=uicontrol('style','text','String','Minimum distance (pixels)','Position',[xpos1,top-13*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.mindistance=uicontrol('style','edit','String','15','Position',[xpos1+2.5*xw,top-13*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.mindistance=uicontrol('style','edit','String','25','Position',[xpos1+2.5*xw,top-13*vsep,xw*1,vsep],'FontSize',fontsize);
             obj.guihandles.mindistance.TooltipString=sprintf('Minimum distance between beads (in pixels). If beads are closer together, they are removed and not used for averaging. Helps eliminating background contaminations from close by beads');
             obj.guihandles.mindistancet.TooltipString=obj.guihandles.mindistance.TooltipString;           
      
             obj.guihandles.csplinet=uicontrol('style','text','String','Cspline parameters: ','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             obj.guihandles.roisizet=uicontrol('style','text','String','ROI size: X,Y (pixels): ','Position',[xpos1,top-16*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.ROIxy=uicontrol('style','edit','String','21','Position',[xpos1+2*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.ROIxy=uicontrol('style','edit','String','27','Position',[xpos1+2*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizezt=uicontrol('style','text','String','Z (frames): ','Position',[xpos1+2.5*xw,top-16*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.ROIz=uicontrol('style','edit','String','','Position',[xpos1+3.5*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizet.TooltipString=sprintf('Size of the volume for which cspline coefficients are calculated. \n Should be larger than the ROI used for fitting. \n x,y: typically 17-31 pixels, z: number of frames in stack');
@@ -142,10 +142,14 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.gaussroit.TooltipString=sprintf('Size of ROI (in pixels) used for Gaussian fitting. Use the same as in later experiments. \n Larger size gives higher accuracy (maximum 21 pixels allowed by fitter). \n For dense data use smaller ROI sizes to avoid contamination with close-by fluorophores.');
             obj.guihandles.gaussroi.TooltipString=obj.guihandles.gaussroit.TooltipString;
             
-            obj.guihandles.isglobalfit=uicontrol('style','checkbox','String','global','Position',[xpos1,top-22*vsep,xw*1,vsep],'FontSize',fontsize);
-            obj.guihandles.loadtransform=uicontrol('style','pushbutton','String','load','Position',[xpos1+1*xw,top-22*vsep,xw*.5,vsep],'FontSize',fontsize,'Callback',@obj.loadT_callback);
-            obj.guihandles.Tfile=uicontrol('style','edit','String','','Position',[xpos1+1.5*xw,top-22*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.globalt=uicontrol('style','text','String','Global fit parameters: ','Position',[xpos1,top-23*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+            obj.guihandles.isglobalfit=uicontrol('style','checkbox','String','global','Position',[xpos1,top-24*vsep,xw*1,vsep],'FontSize',fontsize,'Callback',@obj.global_callback);
+            obj.guihandles.loadtransform=uicontrol('style','pushbutton','String','load','Position',[xpos1+1*xw,top-24*vsep,xw*.5,vsep],'FontSize',fontsize,'Callback',@obj.loadT_callback);
+            obj.guihandles.Tfile=uicontrol('style','edit','String','','Position',[xpos1+1.5*xw,top-24*vsep,xw*2.5,vsep],'FontSize',fontsize);
             
+            obj.guihandles.makeT=uicontrol('style','checkbox','String','make transformation','Position',[xpos1,top-25*vsep,xw*2,vsep],'FontSize',fontsize);
+            obj.guihandles.Tmode=uicontrol('style','popupmenu','String',{'up-down','up-down mirror','right-left','right-left mirror'},'Position',[xpos1+2*xw,top-25*vsep,xw*2,vsep],'FontSize',fontsize);
+          
             
          
             obj.guihandles.run=uicontrol('style','pushbutton','String','Calculate bead calibration','Position',[xpos1,2.5*vsep,xw*4,vsep],'FontSize',fontsize,'Callback',@obj.run_callback);
@@ -157,17 +161,19 @@ classdef calibrate3D_GUI_g<handle
                 obj.guihandles.posfromsmap=uicontrol('style','checkbox','String','SMAP positions','Position',[xpos1,top-3*vsep,xw*1.5,vsep],'FontSize',fontsize,'Value',false);
                 obj.guihandles.posfromsmap.TooltipString='Use positions determined by SMAP. This allows for filtering and manual deletion of beads, as well as the use of ROIs.';
                 
-                obj.guihandles.spatialcalt=uicontrol('style','text','String','Spatially resolved calibration: ','Position',[xpos1,top-23*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
-                obj.guihandles.spatialmode=uicontrol('style','popupmenu','String',{'none','horizontal split','vertical split','M x N tiles','coordinates'},'Position',[xpos1,top-24*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',{@spatialselect_callback,obj});
-                obj.guihandles.spatial_xtext=uicontrol('style','text','String','xtext','Position',[xpos1,top-25*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
-                obj.guihandles.spatial_xval=uicontrol('style','edit','String','','Position',[xpos1+xw,top-25*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
-                obj.guihandles.spatial_ytext=uicontrol('style','text','String','ytext','Position',[xpos1+2*xw,top-25*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
-                obj.guihandles.spatial_yval=uicontrol('style','edit','String','','Position',[xpos1+3*xw,top-25*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');   
-                obj.guihandles.emgain=uicontrol('style','checkbox','String','EM gain used (mirrored)','Position',[xpos1,top-26*vsep,2*xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha); 
+                obj.guihandles.spatialcalt=uicontrol('style','text','String','Spatially resolved calibration: ','Position',[xpos1,top-27*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
+                obj.guihandles.spatialmode=uicontrol('style','popupmenu','String',{'none','horizontal split','vertical split','M x N tiles','coordinates'},'Position',[xpos1,top-28*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',{@spatialselect_callback,obj});
+                obj.guihandles.spatial_xtext=uicontrol('style','text','String','xtext','Position',[xpos1,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
+                obj.guihandles.spatial_xval=uicontrol('style','edit','String','','Position',[xpos1+xw,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
+                obj.guihandles.spatial_ytext=uicontrol('style','text','String','ytext','Position',[xpos1+2*xw,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
+                obj.guihandles.spatial_yval=uicontrol('style','edit','String','','Position',[xpos1+3*xw,top-29*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');   
+                obj.guihandles.emgain=uicontrol('style','checkbox','String','EM gain used (mirrored)','Position',[xpos1,top-30*vsep,2*xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha); 
                 obj.smappos=varargin{1};
             else
                 set(h, 'HandleVisibility', 'off'); %not affected by close all command
             end
+            modality_callback(obj,0,0)
+            obj.global_callback(0,0);
         end
         function selectfiles_callback(obj,a,b)
             sf=selectManyFiles;
@@ -175,16 +181,16 @@ classdef calibrate3D_GUI_g<handle
             waitfor(sf.handle);
             obj.guihandles.filelist.String=sf.filelist;
             obj.guihandles.filelist.Value=1;
-            if isempty(obj.guihandles.outputfile.String)
+            if isempty(obj.guihandles.outputfile.String)|| strcmp(obj.guihandles.outputfile.String,'bead_3dcal.mat')
                 [path,file]=fileparts(sf.filelist{1});
-                obj.guihandles.outputfile.String=[path file '_3Dcorr.mat'];
+                obj.guihandles.outputfile.String=[path filesep file '_3dcal.mat'];
                 
             end
         end
         function selectoutputfile_callback(obj,a,b)
             of=obj.guihandles.outputfile.String;
             if isempty(of)
-                of='_corr3D.mat';
+                of='_3dcal.mat';
             end
             [f,p]=uiputfile(of);
             if f
@@ -195,7 +201,7 @@ classdef calibrate3D_GUI_g<handle
             of=obj.guihandles.Tfile.String;
             if isempty(of)
                 fl=obj.guihandles.filelist.String;
-                of=[fileparts(fl{1}) '*.mat'];
+                of=[fileparts(fl{1}) filesep '*.mat'];
             end
             [f,p]=uigetfile(of);
             if f
@@ -230,6 +236,17 @@ classdef calibrate3D_GUI_g<handle
                 obj.guihandles.(corrz{k}).Visible=vis;
             end
         end
+        function global_callback(obj,a,b)
+            corrg={'loadtransform','Tfile','makeT','Tmode'};
+            if obj.guihandles.isglobalfit.Value
+                vis='on';
+            else
+                vis='off';
+            end
+            for k=1:length(corrg)
+                obj.guihandles.(corrg{k}).Visible=vis;
+            end
+        end
         function out=run_callback(obj,a,b)
             p.filelist=obj.guihandles.filelist.String;
             p.outputfile=obj.guihandles.outputfile.String;
@@ -259,11 +276,25 @@ classdef calibrate3D_GUI_g<handle
                 if obj.guihandles.posfromsmap.Value %use positions passed on from SMAP
                     p.beadpos=obj.smappos.positions;
                 end
+                
+                if isfield(obj.smappos,'framerangeuse')
+                    p.framerangeuse=obj.smappos.framerangeuse;
+                end
                 p.files=obj.smappos.files;
+            
                 %determine xrange, yrange for spatial calibration
                 switch obj.guihandles.spatialmode.Value
                     case 1 %all
-                        p.xrange=[-inf inf];p.yrange=[-inf inf];
+                        if isfield(obj.smappos,'xrange')
+                            p.xrange=obj.smappos.xrange;
+                        else
+                            p.xrange=[-inf inf];
+                        end
+                        if isfield(obj.smappos,'yrange')
+                            p.yrange=obj.smappos.yrange;
+                        else
+                            p.yrange=[-inf inf];
+                        end  
                     case 2%split horz
                         midp=str2double(obj.guihandles.spatial_xval.String);
                         p.xrange=[-inf  inf];p.yrange=[-inf midp inf];
@@ -293,9 +324,11 @@ classdef calibrate3D_GUI_g<handle
             
             p.isglobalfit=obj.guihandles.isglobalfit.Value;
             p.Tfile=obj.guihandles.Tfile.String;
-           
+            p.makeT=obj.guihandles.makeT.Value;
+            p.Tmode = obj.guihandles.Tmode.String{obj.guihandles.Tmode.Value};
             
-            calibrate3D_g(p);
+            calibrate_globalworkflow(p);
+%             calibrate3D_g(p);
         end    
         function help_callback(obj,a,b)
             helpstring={'write documentation'};

@@ -19,11 +19,6 @@
 %  
 %  Additional permission under GNU GPL version 3 section 7
 %  
-%  If you modify this Program, or any covered work, by
-%  linking or combining it with libraries required for interaction
-%  with analysis programs such as Igor Pro or Matlab,
-%  the licensors of this Program grant you additional permission
-%  to convey the resulting work.
 %%
 classdef calibrate3D_GUI<handle
     properties
@@ -69,7 +64,7 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.filelist.TooltipString='List of image files used for calibration. To change this list, use select camera files';
             obj.guihandles.selectoutputfile=uicontrol('style','pushbutton','String','Select output file','Position',[xpos1,top-5*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.selectoutputfile_callback);
             obj.guihandles.selectoutputfile.TooltipString='Select file name for output calibration file. E.g. bead_astig_3dcal.mat or bead2d_3dcal.mat';
-            obj.guihandles.outputfile=uicontrol('style','edit','String','data/bead_3dcal.mat','Position',[xpos1+1.5*xw,top-5*vsep,xw*2.5,vsep],'FontSize',fontsize);
+            obj.guihandles.outputfile=uicontrol('style','edit','String','bead_3dcal.mat','Position',[xpos1+1.5*xw,top-5*vsep,xw*2.5,vsep],'FontSize',fontsize);
             obj.guihandles.outputfile.TooltipString='Name of the output file';
             
           
@@ -81,7 +76,7 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.dzt.TooltipString=obj.guihandles.dz.TooltipString;
             
             obj.guihandles.modalityt=uicontrol('style','text','String','3D modality ','Position',[xpos1,top-9*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
+            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF'},'Value',1,'Position',[xpos1+2.5*xw,top-9*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.modality_callback);
             obj.guihandles.modality.TooltipString='Select the kind of PSF. Astigmatic, arbitrary (e.g. saddle-point, double-helix), or unmodified 2D';
             obj.guihandles.modalityt.TooltipString=obj.guihandles.modality.TooltipString;
             
@@ -104,13 +99,13 @@ classdef calibrate3D_GUI<handle
             obj.guihandles.filtert.TooltipString=obj.guihandles.filter.TooltipString;
             
             obj.guihandles.mindistancet=uicontrol('style','text','String','Minimum distance (pixels)','Position',[xpos1,top-13*vsep,xw*2.5,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.mindistance=uicontrol('style','edit','String','15','Position',[xpos1+2.5*xw,top-13*vsep,xw*1,vsep],'FontSize',fontsize);
+            obj.guihandles.mindistance=uicontrol('style','edit','String','20','Position',[xpos1+2.5*xw,top-13*vsep,xw*1,vsep],'FontSize',fontsize);
             obj.guihandles.mindistance.TooltipString=sprintf('Minimum distance between beads (in pixels). If beads are closer together, they are removed and not used for averaging. Helps eliminating background contaminations from close by beads');
             obj.guihandles.mindistancet.TooltipString=obj.guihandles.mindistance.TooltipString;           
      
             obj.guihandles.csplinet=uicontrol('style','text','String','Cspline parameters: ','Position',[xpos1,top-15*vsep,xw*4,vsep],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
             obj.guihandles.roisizet=uicontrol('style','text','String','ROI size: X,Y (pixels): ','Position',[xpos1,top-16*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.ROIxy=uicontrol('style','edit','String','21','Position',[xpos1+2*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
+            obj.guihandles.ROIxy=uicontrol('style','edit','String','27','Position',[xpos1+2*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizezt=uicontrol('style','text','String','Z (frames): ','Position',[xpos1+2.5*xw,top-16*vsep,xw,vsep],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.ROIz=uicontrol('style','edit','String','','Position',[xpos1+3.5*xw,top-16*vsep,xw*.5,vsep],'FontSize',fontsize);
             obj.guihandles.roisizet.TooltipString=sprintf('Size of the volume for which cspline coefficients are calculated. \n Should be larger than the ROI used for fitting. \n x,y: typically 17-31 pixels, z: number of frames in stack');
@@ -162,6 +157,7 @@ classdef calibrate3D_GUI<handle
             else
                 set(h, 'HandleVisibility', 'off'); %not affected by close all command
             end
+            modality_callback(obj,0,0)
         end
         function selectfiles_callback(obj,a,b)
             sf=selectManyFiles;
@@ -169,16 +165,16 @@ classdef calibrate3D_GUI<handle
             waitfor(sf.handle);
             obj.guihandles.filelist.String=sf.filelist;
             obj.guihandles.filelist.Value=1;
-            if isempty(obj.guihandles.outputfile.String)
+            if isempty(obj.guihandles.outputfile.String)|| strcmp(obj.guihandles.outputfile.String,'bead_3dcal.mat')
                 [path,file]=fileparts(sf.filelist{1});
-                obj.guihandles.outputfile.String=[path file '_3Dcorr.mat'];
+                obj.guihandles.outputfile.String=[path filesep file '_3dcal.mat'];
                 
             end
         end
         function selectoutputfile_callback(obj,a,b)
             of=obj.guihandles.outputfile.String;
             if isempty(of)
-                of='_corr3D.mat';
+                of='_3dcal.mat';
             end
             [f,p]=uiputfile(of);
             if f
@@ -241,16 +237,29 @@ classdef calibrate3D_GUI<handle
                 if obj.guihandles.posfromsmap.Value %use positions passed on from SMAP
                     p.beadpos=obj.smappos.positions;
                 end
+                if isfield(obj.smappos,'framerangeuse')
+                    p.framerangeuse=obj.smappos.framerangeuse;
+                end
                 %determine xrange, yrange for spatial calibration
                 switch obj.guihandles.spatialmode.Value
                     case 1 %all
-                        p.xrange=[-inf inf];p.yrange=[-inf inf];
+                        if isfield(obj.smappos,'xrange')
+                            p.xrange=obj.smappos.xrange;
+                        else
+                            p.xrange=[-inf inf];
+                        end
+                        if isfield(obj.smappos,'yrange')
+                            p.yrange=obj.smappos.yrange;
+                        else
+                            p.yrange=[-inf inf];
+                        end                       
+                        
                     case 2%split horz
                         midp=str2double(obj.guihandles.spatial_xval.String);
-                        p.xrange=[-inf  inf];p.yrange=[-inf midp inf];
+                        p.yrange=[-inf  inf];p.xrange=[-inf midp inf];
                     case 3% split vert
                        midp=str2double(obj.guihandles.spatial_xval.String);
-                        p.xrange=[-inf  midp inf];p.yrange=[-inf inf];
+                        p.yrange=[-inf  midp inf];p.xrange=[-inf inf];
                     case 4%MxN
                         mn=str2num(obj.guihandles.spatial_xval.String);
                         imsize=str2num(obj.guihandles.spatial_yval.String);

@@ -1,6 +1,6 @@
 function zfit=getzfitpar(sx,sy,znm,zrange,midpoint,B0,ax)
 startp=[    0.3    1.0    1.0000  0   0        0         0  0.307   -midpoint/1000];
-startp(2)=quantile(sx,0.01);startp(3)=quantile(sy,0.01);
+startp(2)=myquantile(sx,0.01);startp(3)=myquantile(sy,0.01);
 
 ind=znm>zrange(1)&znm<zrange(2);
 sx=sx(ind);

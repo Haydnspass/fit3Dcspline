@@ -1,29 +1,4 @@
-% function [delta_f,delta_dxf,delta_ddxf,delta_dyf,delta_ddyf,delta_dzf,delta_ddzf] = computeDelta3Dj(z_delta, y_delta, x_delta)
 function [delta_f,delta_dxf,delta_ddxf,delta_dyf,delta_ddyf,delta_dzf,delta_ddzf] = computeDelta3Dj_v2(x_delta, y_delta, z_delta)
-
-% if x_delta<0
-%     x_delta = 0;
-% end
-% 
-% if x_delta>1
-%     x_delta = 1;
-% end
-% 
-% if y_delta<0
-%     y_delta = 0;
-% end
-% 
-% if y_delta>1
-%     y_delta = 1;
-% end
-% 
-% if z_delta<0
-%     z_delta = 0;
-% end
-% 
-% if z_delta>1
-%     z_delta = 1;
-% end
 
 delta_f = (zeros(64,1));
 delta_dxf = (zeros(64,1));

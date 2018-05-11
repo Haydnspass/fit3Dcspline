@@ -47,7 +47,7 @@ addpath('shared')
 g=calibrate3D_GUI;  %look at the tooltips for explanantions of the parameters
 fill=[fileparts(pwd) filesep 'data/bead_3dcal.mat']; %refer to data outside the main directory
 g.guihandles.outputfile.String=fill;
-g.guihandles.filelist.String=[fileparts(pwd) filesep 'data/beadstacks_3D_astig/stack3D_1.tif'];
+g.guihandles.filelist.String=[fileparts(pwd) filesep 'data/beadstacks_3D_astig/stack3D_1.tif']; %you can load additional bead stacks in the GUI
 %% load bead calibration
 cal=load(fill); %load bead calibration
 
@@ -166,9 +166,9 @@ range=1:round(length(ground_truth.z)/numpoints):length(ground_truth.z);
 
     title('Accuracy')
 
-    cspline.dz=nanstd(ground_truth.z(inz)-cspline.z(inz));
-    zgauss.dz=nanstd(ground_truth.z(inz)-gaussz.z(inz));
-    gausssxsy.dz=nanstd(ground_truth.z(inz)-gausssxsy.z(inz));
+    cspline.dz=std(ground_truth.z(inz)-cspline.z(inz),'omitnan');
+    zgauss.dz=std(ground_truth.z(inz)-gaussz.z(inz),'omitnan');
+    gausssxsy.dz=std(ground_truth.z(inz)-gausssxsy.z(inz),'omitnan');
 
     legendtxt{4}='smoothing spline';
     legendtxt{3}=['spline fit. error: ' num2str(cspline.dz, '%3.1f') ' nm'];
@@ -178,12 +178,12 @@ range=1:round(length(ground_truth.z)/numpoints):length(ground_truth.z);
 
 %calculate lateral error
 if mode == 1
-    cspline.dx=nanstd(ground_truth.x(inz)-cspline.x(inz)); %in pixels
-    cspline.dy=nanstd(ground_truth.y(inz)-cspline.y(inz));
-    dx_gaussz=nanstd(ground_truth.x(inz)-gaussz.x(inz));
-    dy_gaussz=nanstd(ground_truth.y(inz)-gaussz.y(inz));
-    gausssxsy.dx=nanstd(ground_truth.x(inz)-gausssxsy.x(inz));
-    gausssxsy.dy=nanstd(ground_truth.y(inz)-gausssxsy.y(inz));
+    cspline.dx=std(ground_truth.x(inz)-cspline.x(inz),'omitnan'); %in pixels
+    cspline.dy=std(ground_truth.y(inz)-cspline.y(inz),'omitnan');
+    dx_gaussz=std(ground_truth.x(inz)-gaussz.x(inz),'omitnan');
+    dy_gaussz=std(ground_truth.y(inz)-gaussz.y(inz),'omitnan');
+    gausssxsy.dx=std(ground_truth.x(inz)-gausssxsy.x(inz),'omitnan');
+    gausssxsy.dy=std(ground_truth.y(inz)-gausssxsy.y(inz),'omitnan');
     %plot 3D scatter plot
    
     figure(102);
@@ -195,14 +195,18 @@ if mode == 1
     legend('ground truth','cspline fit')
     title('fitted vs ground truth positions')
 else
-    cspline.dx=nanstd(cspline.x(inz)); %in pixels
-    cspline.dy=nanstd(cspline.y(inz));
-    dx_gaussz=nanstd(gaussz.x(inz));
-    dy_gaussz=nanstd(gaussz.y(inz));
-    gausssxsy.dx=nanstd(gausssxsy.x(inz));
-    gausssxsy.dy=nanstd(gausssxsy.y(inz));
+    cspline.dx=std(cspline.x(inz),'omitnan'); %in pixels
+    cspline.dy=std(cspline.y(inz),'omitnan');
+    dx_gaussz=std(gaussz.x(inz),'omitnan');
+    dy_gaussz=std(gaussz.y(inz),'omitnan');
+    gausssxsy.dx=std(gausssxsy.x(inz),'omitnan');
+    gausssxsy.dy=std(gausssxsy.y(inz),'omitnan');
 end
-
+%% make 2D PSF
+g=calibrate3D_GUI;  %look at the tooltips for explanantions of the parameters
+fill=[fileparts(pwd) filesep 'data/bead2d_3dcal.mat']; %refer to data outside the main directory
+g.guihandles.outputfile.String=fill;
+g.guihandles.filelist.String=[fileparts(pwd) filesep 'data/beadstacks_2D/stack2D_1.tif'];
 %% fit 2D dataset with cspline
 % Here we simulate Nfits positions per data point and calculate the
 % z-dependent error
@@ -224,8 +228,10 @@ for i = 1: length(ztruth)
     coordsz = ztruth(i)/dz+z0*ones(Nfits,1);
     coordinates = [coordsxy coordsz];
     imstack = simSplinePSF(Npixels,cal.cspline.coeff,Nphotons,bg,coordinates);
-
-    [P CRLB LL ]=mleFit_LM(imstack,6,50,single(cal.cspline.coeff),sCMOSvarmap,1); %fit mode 6
+    zstartnm=400; %z start parameter 400 nm above and below the focus
+    zstart=[-1 1]*zstartnm/cal.cspline.dz; %in units of dz
+    
+    [P CRLB LL ]=mleFit_LM(imstack,5,50,single(cal.cspline.coeff),sCMOSvarmap,1,zstart); 
     
     
     z=(P(:,5)-z0).*dz;
