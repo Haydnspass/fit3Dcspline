@@ -36,3 +36,6 @@ file formats in folder **bfmatlab** which comes with a separate copyright.
 
 The fit3Dcspline is licenced under the [GNU GPL](https://www.gnu.org/licenses/). 
 
+# How to cite fit3Dcspline
+If you use fit3Dcspline to process your data, please, cite our [paper](https://www.nature.com/articles/nmeth.4661):
+  * Yiming Li, Markus Mund, Philipp Hoess, Joran Deschamps, Ulf Matti, Bianca Nijmeijer, Vilma Jimenez Sabinina, Jan Ellenberg, Ingmar Schoen, Jonas Ries.  Real-time 3D single-molecule localization using experimental point spread functions. Nat. Methods 15, 367–369 (2018).
