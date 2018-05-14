@@ -46,6 +46,7 @@ for k=1:length(filelist)
         end
         if isempty(imstack)
             disp('using simple reader')
+            warndlg('using simple reader, this might create problems if only part of the camera chip is used.');
             imstack=readfile_tif(filelist{k});
         end
           
