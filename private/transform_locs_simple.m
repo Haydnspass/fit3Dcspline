@@ -5,7 +5,7 @@ loctarget=reducepos(loctargeti,df);
 
 
 tfile=p.Tfile;
- sepscale=1; %maximum separation measure
+ sepscale=2; %maximum separation measure
 if exist(tfile,'file')
     l=load(tfile,'transformation');
     Tinitial=l.transformation;
@@ -56,7 +56,7 @@ end
     ht=histcounts2(locref.x,locref.y,xr,yr);
     hr=histcounts2(loctT.x,loctT.y,xr,yr);
     G=fftshift(ifft2(conj(fft2(ht)).*fft2(hr)));
-    h=fspecial('gaussian',13,sepscale);
+    h=fspecial('gaussian',13,2*sepscale);
     Gf=filter2(h,G);
     [~ ,indmax]=max(Gf(:));
     [x0,y0]=ind2sub(size(Gf),indmax);
@@ -69,7 +69,7 @@ end
 end
 
 
-[iAa,iBa,na,nb,nseen]=matchlocsall(locref,loctT,-dx0,-dy0,2*sepscale,1e5);
+[iAa,iBa,na,nb,nseen]=matchlocsall(locref,loctT,-dx0,-dy0,4*sepscale,1e5);
 
 transform=interfaces.LocTransform;
 
@@ -101,8 +101,20 @@ else
     axh=gca;
 end
 axes(axh);
+par=axh.Parent;
+tg=uitabgroup(par);
+th=uitab(tg,'Title','dx,dy');
+axh=axes(th);
 dscatter(dx,dy)
-title([num2str(std(dx)) ', ' num2str(std(dy))]);
+hold on
+circle(0,0,0.02)
+axis equal
+title(['dx=' num2str(std(dx),2) ', dy=' num2str(std(dy),2), ', ' num2str(length(iAa)) ' of ' num2str(nseen) ' paired']);
+th=uitab(tg,'Title','beadpos');
+axh=axes(th);
+
+ [xaa, yaa, zaa]=transform.transformCoordinatesInv((loctarget.x),(loctarget.y),(loctarget.z));
+plot(xaa,yaa,'+',locref.x,locref.y,'o')
 
 transform.tinfo.targetpos=targetpos;
 transform.tinfo.separator=separators;
@@ -117,9 +129,10 @@ function pos=reducepos(posin,df)
     z0=ceil(size(posin.x,1)/2);
     for l=size(posin.x,2):-1:1
         framerange=abs(posin.frame(:,l)-z0)<=df;
-        x(:,l)=posin.x(framerange,l);y(:,l)=posin.y(framerange,l);z(:,l)=posin.z(framerange,l);frame(:,l)=posin.frame(framerange,l);
+%         x(:,l)=posin.x(framerange,l);y(:,l)=posin.y(framerange,l);z(:,l)=posin.z(framerange,l);frame(:,l)=posin.frame(framerange,l);
+        x(l)=mean(posin.x(framerange,l));y(l)=mean(posin.y(framerange,l));z(l)=mean(posin.z(framerange,l));frame(l)=mean(posin.frame(framerange,l));
     end
     [~,indsort]=sort(frame(:));
-    pos.x=x(indsort);pos.y=y(indsort);pos.z=z(indsort);pos.frame=frame(indsort);
-    
+%     pos.x=x(indsort);pos.y=y(indsort);pos.z=z(indsort);pos.frame=frame(indsort);
+    pos.x=x(indsort)';pos.y=y(indsort)';pos.z=z(indsort)';pos.frame=frame(indsort)';
 end
