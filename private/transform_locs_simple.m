@@ -92,6 +92,15 @@ transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(i
     dx=xa-locref.x(iAa);
    dy=ya-locref.y(iAa);
    
+%sort out those which have a large error:
+goodind=dx<0.5*sepscale & dy<0.5*sepscale;
+ transform.findTransform(locref.x(iAa(goodind)),locref.y(iAa(goodind)),loctarget.x(iBa(goodind)),loctarget.y(iBa(goodind)),t)
+transform.findTransformZ(locref.x(iAa(goodind)),locref.y(iAa(goodind)),locref.z(iAa(goodind)),loctarget.x(iBa(goodind)),loctarget.y(iBa(goodind)),loctarget.z(iBa(goodind)),t)
+
+ [xa, ya, za]=transform.transformCoordinatesInv((loctarget.x(iBa(goodind))),(loctarget.y(iBa(goodind))),(loctarget.z(iBa(goodind))));
+    dx=xa-locref.x(iAa(goodind));
+   dy=ya-locref.y(iAa(goodind));  
+   
 %    figure(88);plot(locref.x,locref.y,'b.',loctT.x-dx0,loctT.y-dy0,'r+',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
 %    
 if isfield(p,'tabgroup')
@@ -109,12 +118,18 @@ dscatter(dx,dy)
 hold on
 circle(0,0,0.02)
 axis equal
-title(['dx=' num2str(std(dx),2) ', dy=' num2str(std(dy),2), ', ' num2str(length(iAa)) ' of ' num2str(nseen) ' paired']);
+title(['dx=' num2str(std(dx),2) ', dy=' num2str(std(dy),2), ', ' num2str(sum(goodind)) ' of ' num2str(nseen) ' paired']);
 th=uitab(tg,'Title','beadpos');
 axh=axes(th);
 
  [xaa, yaa, zaa]=transform.transformCoordinatesInv((loctarget.x),(loctarget.y),(loctarget.z));
 plot(xaa,yaa,'+',locref.x,locref.y,'o')
+
+th=uitab(tg,'Title','cross-correlation');
+axh=axes(th);
+imagesc(Gf);
+hold on
+plot(y0,x0,'wo',y0,x0,'k+')
 
 transform.tinfo.targetpos=targetpos;
 transform.tinfo.separator=separators;
