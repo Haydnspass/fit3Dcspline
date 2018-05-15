@@ -84,23 +84,26 @@ switch t.type
 end
 % t.type='polynomial';
 % t.type='projective';
+cutofffactor=[1 0.5 0.2 0.1];
+dx=zeros(size(iAa));dy=dx;
 
-transform.findTransform(locref.x(iAa),locref.y(iAa),loctarget.x(iBa),loctarget.y(iBa),t)
-transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(iBa),loctarget.y(iBa),loctarget.z(iBa),t)
-
- [xa, ya, za]=transform.transformCoordinatesInv((loctarget.x(iBa)),(loctarget.y(iBa)),(loctarget.z(iBa)));
-    dx=xa-locref.x(iAa);
-   dy=ya-locref.y(iAa);
+% transform.findTransform(locref.x(iAa),locref.y(iAa),loctarget.x(iBa),loctarget.y(iBa),t)
+% transform.findTransformZ(locref.x(iAa),locref.y(iAa),locref.z(iAa),loctarget.x(iBa),loctarget.y(iBa),loctarget.z(iBa),t)
+% 
+%  [xa, ya, za]=transform.transformCoordinatesInv((loctarget.x(iBa)),(loctarget.y(iBa)),(loctarget.z(iBa)));
+%     dx=xa-locref.x(iAa);
+%    dy=ya-locref.y(iAa);
    
 %sort out those which have a large error:
-goodind=dx<0.5*sepscale & dy<0.5*sepscale;
+for k=1:length(cutofffactor)
+goodind=dx<cutofffactor(k)*sepscale & dy<cutofffactor(k)*sepscale;
  transform.findTransform(locref.x(iAa(goodind)),locref.y(iAa(goodind)),loctarget.x(iBa(goodind)),loctarget.y(iBa(goodind)),t)
 transform.findTransformZ(locref.x(iAa(goodind)),locref.y(iAa(goodind)),locref.z(iAa(goodind)),loctarget.x(iBa(goodind)),loctarget.y(iBa(goodind)),loctarget.z(iBa(goodind)),t)
 
- [xa, ya, za]=transform.transformCoordinatesInv((loctarget.x(iBa(goodind))),(loctarget.y(iBa(goodind))),(loctarget.z(iBa(goodind))));
-    dx=xa-locref.x(iAa(goodind));
-   dy=ya-locref.y(iAa(goodind));  
-   
+ [xa, ya, za]=transform.transformCoordinatesInv((loctarget.x(iBa)),(loctarget.y(iBa)),(loctarget.z(iBa)));
+    dx=xa-locref.x(iAa);
+   dy=ya-locref.y(iAa);  
+end
 %    figure(88);plot(locref.x,locref.y,'b.',loctT.x-dx0,loctT.y-dy0,'r+',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
 %    
 if isfield(p,'tabgroup')
@@ -114,11 +117,11 @@ par=axh.Parent;
 tg=uitabgroup(par);
 th=uitab(tg,'Title','dx,dy');
 axh=axes(th);
-dscatter(dx,dy)
+dscatter(dx(goodind),dy(goodind))
 hold on
 circle(0,0,0.02)
 axis equal
-title(['dx=' num2str(std(dx),2) ', dy=' num2str(std(dy),2), ', ' num2str(sum(goodind)) ' of ' num2str(nseen) ' paired']);
+title(['dx=' num2str(std(dx(goodind)),2) ', dy=' num2str(std(dy(goodind)),2), ', ' num2str(sum(goodind)) ' of ' num2str(nseen) ' paired']);
 th=uitab(tg,'Title','beadpos');
 axh=axes(th);
 
