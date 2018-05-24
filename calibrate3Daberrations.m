@@ -1,22 +1,7 @@
 %  Copyright (c)2017 Ries Lab, European Molecular Biology Laboratory,
 %  Heidelberg.
 %  
-%  This file is part of GPUmleFit_LM Fitter.
-%  
-%  GPUmleFit_LM Fitter is free software: you can redistribute it and/or modify
-%  it under the terms of the GNU General Public License as published by
-%  the Free Software Foundation, either version 3 of the License, or
-%  (at your option) any later version.
-%  
-%  GPUmleFit_LM Fitter is distributed in the hope that it will be useful,
-%  but WITHOUT ANY WARRANTY; without even the implied warranty of
-%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-%  GNU General Public License for more details.
-%  
-%  You should have received a copy of the GNU General Public License
-%  along with GPUmleFit_LM Fitter.  If not, see <http://www.gnu.org/licenses/>.
-%  
-%  
+% 
 %  Additional permission under GNU GPL version 3 section 7
 %  
 %  If you modify this Program, or any covered work, by
@@ -33,33 +18,31 @@ function zcorr= calibrate3Daberrations(locs,pin)
 %loc.x
 %loc.y
 %loc.z
-p.glassframe=[]; %automatic
-p.setzero=true;
-p.dz=10;
-p.smoothz=1/1000;
-p.cutoffrefine=150;
-p.maxrange=800;
-p=copyfields(p,pin);
-if ~isfield(p,'smoothframe')
- p.smoothframe=2/10/p.dz;
-end
+
+% default parameters. Those get overwritten by parameters in pin
+p.glassframe=[]; %position of the frame in which beads on the glass are in focus. empty [] for automatic detection
+p.dz=10;  %distance of objective positions in nm (in objective space, i.e. no refractive index mismatch correction)
+p.smoothz=1/1000; %parameter how much to smooth the interpolation in z (fitted z direction).
+p.smoothframe=2/10/p.dz; %smoothing factor along the frame direction
+p.cutoffrefine=100; %maximum allowed distance of a beads z position from interpolated correction curve.
+p.maxrange=800; %range around zero in which the correction is calcualted.
+
+p=copyfields(p,pin); %overwrite with passed on parameters
 
 f=figure('Name','Calibrate depht-induced aberrations');
 p.tabgroup=uitabgroup(f);
 
 %get beads from localizations
-beads=segmentb_so(locs,p.dz);
+beads=segmentb_so(locs,p.dz); %find bead positions
 
-%framerange
-frange=[min(locs.frame) max(locs.frame)];
-
-% get true positions f0 for beads
+% get true positions in unists of frames f0 for beads
 for k=length(beads):-1:1
     [beads(k).f0]=getf0Z_so(beads(k).loc,p.dz);
-    beads(k).phot=beads(k).loc.phot(min(length(beads(k).loc.phot),max(1,round(beads(k).f0))));
 end
+
+%remove beads that resulted in none or wrong f0
 f0all=([beads(:).f0]);
-badind=f0all<frange(1)|isnan(f0all); 
+badind=f0all<min(locs.frame)|isnan(f0all); 
 beads(badind)=[];
 
 % determine position of the glass: no beads below glass
@@ -67,35 +50,36 @@ if isempty(p.glassframe)
     p.axhere=axes(uitab(p.tabgroup,'Title','f0'));
     p.glassframe=getf0glass(beads,p);
 end
-p.f0glass=p.glassframe;% *ones(1,max([beads(:).filenumber]));
+%correct all frame values by glassframe
+for k=1:length(beads)
+    beads(k).f0=beads(k).f0-p.glassframe;
+    beads(k).loc.frame=beads(k).loc.frame-p.glassframe;
+end
 
 %calculate relevant other coordinates
-axh=axes(uitab(p.tabgroup,'Title','z vs f0'));
-
+axh=axes(uitab(p.tabgroup,'Title','focal plane vs fitted z'));
 hold off
 for k=1:length(beads)
-    beads(k).loc.zglass=(beads(k).loc.frame-p.f0glass)*p.dz;
-    beads(k).loc.z0relative=-(beads(k).f0-beads(k).loc.frame)*p.dz;
-    beads(k).loc.dzcorr=beads(k).loc.z0relative-beads(k).loc.z;
-    beads(k).f0glass=beads(k).f0-p.f0glass;
-    beads(k).loc.z0glass=beads(k).f0glass*p.dz+0*beads(k).loc.zglass;
-    indplot=abs(beads(k).loc.z0relative)<p.maxrange;
-    plot(axh,beads(k).loc.zglass(indplot),beads(k).loc.z(indplot),'.')
+    beads(k).loc.zobjective=(beads(k).loc.frame)*p.dz; %global normalized z-coordinate: objective position in nm above glass. old: .zglass. rename to zobjective
+    beads(k).loc.zobjectiverelative=(beads(k).f0-beads(k).loc.frame)*p.dz; %z coordinate relative to true z-postion of bead. old: z0relative.%zobjective moved opposite to the relative bead position. Thus the minus in front of .frame
+    beads(k).loc.dzcorr=beads(k).loc.zobjectiverelative-beads(k).loc.z;
+    indplot=abs(beads(k).loc.zobjectiverelative)<p.maxrange;
+    plot(axh,beads(k).loc.z(indplot),beads(k).loc.zobjective(indplot),'-')
     hold on
 end
-xlabel('frame')
-ylabel('fitted z position (nm)')
+ylabel('focal plane')
+xlabel('fitted z position (nm)')
+
 p.axhere=[];
 phere=p;
 phere.smoothing=[0.05 0.002];
-
 % iteratively determine spline approximation and remove beads that
 % are too far away
-[ZcorrInterp]=getZinterp(beads,[],phere,'zglass');
+[ZcorrInterp]=getZinterp(beads,[],phere);
 phere=p;
 phere.cutoffrefine=500;
 [ZcorrInterp]=getZinterp(beads,ZcorrInterp,phere);
-[err1,dzerr]=geterrors(beads,ZcorrInterp,p);
+err1=geterrors(beads,ZcorrInterp);
 goodind=find(true(length(beads),1));
 beads2=beads;
 while  1% length(beads2)>length(beads)/2
@@ -108,153 +92,130 @@ while  1% length(beads2)>length(beads)/2
     beads2=beads(goodind);
     [ZcorrInterp]=getZinterp(beads2,ZcorrInterp,p);
     %calculate errors
-    [err1,dzerrh]=geterrors(beads2,ZcorrInterp,p);    
-    dzerr(goodind)=dzerrh;
+    err1=geterrors(beads2,ZcorrInterp);    
 end
 
 %plot output
 p.axhere=axes(uitab(p.tabgroup,'Title','Interpolation'));
 [ZcorrInterp]=getZinterp(beads2,ZcorrInterp,p);
+zcorr=ZcorrInterp.interp;  
 
-%correct beads for testing
+ax2=axes(uitab(p.tabgroup,'Title','dz vs Zfit'));
+zfit=-p.maxrange:p.maxrange;
+minzobj=-p.maxrange;
+objectivepos=linspace(minzobj,p.axhere.XLim(2),25);
+
+col=jet(length(objectivepos));
+for k=1:length(objectivepos)
+    dzh=zcorr(objectivepos(k)*ones(size(zfit)),zfit);
+    plot(ax2,zfit, (dzh),'Color',col(k,:))
+    hold(ax2,'on');
+%     plot(ax3,zfit, (dzh+zfit)./zfit,'Color',col(k,:))
+%     hold(ax3,'on');
+end
+xlabel(ax2,'fitted z position (nm)');
+ylabel(ax2,'correction dz (nm)');
+
+%Validate: correct beads for testing
 ax1=axes(uitab(p.tabgroup,'Title','Validation'));
 f=ax1.Parent;
 ax2=axes(f,'Position',[0.5 0 1 1]);
 subplot(1,2,1,ax1);
 subplot(1,2,2,ax2);
 
-minv=inf;
-maxv=-inf;
 for k=length(beads):-1:1
-   dZ=ZcorrInterp.interp(beads(k).loc.zglass,beads(k).loc.z);
+   dZ=zcorr(beads(k).loc.zobjective,beads(k).loc.z);
    beads(k).loc.zcorrected=beads(k).loc.z+dZ;
-   if any(goodind==k)
-       inr=abs(beads(k).loc.z0relative)<1000;
-       if sum(inr)>0
-           minv=min(min(minv,min(beads(k).loc.z(inr))),min(beads(k).loc.zcorrected(inr)));
-           maxv=max(max(maxv,max(beads(k).loc.z(inr))),max(beads(k).loc.zcorrected(inr)));
-       end
-   else
-       col='r.';
-       plot(ax1,beads(k).loc.z0relative,beads(k).loc.z,col)
-       plot(ax2,beads(k).loc.z0relative,beads(k).loc.zcorrected,col)
-       hold(ax1,'on');
-       hold(ax2,'on');
-   end
+%    if ~any(goodind==k)
+%        col='r.';
+%        plot(ax1,beads(k).loc.zobjectiverelative,beads(k).loc.z,col)
+%        plot(ax2,beads(k).loc.zobjectiverelative,beads(k).loc.zcorrected,col)
+%        hold(ax1,'on');
+%        hold(ax2,'on');
+%    end
 end
 for k=length(beads):-1:1
     if any(goodind==k)
-       plot(ax1,beads(k).loc.z0relative,beads(k).loc.z,'k.')
-       plot(ax2,beads(k).loc.z0relative,beads(k).loc.zcorrected,'k.')
+       plot(ax1,beads(k).loc.zobjectiverelative,beads(k).loc.z,'k.')
+       plot(ax2,beads(k).loc.zobjectiverelative,beads(k).loc.zcorrected,'k.')
        hold(ax1,'on');
        hold(ax2,'on');
     end
 end
 
-xlim(ax1,[-1000 1000])
-ylim(ax1,[minv maxv]);
-xlim(ax2,[-1000 1000])
-ylim(ax2,[minv maxv]);
+xlim(ax1,[-1000 1000]);
+ylim(ax1,[-1000 1000]);
+xlim(ax2,[-1000 1000]);
+ylim(ax2,[-1000 1000]);
 
 xlabel(ax1,'true z (nm)')
 ylabel(ax1,'fitted z (nm)')
 
 xlabel(ax2,'true z (nm)')
 ylabel(ax2,'corrected z (nm)')
-
-zcorr=ZcorrInterp.interp;    
-
-ax2=axes(uitab(p.tabgroup,'Title','dz vs Zfit'));
-ax3=axes(uitab(p.tabgroup,'Title','f vs Zfit'));
-objectivepos=0:100:p.axhere.XLim(2);
-
-objectivepos=linspace(0,p.axhere.XLim(2),9);
-zfit=-800:800;
-col=jet(length(objectivepos));
-for k=1:length(objectivepos)
-    dzh=zcorr(objectivepos(k)*ones(size(zfit)),zfit);
-    plot(ax2,zfit, (dzh),'Color',col(k,:))
-    hold(ax2,'on');
-    plot(ax3,zfit, (dzh+zfit)./zfit,'Color',col(k,:))
-    hold(ax3,'on');
-end
 end
 
 
-function [Zint]=getZinterp(beads,Zintold,p,zaxis)
-if nargin<4
-    zaxis='zglass';
-end
- %make big array for interpolation
- zglassall=[];z0relativeall=[];zfitall=[];idall=[];zplot=[];dzerrall=[];z0glassall=[];
+function [Zint]=getZinterp(beads,Zintold,p)
+
+% combine all coordiantes into large vectors to process them together
+zobjectiveall=[];z0relativeall=[];zfitall=[];idall=[];dzall=[];
 for k=1:length(beads)
-    zglassall=double(vertcat(zglassall,beads(k).loc.zglass));
-    z0glassall=double(vertcat(z0glassall,beads(k).loc.z0glass));
-    z0relativeall=double(vertcat(z0relativeall,beads(k).loc.z0relative));
+    zobjectiveall=double(vertcat(zobjectiveall,beads(k).loc.zobjective));
+    z0relativeall=double(vertcat(z0relativeall,beads(k).loc.zobjectiverelative)); %only for range
     zfitall=double(vertcat(zfitall,beads(k).loc.z));
-    idall=double(vertcat(idall,k*ones(length(beads(k).loc.zglass),1)));
-    zplot=double(vertcat(zplot,beads(k).loc.dzcorr));          
+    idall=double(vertcat(idall,k*ones(length(beads(k).loc.zobjective),1)));
+    dzall=double(vertcat(dzall,beads(k).loc.dzcorr));          
 end
 
-if strcmp(zaxis,'z0glass')
-    zzax=z0glassall;
-else
-    zzax=zglassall;
-end
-
-%XXXtry
-% zplot=zplot./zfitall;
-% zplot=zfitall./(zfitall+zplot);
-
-qzfit=myquantile(zfitall,[0.05,0.95]);
-qzfit(1)=qzfit(1)+p.dz;qzfit(2)=qzfit(2)-p.dz;
-inz=abs(z0relativeall)<p.maxrange;
+% do interpolation in range where there are sufficient data points.
+% qzfit=myquantile(zfitall,[0.05,0.95]);
+% qzfit(1)=qzfit(1)+p.dz;qzfit(2)=qzfit(2)-p.dz;
+inz=abs(z0relativeall)<p.maxrange; 
+qzfit=[-1 1]*p.maxrange;
 inz=inz&(zfitall)<qzfit(2)&(zfitall)>qzfit(1);
-inz=inz&abs(zplot)<p.maxrange;
-if ~isempty(Zintold)  
-    dz=Zintold.interp(zzax,zfitall)-zplot;
-    inz=inz&abs(dz)<p.cutoffrefine;
+inz=inz&abs(dzall)<p.maxrange;
+if ~isempty(Zintold)  %if next iteration: use last interpolation to identify and remove outliers
+    dz=Zintold.interp(zobjectiveall,zfitall)-dzall; %distance from interpolation
+    inz=inz&abs(dz)<p.cutoffrefine; % remove those data points
     h=histcounts(idall(inz),(1:max(idall)+1))';
     minpoints=p.maxrange/p.dz;
-    innump=h(idall)>minpoints;
+    innump=h(idall)>minpoints; %remove beads which do not have a minimum number of data points left
     inz=inz&innump;
 end
-zfitx=(qzfit(1):p.dz:qzfit(2))';
-zfitallh=vertcat(zfitall(inz),zfitx,zfitx,zfitx);
-zploth=vertcat(zplot(inz),0*zfitx,0*zfitx,0*zfitx);
-zzaxh=vertcat(zzax(inz),min(zzax)+0*zfitx,min(zfitx)+0*zfitx,mean([min(zfitx),min(zzax)])+0*zfitx);          
 
-xrange=round(min(zzax(inz))/100)*100:100:max(zzax(inz));
+%usually there are many beads close to the glass, this can lead to some
+%quite rapid changes of the interpolation in the vicinity. To reduce this
+%effect, we add additional anchor points for the interpolation to enzure
+%dz==0 for small objective positions where no acchor points exist.
+zfitx0=(qzfit(1):p.dz:qzfit(2))';
+zfitx=repmat(zfitx0,10,1);
+zfitallh=vertcat(zfitall(inz),zfitx,zfitx,zfitx,zfitx);
+zobjectiveallh=vertcat(zobjectiveall(inz),min(zfitx)-zfitx,min(zfitx)/2-zfitx,min(zfitx)/4-zfitx,min(zobjectiveall(inz))-0*zfitx);   
+dzallh=vertcat(dzall(inz),0*zfitx,0*zfitx,0*zfitx,0*zfitx); 
 
-yrange=[round(qzfit(1)/10)*10:10: qzfit(2)];
+xrange=round(min(zobjectiveall(inz))/100)*100:100:max(zobjectiveall(inz));
+yrange=round(qzfit(1)/10)*10:10: qzfit(2);
 [X,Y]=meshgrid(xrange,yrange);  
 
-%set dz=0 for zfit =0
-% zfitallh=vertcat(zfitallh,0*zfitallh);
-% zploth=vertcat(zploth,0*zploth);
-% zzaxh=vertcat(zzaxh,zzaxh);
 %interpolation
-Z=RegularizeData3D(zzaxh,zfitallh,zploth,xrange,yrange,'smoothness',[p.smoothframe p.smoothz],'extend','always');
-% Z(find(yrange==0),:)=0;
-
+Z=RegularizeData3D(zobjectiveallh,zfitallh,dzallh,xrange,yrange,'smoothness',[p.smoothframe p.smoothz],'extend','always');
 Zint.interp=griddedInterpolant(X',Y',Z');
-Zint.zaxis=zaxis;
 
+%plot result
 if ~isempty(p.axhere)
-    Zplot=Zint.interp(X,Y);
-    minzp=min(zfitall(inz));
-    Zplot(Zplot<minzp)=minzp-10;
-    error=abs(Zint.interp(zzax(inz),zfitall(inz))-zplot(inz));
-    scatter3(p.axhere,zzax(inz),zfitall(inz),zplot(inz),5,(1-error/max(error))*min(Zplot(:)))
+    Zplot=Zint.interp(X',Y')';
+    scatter3(p.axhere,zobjectiveall(inz),zfitall(inz),dzall(inz),1,'k')
     xlabel(p.axhere,'objective position above glass (nm)');ylabel(p.axhere,'zfit (nm)'); zlabel(p.axhere,'correction (nm)');
     hold(p.axhere,'on')
-    s=surf(p.axhere,X,Y,Zplot);
+    Zcolor=Zplot; Zcolor(Zcolor>max(dzall(inz)))=max(dzall(inz));
+    s=surf(p.axhere,X,Y,Zplot,Zcolor);
     s.FaceAlpha=0.8;
     s.EdgeColor='none';
-    p.axhere.ZLim(1)=minzp;
-%      p.axhere.ZLim=[0 4];
+    p.axhere.ZLim(1)=min(dzall(inz));
+    p.axhere.ZLim(2)=max(dzall(inz));
+    
 end
-
 end
 
 function  f0glass=getf0glass(beads,p)
@@ -291,23 +252,15 @@ else
 end
 end
 
-function [err1,dzerr]=geterrors(beads,Zint,p)
+function err1=geterrors(beads,Zint)
 yrange=Zint.interp.GridVectors{2};
-for k=1:length(beads)
+for k=length(beads):-1:1
     zh=double(beads(k).loc.z);
-    zglass=beads(k).loc.zglass;
+    zglass=beads(k).loc.zobjective;
     z0f=beads(k).loc.dzcorr;
     inz=abs(zh<300) & abs(z0f)<300 & (zh)<yrange(end) & (zh)>yrange(1);
     dz=Zint.interp(zglass(inz),zh(inz))-z0f(inz);
-    if p.setzero&&beads(k).f0glass*p.dz<2*p.dz %on glass
-      factor=0.2;
-    else
-      factor=1;
-    end        
-    err1(k)=mean(dz.^2)*factor;
-    err2(k)=mean(abs(dz))*factor;
-    err3(k)=std(dz)*factor;
-    dzerr{k}=Zint.interp(zglass,zh)-z0f;
+    err1(k)=mean(dz.^2);
 end
 end
 
