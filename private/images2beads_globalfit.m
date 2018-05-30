@@ -28,32 +28,36 @@ offset=3;
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
     p.fileax(k)=ax;
-    if isfield(p,'smap') && p.smap
-        try
-             r=imageloaderAll(filelist{k},[],p.smappos.P);
-
-             imstack=r.getmanyimages(1:r.metadata.numberOfFrames,'mat');
-             p.roi{k}=r.metadata.roi;
-             p.pixelsize{k}=r.metadata.cam_pixelsize_um;
-             r.close;
-        catch err
-            err
-%             imstack=readfile_ome(filelist{k});
-%             p.roi{k}=p.smappos.roi{k};
-%             p.pixelsize{k}=p.smappos.pixelsize{k};
-            imstack=readfile_tif(filelist{k});
-            p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
-        end
-        if isempty(imstack)
-            disp('using simple reader')
-            warndlg('using simple reader, this might create problems if only part of the camera chip is used.');
-            imstack=readfile_tif(filelist{k});
-        end
-          
-    else
-        imstack=readfile_tif(filelist{k});
-        p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
+    [imstack, p.roi{k}, p.pixelsize{k},settings3D]=readbeadimages(filelist{k},p);
+    if ~isempty(settings3D)
+        p.settings_3D=settings3D;
     end
+%     if isfield(p,'smap') && p.smap
+%         try
+%              r=imageloaderAll(filelist{k},[],p.smappos.P);
+% 
+%              imstack=r.getmanyimages(1:r.metadata.numberOfFrames,'mat');
+%              p.roi{k}=r.metadata.roi;
+%              p.pixelsize{k}=r.metadata.cam_pixelsize_um;
+%              r.close;
+%         catch err
+%             err
+% %             imstack=readfile_ome(filelist{k});
+% %             p.roi{k}=p.smappos.roi{k};
+% %             p.pixelsize{k}=p.smappos.pixelsize{k};
+%             imstack=readfile_tif(filelist{k});
+%             p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
+%         end
+%         if isempty(imstack)
+%             disp('using simple reader')
+%             warndlg('using simple reader, this might create problems if only part of the camera chip is used.');
+%             imstack=readfile_tif(filelist{k});
+%         end
+%           
+%     else
+%         imstack=readfile_tif(filelist{k});
+%         p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
+%     end
     
     if isfield(p,'settings_3D') %calibration file: cut out and mirror already here!
         imstack=cutoutchannels(imstack,p.settings_3D);

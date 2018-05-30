@@ -12,8 +12,8 @@ ph.outputfile={};
 
 settings_3D=readstruct('settings_3D.txt'); %later to settings, specify path in gui    
 ph.settings_3D=settings_3D;
-
 [beads,ph]=images2beads_globalfit(ph); %later extend for transformN
+
 sstack=size(beads(1).stack.image);
 
 ybeads=getFieldAsVectorInd(beads,'pos',2);
@@ -40,9 +40,9 @@ for k=1:numchannels
     [allPSFs(:,:,:,k),shiftedstack,shift,indgood]=registerPSF3D_g(allstacks,[],struct('framerange',framerange));
    
     
-    beadtrue{k}(:,1)=xposh(indgood)-shift(indgood,2); %experimentally: this works :)
-    beadtrue{k}(:,2)=yposh(indgood)-shift(indgood,1);
-    beadtrue{k}(:,3)=shift(indgood,3); %this is not yet tested, could be minus
+    beadtrue{k}(:,1)=xposh(indgood)-shift(indgood,2)'; %experimentally: this works :)
+    beadtrue{k}(:,2)=yposh(indgood)-shift(indgood,1)';
+    beadtrue{k}(:,3)=shift(indgood,3)'; %this is not yet tested, could be minus
     
 end
 
@@ -60,6 +60,7 @@ pt.mirror=0; %mirror already taken care of when reading in images
 % pt.mirror=settings_3D.mirror4pi(1)*2; %2 for y coordinate
 % pt.xrange=[settings_3D.x4pi(1) settings_3D.x4pi(1)+settings_3D.width4pi];
 % pt.yrange=[settings_3D.y4pi(1) settings_3D.y4pi(1)+settings_3D.height4pi];
+settings_3D=ph.settings_3D;
 pt.xrange=[1 settings_3D.width4pi];
 pt.yrange=[1 settings_3D.height4pi];
 pt.unit='pixel';
@@ -96,9 +97,9 @@ if exist(fit4pidir,'file')
 end
 mp=ceil((size(A,1)-1)/2);
 dd=floor((p.ROIxy-1)/2);
-PSF.Aspline=getsmoothspline(A(mp-dd:mp+dd,mp-dd:mp+dd,:),p);
-PSF.Bspline=getsmoothspline(B(mp-dd:mp+dd,mp-dd:mp+dd,:),p);
-PSF.Ispline=getsmoothspline(I(mp-dd:mp+dd,mp-dd:mp+dd,:),p);
+PSF.Aspline=single(getsmoothspline(A(mp-dd:mp+dd,mp-dd:mp+dd,:),p));
+PSF.Bspline=single(getsmoothspline(B(mp-dd:mp+dd,mp-dd:mp+dd,:),p));
+PSF.Ispline=single(getsmoothspline(I(mp-dd:mp+dd,mp-dd:mp+dd,:),p));
 
 %do fitting
 fitroi=13;
@@ -109,7 +110,15 @@ rangeh=mp-droi:mp+droi;
 phi0=phaseshifts;
 %fit calibrations stack
 shared=[0,0,1,1,1,1];
-[Pc,CRLB1, LL,update, error,residualc] =  kernel_MLEfit_Spline_LM_multichannel_4pi(allPSFs(rangeh, rangeh, :, :)*10000,PSF, shared,zeros(6,4,size(allPSFs,3)),50,phi0);
+% [Pc,CRLB1, LL,update, error,residualc] =  kernel_MLEfit_Spline_LM_multichannel_4pi(allPSFs(rangeh, rangeh, :, :)*10000,PSF, shared,zeros(6,4,size(allPSFs,3)),50,phi0);
+% [Pc,CRLB1, LL,update, error,residualc] =  CPUmleFit_LM_MultiChannel(single(allPSFs(rangeh, rangeh, :, :)*10000),uint32(shared),zeros(6,4,size(allPSFs,3)),50,phi0);
+
+z0=round(size(PSF.Aspline,3)/2);
+dTAll=zeros(6,4,size(allPSFs,3));
+iterations=50;
+imstack=allPSFs(rangeh, rangeh, :, :)*10000;
+[Pc,CRLB1 LL] = CPUmleFit_LM_MultiChannel(single(imstack(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
+
 
 mean(Pc(:,1:8),1)-mp-2
 %previous transform: corresponding beads: %this should be part of a new
@@ -137,7 +146,9 @@ shared=[1,1,1,1,1,1];
 
 
 global P
-[P,CRLB1, LL,update, error,residual] =  kernel_MLEfit_Spline_LM_multichannel_4pi(imsqueeze(rangeh, rangeh, :, :),PSF, shared,dTAll,50,phi0);
+% [P,CRLB1, LL,update, error,residual] =  kernel_MLEfit_Spline_LM_multichannel_4pi(imsqueeze(rangeh, rangeh, :, :),PSF, shared,dTAll,50,phi0);
+imstack=imsqueeze(rangeh, rangeh, :, :);
+[Pc,CRLB1 LL] = CPUmleFit_LM_MultiChannel(single(imstack(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
 % imageslicer(residual)
  
 phase=mod(reshape(P(:,6),[],sim(4)),2*pi);
@@ -147,7 +158,7 @@ zastig=reshape(P(:,5),[],sim(4))*p.dz;
 xfit=reshape(P(:,1),[],sim(4));
 yfit=reshape(P(:,2),[],sim(4));
 
-z_phi = reshape(z_from_phi(P(:, 5), phase(:), frequency, ceil(sim(3)/2)-.7, 1),[],sim(4))*p.dz;
+z_phi = reshape(z_from_phi_JR(P(:, 5), phase(:), frequency, ceil(sim(3)/2)-.7),[],sim(4))*p.dz;
 figure(68)
 subplot(2,3,1)
 plot(zastig)
