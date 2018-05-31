@@ -34,7 +34,7 @@ pixelsize=100;
             if multichannel
                 imstack=[];
                 for k=1:length(file)
-                    imstack=vertcat(imstack,readfile_tif(file{k}));
+                    imstack=horzcat(imstack,readfile_tif(file{k}));
                 end
             else
                  imstack=readfile_tif(file);
@@ -47,7 +47,7 @@ pixelsize=100;
         roi=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
     end
     if multichannel
-        wx=size(imstack,1)/4;wy=size(imstack,2);
-        settings3D=struct('x4pi',[0 0 0 0],'y4pi',[0 wy 2*wy 3*wy], 'width4pi',wx,'height4pi',wy,'mirror4pi',[0 0 0 0],'pixelsize_nm',100,'offset',100,'conversion',0.5);
+        wx=size(imstack,2)/4;wy=size(imstack,1);
+        settings3D=struct('y4pi',[0 0 0 0],'x4pi',[0 wx 2*wx 3*wx], 'width4pi',wx,'height4pi',wy,'mirror4pi',[0 0 0 0],'pixelsize_nm',100,'offset',100,'conversion',0.5);
     end
 end
