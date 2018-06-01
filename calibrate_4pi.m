@@ -16,8 +16,8 @@ ph.settings_3D=settings_3D;
 
 sstack=size(beads(1).stack.image);
 
-ybeads=getFieldAsVectorInd(beads,'pos',2);
-
+% ybeads=getFieldAsVectorInd(beads,'pos',2);
+xbeads=getFieldAsVectorInd(beads,'pos',1);
 
 % y4pi=settings_3D.y4pi; %later: load from here! add field to GUI for selecting file.
 % x4pi=settings_3D.x4pi;
@@ -29,9 +29,10 @@ framerange=round(sstack(3)/2-fw:sstack(3)/2+fw);
 numchannels=length(settings_3D.y4pi);
 allPSFs=zeros(sstack(1),sstack(2),sstack(3),numchannels);
 for k=1:numchannels
-    h4pi=ph.settings_3D.height4pi;
-    indbh=ybeads>=(k-1)*h4pi+1 & ybeads<= k*h4pi;
-%     indbh=ybeads>=settings_3D.y4pi(k)&ybeads<=settings_3D.y4pi(k)+settings_3D.height4pi;
+%     h4pi=ph.settings_3D.height4pi;
+%     indbh=ybeads>=(k-1)*h4pi+1 & ybeads<= k*h4pi;
+    w4pi=ph.settings_3D.width4pi;
+    indbh=xbeads>=(k-1)*w4pi+1 & xbeads<= k*w4pi;
     
     xposh=getFieldAsVectorInd(beads(indbh),'pos',1)';
     yposh=getFieldAsVectorInd(beads(indbh),'pos',2)';
@@ -54,6 +55,14 @@ end
 framerange=round(max(1,sstack(3)/2-2*fw):min(sstack(3)/2+2*fw,sstack(3)));
 [~,PSFaligned,shift,indgood]=registerPSF3D_g(allPSFs,[],struct('framerange',framerange,'removeoutliers',false),{},filenumber);
 
+%try to correct for that shift:
+for k=1:numchannels
+    
+    beadtrue{k}(:,1)= beadtrue{k}(:,1)-shift(k,2);
+    beadtrue{k}(:,2)=beadtrue{k}(:,2)-shift(k,1);
+    beadtrue{k}(:,3)=beadtrue{k}(:,3)-shift(k,3);
+end
+
 %calculate transformN
 transform=interfaces.LocTransformN;
 pt.mirror=0; %mirror already taken care of when reading in images
@@ -69,8 +78,8 @@ transform.setTransform(1,pt)
 iAaa=1:size(beadtrue{1},1);
 for k=2:length(beadtrue)
 %     pt.mirror=settings_3D.mirror4pi(k)*2;
-%     pt.xrange=[settings_3D.x4pi(k) settings_3D.x4pi(k)+settings_3D.width4pi];
-    pt.yrange=[(k-1)*settings_3D.height4pi+1 k*settings_3D.height4pi];
+%     pt.yrange=[(k-1)*settings_3D.height4pi+1 k*settings_3D.height4pi];
+    pt.xrange=[(k-1)*settings_3D.width4pi+1 k*settings_3D.width4pi];
     transform.setTransform(k,pt)
     tab=(uitab(tgprefit,'Title',['T' num2str(k)]));ph.ax=axes(tab);
     [~ ,iAa,iBa]=transform_locs_simpleN(transform,1, beadtrue{1},k,beadtrue{k},ph);
@@ -123,7 +132,10 @@ imstack=allPSFs(rangeh, rangeh, :, :)*10000;
 [Pc,CRLB1 LL] = CPUmleFit_LM_MultiChannel(single(imstack(:, :, :, :)),uint32(shared),int32(iterations),single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),single(z0));
 
 
-mean(Pc(:,1:8),1)-mp-2
+mean(Pc(:,1:8),1)-droi+1
+
+%this is not all the same -> PSFs in channels not well aligned. 
+
 %previous transform: corresponding beads: %this should be part of a new
 %images2beads function
     %round pos1: beadtrue{1}
@@ -152,6 +164,11 @@ global P
 % [P,CRLB1, LL,update, error,residual] =  kernel_MLEfit_Spline_LM_multichannel_4pi(imsqueeze(rangeh, rangeh, :, :),PSF, shared,dTAll,50,phi0);
 imstack=imsqueeze(rangeh, rangeh, :, :);
 [P,CRLB1 LL] = CPUmleFit_LM_MultiChannel(single(imstack(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
+% imageslicer(residual)
+
+shared(1:2)=0;
+[Pu,CRLB1 LL] = CPUmleFit_LM_MultiChannel(single(imstack(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
+dx21=Pu(:,2)-Pu(:,1);
 % imageslicer(residual)
  
 phase=mod(reshape(P(:,6),[],sim(4)),2*pi);
