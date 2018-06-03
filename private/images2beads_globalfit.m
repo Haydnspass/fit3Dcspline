@@ -11,8 +11,8 @@ b=[];
 ht=uitab(p.tabgroup,'Title','Files');
 tg=uitabgroup(ht);
 
-if p.isglobalfit
-   if ischar(p.Tfile)
+if p.isglobalfit 
+   if ischar(p.Tfile)%extend later to 4Pi
         l=load(p.Tfile);
         transform=l.transformation;
    else
@@ -24,44 +24,24 @@ else
     p.mirror=false;
 end
 
-offset=3;
+
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
+%     axis(ax,'image')
     p.fileax(k)=ax;
     [imstack, p.roi{k}, p.pixelsize{k},settings3D]=readbeadimages(filelist{k},p);
     if ~isempty(settings3D)
         p.settings_3D=settings3D;
+        p.settings_3D.file='multifile';
     end
-%     if isfield(p,'smap') && p.smap
-%         try
-%              r=imageloaderAll(filelist{k},[],p.smappos.P);
-% 
-%              imstack=r.getmanyimages(1:r.metadata.numberOfFrames,'mat');
-%              p.roi{k}=r.metadata.roi;
-%              p.pixelsize{k}=r.metadata.cam_pixelsize_um;
-%              r.close;
-%         catch err
-%             err
-% %             imstack=readfile_ome(filelist{k});
-% %             p.roi{k}=p.smappos.roi{k};
-% %             p.pixelsize{k}=p.smappos.pixelsize{k};
-%             imstack=readfile_tif(filelist{k});
-%             p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
-%         end
-%         if isempty(imstack)
-%             disp('using simple reader')
-%             warndlg('using simple reader, this might create problems if only part of the camera chip is used.');
-%             imstack=readfile_tif(filelist{k});
-%         end
-%           
-%     else
-%         imstack=readfile_tif(filelist{k});
-%         p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
-%     end
     
-    if isfield(p,'settings_3D') %calibration file: cut out and mirror already here!
+    if isfield(p,'settings_3D') && ~isempty(p.settings_3D) %calibration file: cut out and mirror already here!
         imstack=cutoutchannels(imstack,p.settings_3D);
         p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
+    else
+        disp('no  settings_3D found. Use default. Specify settings file?')
+        wx=size(imstack,2)/4;wy=size(imstack,1);
+        p.settings_3D=struct('y4pi',[0 0 0 0],'x4pi',[0 wx 2*wx 3*wx], 'width4pi',wx,'height4pi',wy,'mirror4pi',[0 0 0 0],'pixelsize_nm',100,'offset',100,'conversion',0.5);
     end
     
     if p.emgain
@@ -79,7 +59,7 @@ for k=1:length(filelist)
     mim=max(imstack,[],3);
     mim=filter2(h,mim);
     imagesc(ax,mim);
-    axis(ax,'equal');
+    axis(ax,'image');
     axis(ax,'off')
     title(ax,'Maximum intensity projection')
     if isfield(p,'beadpos') %passed on externally

@@ -10,9 +10,14 @@ ph.tabgroup=   tgprefit;
 ph.isglobalfit=false;
 ph.outputfile={};
 
-settings_3D=readstruct('settings_3D.txt'); %later to settings, specify path in gui    
-ph.settings_3D=settings_3D;
+if ~isempty(p.settingsfile4pi) && exist(p.settingsfile4pi,'file')
+    settings_3D=readstruct(p.settingsfile4pi); %later to settings, specify path in gui  
+    settings_3D.file=p.settingsfile4pi;
+    ph.settings_3D=settings_3D;
+end
+
 [beads,ph]=images2beads_globalfit(ph); %later extend for transformN
+settings_3D=ph.settings_3D; 
 
 sstack=size(beads(1).stack.image);
 
@@ -129,7 +134,7 @@ z0=round(size(PSF.Aspline,3)/2);
 dTAll=zeros(6,4,size(allPSFs,3),'single');
 iterations=50;
 imstack=allPSFs(rangeh, rangeh, :, :)*10000;
-[Pc,CRLB1 LL] = CPUmleFit_LM_MultiChannel(single(imstack(:, :, :, :)),uint32(shared),int32(iterations),single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),single(z0));
+[Pc,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstack(:, :, :, :)),uint32(shared),int32(iterations),single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),single(z0));
 
 
 mean(Pc(:,1:8),1)-droi+1
@@ -163,11 +168,11 @@ shared=[1,1,1,1,1,1];
 global P
 % [P,CRLB1, LL,update, error,residual] =  kernel_MLEfit_Spline_LM_multichannel_4pi(imsqueeze(rangeh, rangeh, :, :),PSF, shared,dTAll,50,phi0);
 imstack=imsqueeze(rangeh, rangeh, :, :);
-[P,CRLB1 LL] = CPUmleFit_LM_MultiChannel(single(imstack(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
+[P,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstack(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
 % imageslicer(residual)
 
 shared(1:2)=0;
-[Pu,CRLB1 LL] = CPUmleFit_LM_MultiChannel(single(imstack(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
+[Pu,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstack(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
 dx21=Pu(:,2)-Pu(:,1);
 % imageslicer(residual)
  
@@ -179,28 +184,33 @@ xfit=reshape(P(:,1),[],sim(4));
 yfit=reshape(P(:,2),[],sim(4));
 
 z_phi = reshape(z_from_phi_JR(P(:, 5), phase(:), frequency, ceil(sim(3)/2)-.7),[],sim(4))*p.dz;
-figure(68)
-subplot(2,3,1)
+
+tab=(uitab(tgprefit,'Title','results'));
+tgr=uitabgroup(tab);
+
+% figure(68)
+% subplot(2,3,1)
+axes(uitab(tgr,'Title','z_astig'))
 plot(zastig)
 xlabel('frame')
 ylabel('z_astig')
-subplot(2,3,2)
+axes(uitab(tgr,'Title','phase'))
 plot(phase)
 xlabel('frame')
 ylabel('phase')
-subplot(2,3,3)
+axes(uitab(tgr,'Title','phase(z_a)'))
 plot(zastig,zphase)
 xlabel('z_astig')
 ylabel('z_phase')
-subplot(2,3,4)
+axes(uitab(tgr,'Title','z_phase'))
 plot(z_phi)
 xlabel('frame')
 ylabel('z_phi')
-subplot(2,3,5)
+axes(uitab(tgr,'Title','x,y'))
 plot(xfit,yfit,'+')
 xlabel('x')
 ylabel('y')
-subplot(2,3,6)
+axes(uitab(tgr,'Title','x(z)'))
 hold off
 plot(zastig,xfit)
 hold on
@@ -229,6 +239,7 @@ out.cal4pi.dz=ph.dz;
 out.cal4pi.x0=ceil((ph.ROIxy+1)/2);
 out.cal4pi.z0=ceil((size(PSF.Aspline,3)+2)/2);
 out.cal4pi.transformation=transform;
+out.cal4pi.settings3D=ph.settings_3D;
 out.Xrange=ph.xrange;
 out.Yrange=ph.yrange;
 out.EMon=ph.emgain;
