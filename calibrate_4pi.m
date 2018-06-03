@@ -1,115 +1,75 @@
 function calibrate_4pi(p)
-%for now now segmentation of calibration. 
+%add directory with fitter to path
+fit4pidir=strrep(pwd,'SMAP',['ries-private' filesep 'PSF4Pi']);
+if exist(fit4pidir,'file')
+    addpath(fit4pidir);
+end
 ph=p;
-% f=figure('Name','Bead calibration');
-f=figure(44);
+f=figure(144);
 tg=uitabgroup(f);
 t1=uitab(tg,'Title','prefit');
 tgprefit=uitabgroup(t1);
-ph.tabgroup=   tgprefit;
+ph.tabgroup= tgprefit;
 ph.isglobalfit=false;
 ph.outputfile={};
 
+% get parameters for cutting out and mirroring raw image files
 if ~isempty(p.settingsfile4pi) && exist(p.settingsfile4pi,'file')
     settings_3D=readstruct(p.settingsfile4pi); %later to settings, specify path in gui  
     settings_3D.file=p.settingsfile4pi;
     ph.settings_3D=settings_3D;
 end
 
-[beads,ph]=images2beads_globalfit(ph); %later extend for transformN
+%segmetn beads
+[beads,ph]=images2beads_globalfit(ph); %later extend for transformN, dont use two versions of images2beads
 settings_3D=ph.settings_3D; 
 
+
+%for each channel: calculate average PSF after alignment 
+%this is approximate, as different beads can have different phases 
 sstack=size(beads(1).stack.image);
-
-% ybeads=getFieldAsVectorInd(beads,'pos',2);
 xbeads=getFieldAsVectorInd(beads,'pos',1);
-
-% y4pi=settings_3D.y4pi; %later: load from here! add field to GUI for selecting file.
-% x4pi=settings_3D.x4pi;
-% height4pi=settings_3D.height4pi; 
-% width4pi=settings_3D.width4pi; 
-% mirror4pi=settings_3D.mirror4pi;
 fw=round((p.zcorrframes-1)/2);
 framerange=round(sstack(3)/2-fw:sstack(3)/2+fw);
 numchannels=length(settings_3D.y4pi);
 allPSFs=zeros(sstack(1),sstack(2),sstack(3),numchannels);
 for k=1:numchannels
-%     h4pi=ph.settings_3D.height4pi;
-%     indbh=ybeads>=(k-1)*h4pi+1 & ybeads<= k*h4pi;
+    %calculate average PSF
     w4pi=ph.settings_3D.width4pi;
     indbh=xbeads>=(k-1)*w4pi+1 & xbeads<= k*w4pi;
-    
-    xposh=getFieldAsVectorInd(beads(indbh),'pos',1)';
-    yposh=getFieldAsVectorInd(beads(indbh),'pos',2)';
-%     ph.tabgroup=uitabgroup(uitab(tgprefit,'Title',num2str(k)));
     [allstacks,filenumber]=bead2stack(beads(indbh));
     [allPSFs(:,:,:,k),shiftedstack,shift,indgood]=registerPSF3D_g(allstacks,[],struct('framerange',framerange));
-   
-    
+    % determine true position of the beads in the four channels
+    xposh=getFieldAsVectorInd(beads(indbh),'pos',1)';
+    yposh=getFieldAsVectorInd(beads(indbh),'pos',2)';
     beadtrue{k}(:,1)=xposh(indgood)-shift(indgood,2)'; %experimentally: this works :)
     beadtrue{k}(:,2)=yposh(indgood)-shift(indgood,1)';
-    beadtrue{k}(:,3)=shift(indgood,3)'; %this is not yet tested, could be minus
-    
+    beadtrue{k}(:,3)=shift(indgood,3)'; %this is not yet tested, could be minus  
 end
 
-
-
-
-%furhter align PSFs. Maybe this is not needed. But this gives x,y shift
-%between PSFs in different channels. Not necessary to take into account?
-framerange=round(max(1,sstack(3)/2-2*fw):min(sstack(3)/2+2*fw,sstack(3)));
-[~,PSFaligned,shift,indgood]=registerPSF3D_g(allPSFs,[],struct('framerange',framerange,'removeoutliers',false),{},filenumber);
-
-%try to correct for that shift:
-for k=1:numchannels
-    
-    beadtrue{k}(:,1)= beadtrue{k}(:,1)-shift(k,2);
-    beadtrue{k}(:,2)=beadtrue{k}(:,2)-shift(k,1);
-    beadtrue{k}(:,3)=beadtrue{k}(:,3)-shift(k,3);
-end
-
-%calculate transformN
-transform=interfaces.LocTransformN;
-pt.mirror=0; %mirror already taken care of when reading in images
-% pt.mirror=settings_3D.mirror4pi(1)*2; %2 for y coordinate
-% pt.xrange=[settings_3D.x4pi(1) settings_3D.x4pi(1)+settings_3D.width4pi];
-% pt.yrange=[settings_3D.y4pi(1) settings_3D.y4pi(1)+settings_3D.height4pi];
-settings_3D=ph.settings_3D;
-pt.xrange=[1 settings_3D.width4pi];
-pt.yrange=[1 settings_3D.height4pi];
-pt.unit='pixel';
-pt.type='projective';
-transform.setTransform(1,pt)
-iAaa=1:size(beadtrue{1},1);
-for k=2:length(beadtrue)
-%     pt.mirror=settings_3D.mirror4pi(k)*2;
-%     pt.yrange=[(k-1)*settings_3D.height4pi+1 k*settings_3D.height4pi];
-    pt.xrange=[(k-1)*settings_3D.width4pi+1 k*settings_3D.width4pi];
-    transform.setTransform(k,pt)
-    tab=(uitab(tgprefit,'Title',['T' num2str(k)]));ph.ax=axes(tab);
-    [~ ,iAa,iBa]=transform_locs_simpleN(transform,1, beadtrue{1},k,beadtrue{k},ph);
-    %if use PSFaligned: add to beadtrue{k} etc the shift. sign?
-    iAaa=intersect(iAa,iAaa);
-end
-
-out.transformation=transform;
-
+%get frequency and phases
 tab=(uitab(tgprefit,'Title','frequency'));ph.ax=axes(tab);
-
-%extend: also fix phi3-phi1=phi4-phi3=pi?
 [phaseh,frequency]=getphaseshifts(allPSFs,ph.ax);
 phaseshifts=[phaseh(1) phaseh(2) phaseh(1)+pi phaseh(2)+pi]; 
 phaseshifts=phaseshifts-phaseshifts(1)-pi;
-[I,A,B]=make4Pimodel(allPSFs,phaseshifts,frequency);
 
-plotI(:,:,:,1)=I;plotI(:,:,:,2)=A;plotI(:,:,:,3)=B;plotI(:,:,:,4)=allPSFs(:,:,:,1);
-tab=(uitab(tgprefit,'Title','IAB'));imageslicer(plotI,'Parent',tab)
 
-%fit with this intermediate PSF model -> x,y,z, phi for all beads
-fit4pidir=strrep(pwd,'SMAP',['ries-private' filesep 'PSF4Pi']);
-if exist(fit4pidir,'file')
-    addpath(fit4pidir);
+%furhter align PSFs. 
+framerange=round(max(1,sstack(3)/2-2*fw):min(sstack(3)/2+2*fw,sstack(3)));
+[~,PSFaligned,shift2,indgood]=registerPSF3D_g(allPSFs,[],...
+    struct('framerange',framerange,'removeoutliers',false,'alignz',false),{},filenumber);
+for k=1:numchannels
+    beadtrue{k}(:,1)= beadtrue{k}(:,1)-shift2(k,2);
+    beadtrue{k}(:,2)=beadtrue{k}(:,2)-shift2(k,1);
+    beadtrue{k}(:,3)=beadtrue{k}(:,3)-shift2(k,3);
 end
+
+
+%make IAB model from average PSFs
+[I,A,B]=make4Pimodel(PSFaligned,phaseshifts,frequency);
+% [I,A,B]=make4Pimodel(allPSFs,phaseshifts,frequency);
+plotI(:,:,:,1)=I;plotI(:,:,:,2)=A;plotI(:,:,:,3)=B;plotI(:,:,:,4)=PSFaligned(:,:,:,1);
+tab=(uitab(tgprefit,'Title','IAB'));imageslicer(plotI,'Parent',tab)
 mp=ceil((size(A,1)-1)/2);
 dd=floor((p.ROIxy-1)/2);
 PSF.Aspline=single(getsmoothspline(A(mp-dd:mp+dd,mp-dd:mp+dd,:),p));
@@ -118,78 +78,85 @@ PSF.Ispline=single(getsmoothspline(I(mp-dd:mp+dd,mp-dd:mp+dd,:),p));
 PSF.frequency=frequency;
 PSF.phaseshifts=phaseshifts;
 
-%do fitting
+%next iteration can start here. everything below at the moment only used
+%for fitting of bead stacks and saving correct transform.
+%however, for identifying corresponging beads, we might need the
+%transformation.
+
+%fit with this intermediate PSF model -> x,y,z, phi for all beads
+
+
+%calculate transformN
+transform=interfaces.LocTransformN;
+pt.mirror=0; %mirror already taken care of when reading in images
+settings_3D=ph.settings_3D;
+pt.xrange=[1 settings_3D.width4pi];
+pt.yrange=[1 settings_3D.height4pi];
+pt.unit='pixel';
+pt.type='projective';
+transform.setTransform(1,pt)
+iAaa=1:size(beadtrue{1},1);
+for k=2:length(beadtrue)
+    pt.xrange=[(k-1)*settings_3D.width4pi+1 k*settings_3D.width4pi];
+    transform.setTransform(k,pt)
+    tab=(uitab(tgprefit,'Title',['T' num2str(k)]));ph.ax=axes(tab);
+    [~ ,iAa,iBa]=transform_locs_simpleN(transform,1, beadtrue{1},k,beadtrue{k},ph); 
+    %extend transform locs by iterative transform - remove outliers. As
+    %done for normal calibrator.
+    iAaa=intersect(iAa,iAaa);
+end
+out.transformation=transform;
+
+%now: validation and plotting of graphs
+%do fitting for testing
 fitroi=13;
 sim=size(allPSFs);
 mp=floor((sim(1)-1)/2)+1;
 droi=floor((fitroi-1)/2);
 rangeh=mp-droi:mp+droi;
 phi0=phaseshifts;
+
 %fit calibrations stack
 shared=[0,0,1,1,1,1];
-% [Pc,CRLB1, LL,update, error,residualc] =  kernel_MLEfit_Spline_LM_multichannel_4pi(allPSFs(rangeh, rangeh, :, :)*10000,PSF, shared,zeros(6,4,size(allPSFs,3)),50,phi0);
-% [Pc,CRLB1, LL,update, error,residualc] =  CPUmleFit_LM_MultiChannel(single(allPSFs(rangeh, rangeh, :, :)*10000),uint32(shared),zeros(6,4,size(allPSFs,3)),50,phi0);
-
 z0=round(size(PSF.Aspline,3)/2);
 dTAll=zeros(6,4,size(allPSFs,3),'single');
 iterations=50;
 imstack=allPSFs(rangeh, rangeh, :, :)*10000;
+imstack=PSFaligned(rangeh, rangeh, :, :)*10000;
 [Pc,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstack(:, :, :, :)),uint32(shared),int32(iterations),single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),single(z0));
 
+mean(Pc(:,1:8),1)-droi+1 % if this is not all the same -> PSFs in channels not well aligned. 
 
-mean(Pc(:,1:8),1)-droi+1
-
-%this is not all the same -> PSFs in channels not well aligned. 
-
-%previous transform: corresponding beads: %this should be part of a new
-%images2beads function
-    %round pos1: beadtrue{1}
-    ph.isglobalfit=true;
-    ph.transformation=transform;
-    [beads,ph]=images2beads_globalfitN(ph); 
-    
-
+%cut out corresponding beads based on transform to mimick normal fitting
+ph.isglobalfit=true;
+ph.transformation=transform;
+[beads,ph]=images2beads_globalfitN(ph); 
+   
 [imstack,fn,dxy]=bead2stack(beads);
 sim=size(imstack);
 imsqueeze=reshape(imstack,sim(1),sim(2),[],sim(end));
 dTAll=reshape(dxy,size(dxy,1),sim(end),[]);
-% phi0 = [0, pi, pi / 2, 1.5 * pi];
-
 shared=[1,1,1,1,1,1];
-% shared=[0,0,0,0,0,0,0];
-%     dTAll=permute(dTAll,[2 3 1]);
-    
-   % dT: coord, channel,loc
-% [P_EL, update_EL, error_EL, model_EL] =  kernel_MLEfit_Spline_LM_newFit(imstack(:, :, :, :), PSF, RoiPixelsize, 50, phi0, z0);
+imstacksq=imsqueeze(rangeh, rangeh, :, :);
+[P,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstacksq(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
 
-
-
-
-global P
-% [P,CRLB1, LL,update, error,residual] =  kernel_MLEfit_Spline_LM_multichannel_4pi(imsqueeze(rangeh, rangeh, :, :),PSF, shared,dTAll,50,phi0);
-imstack=imsqueeze(rangeh, rangeh, :, :);
-[P,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstack(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
-% imageslicer(residual)
-
-shared(1:2)=0;
-[Pu,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstack(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
-dx21=Pu(:,2)-Pu(:,1);
-% imageslicer(residual)
+%now unlink x, y to see if there is shift
+% shared(1:2)=0;
+% [Pu,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstacksq(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(phi0),z0);
+% dx21=Pu(:,2)-Pu(:,1);
  
+%collect fitted parameters
 phase=mod(reshape(P(:,6),[],sim(4)),2*pi);
 zphase=phase/2/frequency*p.dz;
 zastig=reshape(P(:,5),[],sim(4))*p.dz;
-
 xfit=reshape(P(:,1),[],sim(4));
 yfit=reshape(P(:,2),[],sim(4));
-
+%XXXX find z0!
 z_phi = reshape(z_from_phi_JR(P(:, 5), phase(:), frequency, ceil(sim(3)/2)-.7),[],sim(4))*p.dz;
 
+%plot results of validation
 tab=(uitab(tgprefit,'Title','results'));
 tgr=uitabgroup(tab);
-
-% figure(68)
-% subplot(2,3,1)
 axes(uitab(tgr,'Title','z_astig'))
 plot(zastig)
 xlabel('frame')
@@ -216,7 +183,77 @@ plot(zastig,xfit)
 hold on
 xlabel('z_astig')
 ylabel('x')
-% plot(zastig,yfit)
+
+
+%first iteration
+shared=[0 0 1 1 1 1]; %only link BG and photons to get true x,y
+%phase shoudl be linked! comes from the cavity, the same in all quadrants
+% different focus (=zposition) in four quadrants:destroys relationship
+% between zastig and phase (phase stays constant, zastig changes). avoid!
+% negelct here
+
+
+%now fit with dT=0 to get directly the shift (avoid adding shifts)
+dTAll0=dTAll*0;
+[Pu,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstacksq(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll0),single(phi0),z0);
+
+
+for k=1:size(CRLB1,2)
+    Pr(:,k,:)=reshape(Pu(:,k),[],sim(4));
+    Cr(:,k,:)=reshape(CRLB1(:,k),[],sim(4));
+end
+Pr(:,k+1,:)=reshape(Pu(:,k+1),[],sim(4)); %iterations, not in crlb
+% Pr=reshape(Pu,[],size(Pu,2),sim(4));
+df=10;
+frange=ceil((sim(3)-1)/2+1)+ (-df:df)';
+mean(Pu(:,1:8),1)-droi+1
+
+
+x=Pr(frange,1:4,:);dx=Cr(frange,1:4,:);
+y=Pr(frange,5:8,:);dy=Cr(frange,5:8,:);
+z=Pr(frange,11,:); dz=Cr(frange,11,:);
+phase=mod(Pr(frange,12,:),2*pi); dphase=Cr(frange,12,:);
+
+% xrm=squeeze(robustMean(x,1));
+xwm=squeeze(sum(x./dx,1)./sum(1./dx,1))-droi+1;
+ywm=squeeze(sum(y./dy,1)./sum(1./dy,1))-droi+1;
+
+zr=z-frange;
+zwm=squeeze(sum(zr./dz,1)./sum(1./dz,1));
+% xm=squeeze(mean(x,1));
+%determine crlb for weighing
+%x,y, weighted average from central part
+%z: z-frange, weighted average
+%phase: cyclicaverage as in postfitting plugin. Maybe make robust? median?
+%Or fit, get dhi from fit.
+
+
+%phase vs zastig: very very well on line. Hardly any spread. Alignment in z
+%sufficient? No need to adjust phase? 
+
+%but this means that prefit already corrected for everything. But if phase
+%not flat (imperfect alignment) across FoV then z would stay constant and
+%phase would change. 
+
+xn=1:size(imstack,1);yn=1:size(imstack,2);zn=1:size(imstack,3);
+[Xq,Yq,Zq]=meshgrid(yn,xn,zn);
+
+imstackaligned=imstack*0;
+for k=1:size(imstack,4) %for all beads
+    for c=1:size(imstack,5)
+        imh=squeeze(imstack(:,:,:,k,c));
+        xshift=-ywm(c,k); %works empirically
+        yshift=-xwm(c,k);
+        zshift=zwm(k);
+        shiftedh=interp3(imh(:,:,:),Xq-xshift,Yq-yshift,Zq-zshift,'cubic',0);
+        imstackaligned(:,:,:,k,c)=shiftedh;
+    end
+end
+%determine average x,y,z,phase for each bead for each channel. restrict to
+%center?
+
+
+
     %cut out rois
     %fit unlinked
     %determine true x,y,z,phi for each bead
