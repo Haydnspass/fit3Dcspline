@@ -10,6 +10,7 @@ filelist=p.filelist;
 b=[];
 ht=uitab(p.tabgroup,'Title','Files');
 tg=uitabgroup(ht);
+is4pi=contains(p.modality,'4Pi');
 
 if p.isglobalfit 
    if ischar(p.Tfile)%extend later to 4Pi
@@ -30,18 +31,20 @@ for k=1:length(filelist)
 %     axis(ax,'image')
     p.fileax(k)=ax;
     [imstack, p.roi{k}, p.pixelsize{k},settings3D]=readbeadimages(filelist{k},p);
-    if ~isempty(settings3D)
-        p.settings_3D=settings3D;
-        p.settings_3D.file='multifile';
-    end
     
-    if isfield(p,'settings_3D') && ~isempty(p.settings_3D) %calibration file: cut out and mirror already here!
-        imstack=cutoutchannels(imstack,p.settings_3D);
-        p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
-    else
-        disp('no  settings_3D found. Use default. Specify settings file?')
-        wx=size(imstack,2)/4;wy=size(imstack,1);
-        p.settings_3D=struct('y4pi',[0 0 0 0],'x4pi',[0 wx 2*wx 3*wx], 'width4pi',wx,'height4pi',wy,'mirror4pi',[0 0 0 0],'pixelsize_nm',100,'offset',100,'conversion',0.5);
+    if is4pi
+        if ~isempty(settings3D)
+            p.settings_3D=settings3D;
+            p.settings_3D.file='multifile';
+        end
+        if isfield(p,'settings_3D') && ~isempty(p.settings_3D) %calibration file: cut out and mirror already here!
+            imstack=cutoutchannels(imstack,p.settings_3D);
+            p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
+        else
+            disp('no  settings_3D found. Use default. Specify settings file?')
+            wx=size(imstack,2)/4;wy=size(imstack,1);
+            p.settings_3D=struct('y4pi',[0 0 0 0],'x4pi',[0 wx 2*wx 3*wx], 'width4pi',wx,'height4pi',wy,'mirror4pi',[0 0 0 0],'pixelsize_nm',100,'offset',100,'conversion',0.5);
+        end
     end
     
     if p.emgain
