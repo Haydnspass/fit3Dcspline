@@ -59,7 +59,7 @@ if numbeads==1
 end
 % lx=length(p.xrange);
 
-if isfield(p,'zshift0') && ~isempty(p.zshiftf0)
+if isfield(p,'zshiftf0') && ~isempty(p.zshiftf0)
     zshiftf0=p.zshiftf0;
 else
     zshiftf0=zeros(numbeads,1);
@@ -73,7 +73,10 @@ if ~isempty(imint)
         imina(size(imin,1)+1:end,:,:,k)=shiftimagexy(imint(:,:,:,k),-p.shiftxy(k,:));
     end
 else 
-    imina=imin;
+%     imina=imin;
+    for k=1:size(imin,4)
+        imina(:,:,:,k)=shiftimagexy(imin(:,:,:,k),-p.shiftxy(k,:));
+    end
 end
 
 numref=max(round(size(imina,4)*.5),min(5,size(imina,4)));
