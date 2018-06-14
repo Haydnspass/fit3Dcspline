@@ -165,19 +165,36 @@ for k=1:size(img.imstack,4) %for all beads
     end
 end
 
-imstackalignedn=normalizequadrants(imstackaligned);
-
+[imstackalignedn,factor]=normalizequadrants(imstackaligned);
+%XXXX take into account factor when fitting!
+%Put normalizequadrants into make4Pimodel? Or outside for global factor.
 Iz=0;Bz=0;Az=0;
 numbeads=size(imstackalignedn,4);
 for k=1:numbeads
     [Ih,Ah,Bh]=make4Pimodel(squeeze((imstackalignedn(:,:,:,k,:))),phaseshifts,ph.frequency);
     Iz=Ih/numbeads+Iz;Bz=Bh/numbeads+Bz;Az=Ah/numbeads+Az;
 end
+mp=ceil((size(Az,1)-1)/2);
+dd=floor((ph.ROIxy-1)/2);
+PSFz.Aspline=single(getsmoothspline(Az(mp-dd:mp+dd,mp-dd:mp+dd,:),ph));
+PSFz.Bspline=single(getsmoothspline(Bz(mp-dd:mp+dd,mp-dd:mp+dd,:),ph));
+PSFz.Ispline=single(getsmoothspline(Iz(mp-dd:mp+dd,mp-dd:mp+dd,:),ph));
+PSFz.frequency=ph.frequency;
+PSFz.phaseshifts=phaseshifts;
+PSFz.factor=ones(4,1);
+PSFz.factor([2 4])=factor;
 
-imstackalignedpn=normalizequadrants(imstackalignedp);
+validatemodel(PSFz,ph)
+
+
+[imstackalignedpn,factor]=normalizequadrants(imstackalignedp);
 [Im,Am,Bm,PSFm]=make4Pimodel(squeeze(mean(imstackalignedpn(:,:,:,:,:),4)),phaseshifts,ph.frequency,ph);
 
 validatemodel(PSFm,ph)
+
+%not better. Redo Transformation with fitted localizations?
+
+
 %now testing needed. Which of the IAB produce all quadrants of calibration stack faithfully?
 %use all for fitting, then look at residuals in quadrants
 %look at phase etc.
@@ -368,7 +385,7 @@ corrPSFhdt = interp3_0(b3_0t,XX,YY,ZZ,0);
 cspline = Spline3D_interp(corrPSFhdt);
 end
 
-function imstackn=normalizequadrants(imstack)
+function [imstackn,n]=normalizequadrants(imstack)
 if length(size(imstack))==5
     imstackh=squeeze(mean(imstack,4));
 else
