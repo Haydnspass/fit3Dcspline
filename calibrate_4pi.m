@@ -225,7 +225,7 @@ out.cal4pi.coeff=PSF;
 out.cal4pi.dz=ph.dz;
 out.cal4pi.x0=ceil((ph.ROIxy+1)/2);
 out.cal4pi.z0=ceil((size(PSF.Aspline,3)+2)/2);
-out.cal4pi.transformation=transform;
+out.cal4pi.transformation=out.transformation;
 out.cal4pi.settings3D=ph.settings_3D;
 out.Xrange=ph.xrange;
 out.Yrange=ph.yrange;
@@ -272,7 +272,7 @@ frange=round(ss(3)/2+(-fw:fw)');
 
 f=(1:ss(3))'-ss(3)/2;
 intall=[];
- kapprox=1*pi*4/max(f);
+%  kapprox=1*pi*4/max(f);
 for k=1:ss(4)
     inth=squeeze(sum(sum(allPSFs(range,range,:,k),1),2));
     intall(:,k)=inth;
@@ -285,14 +285,34 @@ intn=intnf(frange,:);
     ub1=[max(intn(:)) inf 0  max(intn(:)) inf 0 ];
     s1=[(max(intn(:))-min(intn(:)))/2 0 0 0.5 0 0];
     [~,indmax]=max(intn(:,1));
+    
+    
+    %find kapprox
+    indzero=find(f(frange)>=0,1,'first');
+    inttest=intn(indzero:end,1);
+    ind1=find(inttest>=0.5,1,'first');
+    inttest2=inttest(ind1:end);
+    ind2=find(inttest2<=0.5,1,'first');
+    inttest3=inttest2(ind2:end);
+    ind3=find(inttest3>=0.5,1,'first');
+    kapprox=pi/(ind3);
+    
+    
+    
      phasestart1=pi/2-indmax*kapprox+pi; if phasestart1<0,phasestart1=phasestart1+2*pi;end;
 
 lba=horzcat(0,-pi,-pi,lb1,lb1,lb1,lb1);
 uba=horzcat(inf,3*pi,3*pi,ub1,ub1,ub1,ub1);
 
+% phasestart1=0;
+% kapprox=0.5;
 startpa=[kapprox,phasestart1, phasestart1+pi/2,s1,s1,s1,s1];
-fitpg=lsqcurvefit(@zintpg,startpa,f(frange),intn,lba,uba);
-fitted=zintpg(fitpg,f(frange));
+fitAB=0;
+fitpg=lsqcurvefit(@zintpg,startpa,f(frange),intn,lba,uba,[],fitAB);
+fitAB=1;
+fitpg2=lsqcurvefit(@zintpg,fitpg,f(frange),intn,lba,uba,[],fitAB);
+
+fitted=zintpg(fitpg2,f(frange),fitAB);
 fitted=reshape(fitted,length(frange),4);
 
 hold (ax,'off')
@@ -302,16 +322,18 @@ hold(ax,'on')
 % fst=zintpg(startpa,f(frange));
 % plot(ax,f(frange),fst(:,:))
 plot(ax,f(frange)',fitted','k');
-phaseshiftso=fitpg([2 3]);
-frequencyo=fitpg(1)/2;
-title(ax,['frequency: ' num2str(frequencyo,2) ', phaseshift/pi: ' num2str((phaseshiftso(2)-phaseshiftso(1))/pi,2)])
+phaseshiftso=fitpg2([2 3]);
+frequencyo=fitpg2(1)/2;
+title(ax,['frequency: ' num2str(frequencyo,3) ', phaseshift/pi: ' num2str((phaseshiftso(2)-phaseshiftso(1))/pi,3)])
 %   fnc=@(k,phi1,phi2,A11,A21,A31,B11,B21,B31,A12,A22,A32,B12,B22,B32,A13,A23,A33,B13,B23,B33,A14,A24,A34,B14,B24,B34,x) zintg(k,phi1,A11,A21,A31,B11,B21,B31,phi2,A12,A22,A32,B12,B22,B32,phi3,A13,A23,A33,B13,B23,B33,phi4,A14,A24,A34,B14,B24,B34,x);
 
 end
 
-function into=zintpg(p,xdat)
-
-into=horzcat(zintp([p(1) p(2) p(4:9)],xdat),zintp([p(1) p(3) p(10:15)],xdat),zintp([p(1) p(2)+pi p(16:21)],xdat),zintp([p(1) p(3)+pi p(22:27)],xdat));
+function into=zintpg(p,xdat,fitAB)
+if nargin <3
+    fitAB=1;
+end
+into=horzcat(zintp([p(1) p(2) p(4:9)],xdat,fitAB),zintp([p(1) p(3) p(10:15)],xdat,fitAB),zintp([p(1) p(2)+pi p(16:21)],xdat,fitAB),zintp([p(1) p(3)+pi p(22:27)],xdat,fitAB));
 % into=vertcat(zint(x,k,phi1,A11,A21,A31,B11,B21,B31),zint(x,k,phi2,A12,A22,A32,B12,B22,B32),zint(x,k,phi3,A13,A23,A33,B13,B23,B33),zint(x,k,phi4,A14,A24,A34,B14,B24,B34));
 end
 function into=zint(f,k,phi,A1,A2,A3,B1,B2,B3)
@@ -321,8 +343,11 @@ os=sin(k*f+phi);
 into=Bg+Am.*os;
 end
 
-function into=zintp(p,f)
-k=p(1);phi=p(2);A1=p(3);A2=p(4);A3=p(5);B1=p(6);B2=p(7);B3=p(8);
+function into=zintp(p,f,fitAB)
+if nargin <3
+    fitAB=1;
+end
+k=p(1);phi=p(2);A1=p(3);A2=p(4)*fitAB;A3=p(5)*fitAB;B1=p(6);B2=p(7)*fitAB;B3=p(8)*fitAB;
 into=zint(f,k,phi,A1,A2,A3,B1,B2,B3);
 % Bg=B1+B2*f+B3*f.^2;
 % Am=A1+A2*f+A3*f.^2;
