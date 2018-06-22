@@ -20,12 +20,29 @@ if ~isempty(p.settingsfile4pi) && exist(p.settingsfile4pi,'file')
     ph.settings_3D=settings_3D;
 end
 
+ph.zstart= [-1 0 1]*30;
+% ph.zstart= 0;
 %segmetn beads
 [beads,ph]=images2beads_globalfit(ph); %later extend for transformN, dont use two versions of images2beads
 % settings_3D=ph.settings_3D; 
 
 %register beads channel wise
 [allPSFs,shiftedstack,corrout]=PSFcorrelation(beads,ph);
+
+% %clean up based on outliers
+% k=1;
+% mp=round((size(allPSFs,1)-1)/2)+1;
+% range=mp-1:mp+1;
+% mf=round((size(allPSFs,3)-1)/2)+1;
+% frange=mf-20:mf+20;
+% intall=squeeze(sum(sum(allPSFs(range,range,frange,k),1),2));
+% int1=squeeze(sum(sum(shiftedstack{k}(range,range,frange,:),1),2));
+% 
+% dint=int1-intall;
+% dintn=sqrt(sum((dint./intall.^2.*(dint>0)).^2));
+
+tab=(uitab(tgprefit,'Title','PSFaligned'));
+imageslicer(cat(4,shiftedstack{1},shiftedstack{2}),'Parent',tab)
 
 %get frequency and phases
 tab=(uitab(tgprefit,'Title','frequency'));ph.ax=axes(tab);
@@ -74,7 +91,7 @@ ph.phi0=phaseshifts;
 
 %fit calibrations stack
 shared=[0,0,1,1,1,1];
-z0=round(size(PSF.Aspline,3)/2);
+z0=round(size(PSF.Aspline,3)/2)+ph.zstart;
 dTAll=zeros(6,4,size(allPSFs,3),'single');
 iterations=50;
 % imstack=allPSFs(ph.rangeh, ph.rangeh, :, :)*10000;
@@ -106,7 +123,7 @@ for k=1:size(CRLB1,2)
 end
 Pr(:,k+1,:)=reshape(Pu(:,k+1),[],img.sim(4)); %iterations, not in crlb
 % Pr=reshape(Pu,[],size(Pu,2),sim(4));
-df=10;
+df=20;
 frange=ceil((sim(3)-1)/2+1)+ (-df:df)';
 mean(Pu(:,1:8),1)-droi+1
 
@@ -124,7 +141,10 @@ ywm=squeeze(sum(y./dy,1)./sum(1./dy,1))-droi+1;
 
 zr=z-frange;
 zwm=squeeze(sum(zr./dz,1)./sum(1./dz,1));
-
+[zwm,stdm,inlier]=(robustMean(zr,1));
+zwm=squeeze(zwm);
+stdm=squeeze(stdm);
+indgood=abs(zwm)<200/ph.dz &stdm<2;
 zpwm=squeeze(sum(z_phase./dphase,1)./sum(1./dphase,1));
 
 % xm=squeeze(mean(x,1));
@@ -164,6 +184,8 @@ for k=1:size(img.imstack,4) %for all beads
         imstackalignedp(:,:,:,k,c)=shiftedh;
     end
 end
+imstackaligned=imstackaligned(:,:,:,indgood,:);
+imstackalignedp=imstackalignedp(:,:,:,indgood,:);
 
 [imstackalignedn,factor]=normalizequadrants(imstackaligned);
 %XXXX take into account factor when fitting!
@@ -297,34 +319,48 @@ intn=intnf(frange,:);
     ind3=find(inttest3>=0.5,1,'first');
     kapprox=pi/(ind3);
     
-    
-    
+%     st1=[kapprox 0 0.5 0 0 0.5 0 0];
+%     lba1=[0 -pi]
+%     for k=1:size(intn,2)
+%         fitpg=lsqcurvefit(@zintp,st1,f(frange),intn(:,k),lba1,uba1,[],0);
+%     end
+%     
+%     
      phasestart1=pi/2-indmax*kapprox+pi; if phasestart1<0,phasestart1=phasestart1+2*pi;end;
 
-lba=horzcat(0,-pi,-pi,lb1,lb1,lb1,lb1);
-uba=horzcat(inf,3*pi,3*pi,ub1,ub1,ub1,ub1);
+lba=horzcat(0,-inf,-inf,lb1,lb1,lb1,lb1);
+uba=horzcat(inf,inf,inf,ub1,ub1,ub1,ub1);
 
 % phasestart1=0;
 % kapprox=0.5;
 startpa=[kapprox,phasestart1, phasestart1+pi/2,s1,s1,s1,s1];
 fitAB=0;
 fitpg=lsqcurvefit(@zintpg,startpa,f(frange),intn,lba,uba,[],fitAB);
+% 
+% fitted0=zintpg(fitpg,f(frange),fitAB);
+% fitted0=reshape(fitted0,length(frange),4);
+
 fitAB=1;
 fitpg2=lsqcurvefit(@zintpg,fitpg,f(frange),intn,lba,uba,[],fitAB);
+
+
 
 fitted=zintpg(fitpg2,f(frange),fitAB);
 fitted=reshape(fitted,length(frange),4);
 
 hold (ax,'off')
-plot(ax,f,intnf,'-+')
+plot(ax,f,intnf,':+')
 % plot(ax,f(frange),intn)
 hold(ax,'on')
-% fst=zintpg(startpa,f(frange));
-% plot(ax,f(frange),fst(:,:))
+fst=zintpg(startpa,f(frange));
+% plot(ax,f(frange),fst(:,:),'b--')
+
+% plot(ax,f(frange)',fitted0','r');
 plot(ax,f(frange)',fitted','k');
+
 phaseshiftso=fitpg2([2 3]);
 frequencyo=fitpg2(1)/2;
-title(ax,['frequency: ' num2str(frequencyo,3) ', phaseshift/pi: ' num2str((phaseshiftso(2)-phaseshiftso(1))/pi,3)])
+title(ax,['frequency: ' num2str(frequencyo,3) ', phaseshift/pi: ' num2str(mod((phaseshiftso(2)-phaseshiftso(1))/pi,2),3)])
 %   fnc=@(k,phi1,phi2,A11,A21,A31,B11,B21,B31,A12,A22,A32,B12,B22,B32,A13,A23,A33,B13,B23,B33,A14,A24,A34,B14,B24,B34,x) zintg(k,phi1,A11,A21,A31,B11,B21,B31,phi2,A12,A22,A32,B12,B22,B32,phi3,A13,A23,A33,B13,B23,B33,phi4,A14,A24,A34,B14,B24,B34,x);
 
 end
@@ -336,9 +372,9 @@ end
 into=horzcat(zintp([p(1) p(2) p(4:9)],xdat,fitAB),zintp([p(1) p(3) p(10:15)],xdat,fitAB),zintp([p(1) p(2)+pi p(16:21)],xdat,fitAB),zintp([p(1) p(3)+pi p(22:27)],xdat,fitAB));
 % into=vertcat(zint(x,k,phi1,A11,A21,A31,B11,B21,B31),zint(x,k,phi2,A12,A22,A32,B12,B22,B32),zint(x,k,phi3,A13,A23,A33,B13,B23,B33),zint(x,k,phi4,A14,A24,A34,B14,B24,B34));
 end
-function into=zint(f,k,phi,A1,A2,A3,B1,B2,B3)
-Bg=B1+B2*f+B3*f.^2;
-Am=A1+A2*f+A3*f.^2;
+function into=zint(f,k,phi,A1,A2,A3,B1,B2,B3,fitAB)
+Bg=B1+B2*f*fitAB+B3*f.^2*fitAB;
+Am=A1+A2*f*fitAB+A3*f.^2*fitAB;
 os=sin(k*f+phi);
 into=Bg+Am.*os;
 end
@@ -348,7 +384,7 @@ if nargin <3
     fitAB=1;
 end
 k=p(1);phi=p(2);A1=p(3);A2=p(4)*fitAB;A3=p(5)*fitAB;B1=p(6);B2=p(7)*fitAB;B3=p(8)*fitAB;
-into=zint(f,k,phi,A1,A2,A3,B1,B2,B3);
+into=zint(f,k,phi,A1,A2,A3,B1,B2,B3,fitAB);
 % Bg=B1+B2*f+B3*f.^2;
 % Am=A1+A2*f+A3*f.^2;
 % os=sin(k*f+phi);
@@ -451,12 +487,13 @@ fw=round((ph.zcorrframes-1)/2);
 framerange=round(sstack(3)/2-fw:sstack(3)/2+fw);
 corrout.numchannels=length(ph.settings_3D.y4pi);
 allPSFs=zeros(sstack(1),sstack(2),sstack(3),corrout.numchannels);
+% shiftedstack=[];
 for k=1:corrout.numchannels
     %calculate average PSF
     w4pi=ph.settings_3D.width4pi;
     indbh=xbeads>=(k-1)*w4pi+1 & xbeads<= k*w4pi;
     [allstacks,corrout.filenumber]=bead2stack(beads(indbh));
-    [allPSFs(:,:,:,k),shiftedstack,shift,indgood]=registerPSF3D_g(allstacks,[],struct('framerange',framerange));
+    [allPSFs(:,:,:,k),shiftedstackh,shift,indgood]=registerPSF3D_g(allstacks,[],struct('framerange',framerange));
     % determine true position of the beads in the four channels
     xposh=getFieldAsVectorInd(beads(indbh),'pos',1)';
     yposh=getFieldAsVectorInd(beads(indbh),'pos',2)';
@@ -467,7 +504,9 @@ for k=1:corrout.numchannels
     corrout.beadtrue{k}(:,3)=shift(indgood,3)';%-mean(shift(indgood,3)); %this is not yet tested, could be minus  
     corrout.zshift0(k)=mean(shift(indgood,3));
     corrout.xyshift0(k,1:2)=squeeze(mean(shift(indgood,1:2),1));
+    shiftedstack{k}=shiftedstackh(:,:,:,indgood);
 end
+
 end
 
 function transform=make4PiTransform(beadtrue,ph)
@@ -510,7 +549,7 @@ img.dTAll=dTAll;
 shared=[1,1,1,1,1,1];
 imstacksq=imsqueeze(ph.rangeh, ph.rangeh, :, :);
 iterations=50;
-z0=round(size(PSF.Aspline,3)/2);
+z0=round(size(PSF.Aspline,3)/2)+ph.zstart;
 [P,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstacksq(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(ph.phi0),z0);
 
 img.imstacksq=imstacksq;

@@ -103,7 +103,7 @@ ph.framerange=1:size(avim,3);
 shiftedstackn=normalizstack(shiftedstack,p);
 indgood=true(1,size(shiftedstackn,4));
 if p.removeoutliers
-[indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
+[indgood,res,normamp,co,cc,weightso]=getoverlap(shiftedstackn,shift,ph,indgood);
 end
 % meanim=nanmean(shiftedstack(:,:,:,indgood),4);meanim(isnan(meanim))=avim(isnan(meanim));   
 
@@ -176,9 +176,9 @@ shiftedstackn=normalizstack(shiftedstack,p);
 
 indgood=true(1,size(shiftedstackn,4));
 if p.removeoutliers
-[indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
-[indgood]=getoverlap(shiftedstackn,shift,ph,indgood);
-[indgood,res,normglobal,co,cc2]=getoverlap(shiftedstackn,shift,ph,indgood);
+[indgood,res,normamp,co,cc,weightso]=getoverlap(shiftedstackn,shift,ph,indgood);
+[indgood,res,normamp,co,cc,weightso]=getoverlap(shiftedstackn,shift,ph,indgood,weightso);
+[indgood,res,normglobal,co,cc2,weightso]=getoverlap(shiftedstackn,shift,ph,indgood,weightso);
 shiftedstackn=shiftedstackn/normglobal;
 end
 
@@ -273,8 +273,20 @@ shiftedh=interp3(imina(:,:,:,k),Xq-shift(k,2),Yq-shift(k,1),Zq-shift(k,3)-double
 end
 end
 
-function [indgood,res,normamp,co,cc]=getoverlap(shiftedstackn,shift,p,indgood)
-refimn=mean(shiftedstackn(p.xrange,p.yrange,p.framerange,indgood),4,'omitnan');
+function [indgood,res,normamp,co,cc,weightso]=getoverlap(shiftedstackn,shift,p,indgood,weights)
+
+if nargin<5
+    weights=ones(size(shiftedstackn,4),1);
+end
+
+refimn=0;
+for k=size(shiftedstackn,4):-1:1
+    if indgood(k)
+        refimn=weights(k)*shiftedstackn(p.xrange,p.yrange,p.framerange,k)/sum(weights(indgood))+refimn;
+    end
+end
+
+% refimn=mean(shiftedstackn(p.xrange,p.yrange,p.framerange,indgood),4,'omitnan');
 for k=size(shiftedstackn,4):-1:1
     imh=shiftedstackn(p.xrange,p.yrange,p.framerange,k);
     badind=isnan(imh)|isnan(refimn);
@@ -297,7 +309,15 @@ if isnan(b)
     a=mean(rescc,'omitnan');b=std(rescc,'omitnan');
 end
 co=a+2.*b;
+% weightso=weights;
+weightso=1./rescc;
 indgood=indgood&(rescc<=co);
+% norm=sum(1./rescc);
+% for k=size(shiftedstackn,4):-1:1
+%     shiftedstackn2(:,:,:,k)=shiftedstackn(:,:,:,k)
+%      sim=shiftedstackn(p.xrange(2:end-1),p.yrange(2:end-1),p.framerange,k); 
+% end
+
 end
 
 function out=normalizstack(in,p)
