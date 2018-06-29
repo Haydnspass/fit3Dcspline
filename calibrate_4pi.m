@@ -43,10 +43,23 @@ ph.zstart= [-1 0 1]*30;
 
 tab=(uitab(tgprefit,'Title','PSFaligned'));
 imageslicer(cat(4,shiftedstack{1},shiftedstack{2}),'Parent',tab)
-
+tab=(uitab(tgprefit,'Title','Zprofile'));
+simh=size(shiftedstack{1});
+mp=ceil((simh(1)+1)/2);
+col={'r','m','r','m'};
+ax=axes(tab);
+hold (ax,'off')
+for k=1:4
+    dz=1*(k-1);
+profilez=squeeze(shiftedstack{k}(mp,mp,:,:));
+profilezm=squeeze(allPSFs(mp,mp,:,k));
+plot(ax,profilez+dz,col{k})
+hold (ax,'on')
+plot(ax,profilezm+dz,'k')
+end
 %get frequency and phases
 tab=(uitab(tgprefit,'Title','frequency'));ph.ax=axes(tab);
-[phaseh,ph.frequency]=getphaseshifts(allPSFs,ph.ax);
+[phaseh,ph.frequency]=getphaseshifts(allPSFs,ph.ax,ph);
 phaseshifts=[phaseh(1) phaseh(2) phaseh(1)+pi phaseh(2)+pi]; 
 phaseshifts=phaseshifts-phaseshifts(1)-pi;
 
@@ -286,10 +299,11 @@ elseif length(ss)==4
 end
 end
 
-function [phaseshiftso,frequencyo]=getphaseshifts(allPSFs,ax)
+function [phaseshiftso,frequencyo]=getphaseshifts(allPSFs,ax,p)
 ss=size(allPSFs);
 range=(ss(1)+1)/2+[-1 1];
 fw=20;
+fw=ceil(500/p.dz);
 frange=round(ss(3)/2+(-fw:fw)');
 
 f=(1:ss(3))'-ss(3)/2;
@@ -310,14 +324,16 @@ intn=intnf(frange,:);
     
     
     %find kapprox
-    indzero=find(f(frange)>=0,1,'first');
-    inttest=intn(indzero:end,1);
+    indzero=find(f>=0,1,'first');
+    inttest=intnf(indzero:end,1);
     ind1=find(inttest>=0.5,1,'first');
     inttest2=inttest(ind1:end);
     ind2=find(inttest2<=0.5,1,'first');
     inttest3=inttest2(ind2:end);
     ind3=find(inttest3>=0.5,1,'first');
-    kapprox=pi/(ind3);
+     inttest4=inttest3(ind3:end);
+    ind4=find(inttest4<=0.5,1,'first');   
+    kapprox=pi/(ind3+ind4)
     
 %     st1=[kapprox 0 0.5 0 0 0.5 0 0];
 %     lba1=[0 -pi]

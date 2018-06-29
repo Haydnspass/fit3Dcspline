@@ -66,6 +66,7 @@ for k=1:length(filelist)
 %     imageslicer(imstack)%%%%%%%%XXXXXXX
     
     mim=max(imstack,[],3);
+    mim=mean(imstack,3);
     mim=filter2(h,mim);
     imagesc(ax,mim);
     axis(ax,'equal');
