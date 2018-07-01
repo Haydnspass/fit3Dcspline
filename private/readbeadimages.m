@@ -50,4 +50,7 @@ pixelsize=100;
         wx=size(imstack,2)/4;wy=size(imstack,1);
         settings3D=struct('y4pi',[0 0 0 0],'x4pi',[0 wx 2*wx 3*wx], 'width4pi',wx,'height4pi',wy,'mirror4pi',[0 0 0 0],'pixelsize_nm',100,'offset',100,'conversion',0.5);
     end
+    if isfield(p,'framerange')
+        imstack=imstack(:,:,p.framerange(1):p.framerange(2));
+    end
 end

@@ -54,7 +54,7 @@ for k=1:length(filelist)
         p.roi{k}=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
     end
     if p.emgain
-        imstack=imstack(:,end:-1:1);
+        imstack=imstack(:,end:-1:1,:);
     end
        
     if isfield(p,'framerangeuse')

@@ -48,7 +48,7 @@ for k=1:length(filelist)
     end
     
     if p.emgain
-        imstack=imstack(:,end:-1:1);
+        imstack=imstack(:,end:-1:1,:);
     end
        
     if isfield(p,'framerangeuse')
