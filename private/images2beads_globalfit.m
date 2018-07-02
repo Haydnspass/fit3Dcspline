@@ -59,8 +59,8 @@ for k=1:length(filelist)
     
 %     imageslicer(imstack)%%%%%%%%XXXXXXX
     
-%     mim=max(imstack,[],3);
-    mim=mean(imstack,3);
+    mim=max(imstack,[],3);
+%     mim=mean(imstack,3);
     mim=filter2(h,mim);
     imagesc(ax,mim);
     axis(ax,'image');
@@ -77,7 +77,7 @@ for k=1:length(filelist)
         try
         mimc=mim(roisize:end-roisize,roisize:end-roisize);
         mmed=myquantile(mimc(:),0.3);
-        imt=mimc(mimc<mmed);
+        imt=mimc(mimc<=mmed);
             sm=sort(int);
         mv=mean(sm(end-5:end));
 %         cutoff=mean(imt(:))+max(2.5*std(imt(:)),(mv-mean(imt(:)))/10);

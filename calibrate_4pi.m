@@ -104,12 +104,12 @@ ph.phi0=phaseshifts;
 
 %fit calibrations stack
 shared=[0,0,1,1,1,1];
-z0=round(size(PSF.Aspline,3)/2)+ph.zstart;
+z0=ph.zstart;
 dTAll=zeros(6,4,size(allPSFs,3),'single');
 iterations=50;
 % imstack=allPSFs(ph.rangeh, ph.rangeh, :, :)*10000;
 imstack=PSFaligned(ph.rangeh, ph.rangeh, :, :)*10000;
-[Pc,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstack(:, :, :, :)),uint32(shared),int32(iterations),single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(ph.phi0),single(z0));
+[Pc,CRLB1 LL] = mleFit_LM_4Pi(single(imstack(:, :, :, :)),uint32(shared),int32(iterations),single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(ph.phi0),single(z0));
 nanmean(Pc(:,1:8),1)-droi+1 % if this is not all the same -> PSFs in channels not well aligned. 
 
 %cut out corresponding beads based on transform to mimick normal fitting
@@ -127,7 +127,7 @@ shared=[0 0 1 1 1 1]; %only link BG and photons to get true x,y
 %now fit with dT=0 to get directly the shift (avoid adding shifts)
 
 dTAll0=img.dTAll*0;
-[Pu,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(img.imstacksq(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll0),single(ph.phi0),z0);
+[Pu,CRLB1 LL] = mleFit_LM_4Pi(single(img.imstacksq(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll0),single(ph.phi0),z0);
 
 
 for k=1:size(CRLB1,2)
@@ -303,7 +303,7 @@ function [phaseshiftso,frequencyo]=getphaseshifts(allPSFs,ax,p)
 ss=size(allPSFs);
 range=(ss(1)+1)/2+[-1 1];
 fw=20;
-fw=ceil(500/p.dz);
+fw=ceil(300/p.dz);
 frange=round(ss(3)/2+(-fw:fw)');
 
 f=(1:ss(3))'-ss(3)/2;
@@ -333,7 +333,7 @@ intn=intnf(frange,:);
     ind3=find(inttest3>=0.5,1,'first');
      inttest4=inttest3(ind3:end);
     ind4=find(inttest4<=0.5,1,'first');   
-    kapprox=pi/(ind3+ind4)
+    kapprox=pi/(ind3+ind4)*2
     
 %     st1=[kapprox 0 0.5 0 0 0.5 0 0];
 %     lba1=[0 -pi]
@@ -344,7 +344,7 @@ intn=intnf(frange,:);
 %     
      phasestart1=pi/2-indmax*kapprox+pi; if phasestart1<0,phasestart1=phasestart1+2*pi;end;
 
-lba=horzcat(0,-inf,-inf,lb1,lb1,lb1,lb1);
+lba=horzcat(-inf,-inf,-inf,lb1,lb1,lb1,lb1);
 uba=horzcat(inf,inf,inf,ub1,ub1,ub1,ub1);
 
 % phasestart1=0;
@@ -565,8 +565,10 @@ img.dTAll=dTAll;
 shared=[1,1,1,1,1,1];
 imstacksq=imsqueeze(ph.rangeh, ph.rangeh, :, :);
 iterations=50;
-z0=round(size(PSF.Aspline,3)/2)+ph.zstart;
-[P,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstacksq(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(ph.phi0),z0);
+z0=ph.zstart;
+[P,CRLB1 LL] = mleFit_LM_4Pi(single(imstacksq(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(ph.phi0),z0);
+
+% [P,CRLB1 LL] = CPUmleFit_LM_MultiChannel_4pi(single(imstacksq(:, :, :, :)),uint32(shared),iterations,single(PSF.Ispline), single(PSF.Aspline),single(PSF.Bspline),single(dTAll),single(ph.phi0),z0);
 
 img.imstacksq=imstacksq;
 img.sim=sim;
