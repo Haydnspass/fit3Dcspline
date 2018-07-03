@@ -45,6 +45,7 @@ switch p.Tmode
         XYpos=[1,2];
         
         split='ud';
+        roiind=2;
     case {'right-left','right-left mirror'}
          if max(p.xrange)<splitpos %defined only in upper part
             xrange1=p.xrange;
@@ -66,6 +67,7 @@ switch p.Tmode
         XYpos=[2,1];
         
         split='rl';
+        roiind=1;
 %         if max(p.xrange)<splitpos %defined only in upper part
 %             xrange1=p.xrange;
 %             xrange2=p.xrange+splitpos;xrange2(xrange2<splitpos)=splitpos;
@@ -105,7 +107,7 @@ S2.posind=XYpos;
 
 % Later: also do test-fitting with corresponding spline coefficients
 p.tabgroup=uitab(tg,'Title','transformation');
-p.separator=splitpos;
+p.separator=splitpos+parameters1.roi{1}(roiind);
 % find transform
 if p.makeT || isempty(p.Tfile)
     transform=transform_locs_simple(beadpos1{1},beadpos2{1},p);

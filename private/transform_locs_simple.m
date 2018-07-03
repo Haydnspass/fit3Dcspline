@@ -84,7 +84,7 @@ switch t.type
 end
 % t.type='polynomial';
 % t.type='projective';
-cutofffactor=[1 0.5 0.2 0.1];
+cutofffactor=[1 0.5 0.2 0.1 0.05];
 dx=zeros(size(iAa));dy=dx;
 
 % transform.findTransform(locref.x(iAa),locref.y(iAa),loctarget.x(iBa),loctarget.y(iBa),t)
@@ -96,7 +96,7 @@ dx=zeros(size(iAa));dy=dx;
    
 %sort out those which have a large error:
 for k=1:length(cutofffactor)
-goodind=dx<cutofffactor(k)*sepscale & dy<cutofffactor(k)*sepscale;
+goodind=abs(dx)<cutofffactor(k)*sepscale & abs(dy)<cutofffactor(k)*sepscale;
  transform.findTransform(locref.x(iAa(goodind)),locref.y(iAa(goodind)),loctarget.x(iBa(goodind)),loctarget.y(iBa(goodind)),t)
 transform.findTransformZ(locref.x(iAa(goodind)),locref.y(iAa(goodind)),locref.z(iAa(goodind)),loctarget.x(iBa(goodind)),loctarget.y(iBa(goodind)),loctarget.z(iBa(goodind)),t)
 
