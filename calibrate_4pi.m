@@ -53,7 +53,8 @@ for k=1:4
     dz=1*(k-1);
 profilez=squeeze(shiftedstack{k}(mp,mp,:,:));
 profilezm=squeeze(allPSFs(mp,mp,:,k));
-plot(ax,profilez+dz,col{k})
+% plot(ax,profilez+dz,col{k})
+plot(ax,profilez+dz)
 hold (ax,'on')
 plot(ax,profilezm+dz,'k')
 end
@@ -589,30 +590,30 @@ z_phi = reshape(z_from_phi_JR(P(:, 5), phase(:), PSF.frequency, ceil(sim(3)/2)-.
 %plot results of validation
 tab=(uitab(ph.tabgroup,'Title','results'));
 tgr=uitabgroup(tab);
-axes(uitab(tgr,'Title','z_astig'))
-plot(zastig)
-xlabel('frame')
-ylabel('z_astig')
-axes(uitab(tgr,'Title','phase'))
-plot(phase)
-xlabel('frame')
-ylabel('phase')
-axes(uitab(tgr,'Title','phase(z_a)'))
-plot(zastig,zphase)
-xlabel('z_astig')
-ylabel('z_phase')
-axes(uitab(tgr,'Title','z_phase'))
-plot(z_phi)
-xlabel('frame')
-ylabel('z_phi')
-axes(uitab(tgr,'Title','x,y'))
-plot(xfit,yfit,'+')
-xlabel('x')
-ylabel('y')
-axes(uitab(tgr,'Title','x(z)'))
-hold off
-plot(zastig,xfit)
-hold on
-xlabel('z_astig')
-ylabel('x')
+ax=axes(uitab(tgr,'Title','z_astig'));
+plot(ax,zastig)
+xlabel(ax,'frame')
+ylabel(ax,'z_astig')
+ax=axes(uitab(tgr,'Title','phase'));
+plot(ax,phase)
+xlabel(ax,'frame')
+ylabel(ax,'phase')
+ax=axes(uitab(tgr,'Title','phase(z_a)'));
+plot(ax,zastig,zphase)
+xlabel(ax,'z_astig')
+ylabel(ax,'z_phase')
+ax=axes(uitab(tgr,'Title','z_phase'));
+plot(ax,z_phi)
+xlabel(ax,'frame')
+ylabel(ax,'z_phi')
+ax=axes(uitab(tgr,'Title','x,y'));
+plot(ax,xfit,yfit,'+')
+xlabel(ax,'x')
+ylabel(ax,'y')
+ax=axes(uitab(tgr,'Title','x(z)'));
+hold(ax,'off')
+plot(ax,zastig,xfit)
+hold(ax, 'on')
+xlabel(ax,'z_astig')
+ylabel(ax,'x')
 end
