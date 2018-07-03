@@ -11,7 +11,7 @@
 s=size(PSF);
 rx=ceil((9+1)/2);rz=40;mp=ceil((s(1)+1)/2);mpz=ceil((s(3)+1)/2);
 PSFs=PSF(mp-rx:mp+rx,mp-rx:mp+rx,mpz-rz:mpz+rz,:);
-% PSFs=PSFal(mp-rx:mp+rx,mp-rx:mp+rx,mpz-rz:mpz+rz,:);
+PSFs=PSFal(mp-rx:mp+rx,mp-rx:mp+rx,mpz-rz:mpz+rz,:);
 
 % PSFs(:,:,:,1)=PSFs(:,:,:,1)*.8;
 frequency=0.2247;
@@ -21,14 +21,14 @@ if phaseshiftp>1
 end
 phaseshift=phaseshiftp*pi;
 
-startpar=[0 0 0 0 0 0 0 0 0 1 1 1];
-% startpar=[0 0 0 0 0 0 0 0 0 1 1 1 phaseshift frequency];
+% startpar=[0 0 0 0 0 0 0 0 0 1 1 1];
+startpar=[0 0 0 0 0 0 0 0 0 1 1 1 phaseshift frequency];
 fixpar=[phaseshift frequency];
 PSFstart=recoverPSF(startpar,PSFs,fixpar);
 
-options=optimset('fminsearch');
-options.Display='iter';
-fitmn=fminsearch(@errPSF,startpar,options,PSF,fixpar);
+% options=optimset('fminsearch');
+% options.Display='iter';
+% fitmn=fminsearch(@errPSF,startpar,options,PSF,fixpar);
 
 options=optimset('lsqcurvefit');
 % options.Algorithm='levenberg-marquardt';
@@ -39,11 +39,11 @@ fitpar=lsqcurvefit(@recoverPSF,startpar,PSFs,PSFc,[],[],options,fixpar);
 
 
 PSFrecovered=recoverPSF(fitpar,PSFs,fixpar);
-PSFrecoveredms=recoverPSF(fitmn,PSFs,fixpar);
+% PSFrecoveredms=recoverPSF(fitmn,PSFs,fixpar);
 
-errfmin=errPSF(fitmn,PSF,fixpar)
-errlsq=errPSF(fitmn,PSF,fitpar)
-errfmin-errlsq
+% errfmin=errPSF(fitmn,PSF,fixpar)
+% errlsq=errPSF(fitmn,PSF,fitpar)
+% errfmin-errlsq
 
 function err=errPSF(par,PSF,fixpar)
 PSFrec=recoverPSF(par,PSF,fixpar);
@@ -58,10 +58,10 @@ dy=par(4:6);
 dz=par(7:9);
 normf=par(10:12);
 % normf=ones(1,3);
-% phaseshift=par(13);
-% frequency=par(14);
-phaseshift=fixpar(1);
-frequency=fixpar(2);
+phaseshift=par(13);
+frequency=par(14);
+% phaseshift=fixpar(1);
+% frequency=fixpar(2);
 
 phaseshifts=[0 phaseshift pi phaseshift+pi]-pi;
 
