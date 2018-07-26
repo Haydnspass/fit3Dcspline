@@ -281,7 +281,8 @@ end
 
 refimn=0;
 for k=size(shiftedstackn,4):-1:1
-    if indgood(k)
+    imh=shiftedstackn(p.xrange,p.yrange,p.framerange,k);
+    if indgood(k) && ~all(isnan(imh(:)))
         refimn=weights(k)*shiftedstackn(p.xrange,p.yrange,p.framerange,k)/sum(weights(indgood))+refimn;
     end
 end
