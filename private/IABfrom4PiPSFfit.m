@@ -1,70 +1,57 @@
-% function IABfrom4PiPSFfit(PSF,startpar)
-% startpar=[dx dy dz phase norm, frequency] all vectors length 4 except frequency;
+function out=IABfrom4PiPSFfit(PSF, phaseshift,frequency,roisizexy,numframes,zshift0)
+% startpar=[dx dy dz phase norm] all vectors length 3 ;
 % dx=par(1:3);
 % dy=par(4:6);
 % dz=par(7:9);
 % normf=par(10:12);
-% phaseshift=par(13);
-% frequency=par(14);
 %shift PSF by dx,dy,dz
 
 s=size(PSF);
-rx=ceil((9+1)/2);rz=40;mp=ceil((s(1)+1)/2);mpz=ceil((s(3)+1)/2);
+rx=ceil((roisizexy+1)/2)+2;mp=ceil((s(1)+1)/2);mpz=ceil((s(3)+1)/2);rz=min(numframes,mpz-1);
 PSFs=PSF(mp-rx:mp+rx,mp-rx:mp+rx,mpz-rz:mpz+rz,:);
-PSFs=PSFal(mp-rx:mp+rx,mp-rx:mp+rx,mpz-rz:mpz+rz,:);
-
-% PSFs(:,:,:,1)=PSFs(:,:,:,1)*.8;
-frequency=0.2247;
-phaseshiftp=1.42;
-if phaseshiftp>1
-    phaseshiftp=phaseshiftp-2;
-end
-phaseshift=phaseshiftp*pi;
 
 % startpar=[0 0 0 0 0 0 0 0 0 1 1 1];
-startpar=[0 0 0 0 0 0 0 0 0 1 1 1 phaseshift frequency];
-fixpar=[phaseshift frequency];
-PSFstart=recoverPSF(startpar,PSFs,fixpar);
+startpar=[0 0 0 0 0 0  1 1 1];
+% fixpar=[phaseshift frequency];
+zshift0h=zshift0(2:4)-zshift0(1);
+fixpar=[phaseshift frequency zshift0h];
 
-% options=optimset('fminsearch');
-% options.Display='iter';
-% fitmn=fminsearch(@errPSF,startpar,options,PSF,fixpar);
+[PSFstart,mstart]=recoverPSF(startpar,PSFs,fixpar);
 
 options=optimset('lsqcurvefit');
-% options.Algorithm='levenberg-marquardt';
-% options.Diagnostics='on';
-options.FinDiffRelStep=0.01;
-PSFc=PSFs(2:end-1,2:end-1,2:end-1,:);
+options.FinDiffRelStep=.01;
+PSFc=PSFs(3:end-2,3:end-2,3:end-2,:);
+
+
 fitpar=lsqcurvefit(@recoverPSF,startpar,PSFs,PSFc,[],[],options,fixpar);
 
+[PSFrecovered,out]=recoverPSF(fitpar,PSF,fixpar);
 
-PSFrecovered=recoverPSF(fitpar,PSFs,fixpar);
-% PSFrecoveredms=recoverPSF(fitmn,PSFs,fixpar);
+out.dx=[0 fitpar(1:3)];
+out.dy=[0 fitpar(4:6)];
+out.dz=[0 zshift0h];
+% out.dz=[0 fitpar(7:9)];
+% out.normf=[1 fitpar(10:12)];
+out.normf=[1 fitpar(7:9)];
+out.frequency=frequency;
+out.phaseshifts=[-pi phaseshift 0 phaseshift+pi];
 
-% errfmin=errPSF(fitmn,PSF,fixpar)
-% errlsq=errPSF(fitmn,PSF,fitpar)
-% errfmin-errlsq
-
-function err=errPSF(par,PSF,fixpar)
-PSFrec=recoverPSF(par,PSF,fixpar);
-err=(((PSFrec-PSF(2:end-1,2:end-1,2:end-1,:)).^2));
-err=sum(err(:));
 end
 
-function PSFm=recoverPSF(par,PSF,fixpar)
+
+function [PSFmSs,out]=recoverPSF(par,PSF,fixpar)
 
 dx=par(1:3);
 dy=par(4:6);
-dz=par(7:9);
-normf=par(10:12);
-% normf=ones(1,3);
-phaseshift=par(13);
-frequency=par(14);
-% phaseshift=fixpar(1);
-% frequency=fixpar(2);
+% dz=par(7:9);
+% normf=par(10:12);
+normf=par(7:9);
 
-phaseshifts=[0 phaseshift pi phaseshift+pi]-pi;
+phaseshift=fixpar(1);
+frequency=fixpar(2);
+dz=fixpar(3:5);
 
+phaseshifts=[-pi phaseshift 0 phaseshift+pi];
 
 %shift PSF and rescale
 xn=1:size(PSF,1);yn=1:size(PSF,2);zn=1:size(PSF,3);
@@ -72,20 +59,37 @@ xn=1:size(PSF,1);yn=1:size(PSF,2);zn=1:size(PSF,3);
 PSFS=zeros(size(PSF));
 PSFS(:,:,:,1)=PSF(:,:,:,1);
 for k=2:4
-    PSFS(:,:,:,k)=interp3(PSF(:,:,:,k),Xq-dx(k-1),Yq-dy(k-1),Zq-dz(k-1),'cubic',0)/normf(k-1);
+    PSFS(:,:,:,k)=interp3(PSF(:,:,:,k),Xq-dx(k-1),Yq-dy(k-1),Zq-dz(k-1),'cubic',0);%/normf(k-1);
 end
 
 % calculate IAB
-[I,A,B]=make4Pimodel(PSFS,phaseshifts,frequency);
+[I,A,B]=make4Pimodel(PSFS,phaseshifts,frequency,[1 normf]);
 
 %make PSF again
 PSFm=makePSF(I,A,B,frequency, phaseshifts, [1 normf]);
-PSFm=PSFm(2:end-1,2:end-1,2:end-1,:);
+
+%shift back for fitting
+PSFmS=zeros(size(PSF));
+PSFmS(:,:,:,1)=PSFm(:,:,:,1);
+for k=2:4
+    PSFmS(:,:,:,k)=interp3(PSFm(:,:,:,k),Xq+dx(k-1),Yq+dy(k-1),Zq+dz(k-1),'cubic',0);
+end
+
+PSFmSs=PSFmS(3:end-2,3:end-2,3:end-2,:);
+% PSFm=PSFm(2:end-1,2:end-1,2:end-1,2:end-1);
+out.PSF=PSFmS;
+out.I=I;
+out.A=A;
+out.B=B;
 end
 
 
-function [I,A,B]=make4Pimodel(allPSFs,phaseshifts,frequency)
+function [I,A,B]=make4Pimodel(allPSFso,phaseshifts,frequency,normf)
 %re-weight every PSF by relative transmission?
+for k=size(allPSFso,4):-1:1
+    allPSFs(:,:,:,k)=allPSFso(:,:,:,k)/normf(k);
+end
+
 I1=(allPSFs(:,:,:,1)+allPSFs(:,:,:,3))/2;
 I2=(allPSFs(:,:,:,2)+allPSFs(:,:,:,4))/2;
 Iall=(I1+I2)/2;

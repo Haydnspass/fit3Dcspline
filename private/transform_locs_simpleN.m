@@ -66,17 +66,11 @@ dd=tback-locref(iAa,:);
 %  figure(88);plot(tback(:,1),tback(:,2),'x',locref(:,1),locref(:,2),'o')  
 %   figure(88);plot(locref.x,locref.y,'b.',loctT.x,loctT.y,'r+',loctT.x-dx0,loctT.y-dy0,'g.',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
    
-if isfield(p,'ax')
+if isfield(p,'ax')&& ~isempty(p.ax)
     axh=p.ax;
-else
-    figure(99);
-    axh=gca;
+    plot(axh,dd(:,1),dd(:,2),'x')
+    title(axh,[num2str(std(dd(:,1))) ', ' num2str(std(dd(:,2)))]);
 end
-% axes(axh);
-% dscatter(dd(:,1),dd(:,2))
-plot(axh,dd(:,1),dd(:,2),'x')
-title(axh,[num2str(std(dd(:,1))) ', ' num2str(std(dd(:,2)))]);
-
 % transform.tinfo.targetpos=targetpos;
 % transform.tinfo.separator=separators;
 % transform.tinfo.mirror=mirrorinfo;

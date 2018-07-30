@@ -43,6 +43,9 @@ end
 if ~isfield(p,'removeoutliers')
     p.removeoutliers=true;
 end
+if ~isfield(p,'normalize')
+    p.normalize=true;
+end
 
 numbeads=size(imin,4);
 if numbeads==1
@@ -172,14 +175,22 @@ shifto=shift2+shift;
 %     refim=meanim(xrange,p.yrange,p.framerange);
 % end
 
+
+if ph.normalize
 shiftedstackn=normalizstack(shiftedstack,p);
+else
+    shiftedstackn=shiftedstack;
+end
 
 indgood=true(1,size(shiftedstackn,4));
 if p.removeoutliers
 [indgood,res,normamp,co,cc,weightso]=getoverlap(shiftedstackn,shift,ph,indgood);
 [indgood,res,normamp,co,cc,weightso]=getoverlap(shiftedstackn,shift,ph,indgood,weightso);
 [indgood,res,normglobal,co,cc2,weightso]=getoverlap(shiftedstackn,shift,ph,indgood,weightso);
+
+if ph.normalize
 shiftedstackn=shiftedstackn/normglobal;
+end
 end
 
 imout=mean(shiftedstackn(:,:,:,indgood),4,'omitnan');

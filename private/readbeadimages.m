@@ -30,7 +30,7 @@ pixelsize=100;
         end
         if isempty(imstack)
             disp('using simple reader')
-            warndlg('using simple reader, this might create problems if only part of the camera chip is used.','replace');
+            warndlg('using simple reader, this might create problems if only part of the camera chip is used.','using simple reader','replace');
             if multichannel
                 imstack=[];
                 for k=1:length(file)
