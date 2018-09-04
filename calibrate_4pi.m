@@ -327,7 +327,7 @@ function [phaseshiftso,frequencyo]=getphaseshifts(allPSFs,ax,p)
 ss=size(allPSFs);
 range=(ss(1)+1)/2+[-1 1];
 fw=20;
-fw=ceil(300/p.dz);
+fw=ceil(500/p.dz);
 frange=round(ss(3)/2+(-fw:fw)');
 
 f=(1:ss(3))'-ss(3)/2;
