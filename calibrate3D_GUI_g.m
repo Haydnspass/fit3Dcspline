@@ -29,6 +29,7 @@ classdef calibrate3D_GUI_g<handle
     properties
         guihandles
         smappos
+        roimask
     end
     methods
         function obj=calibrate3D_GUI_g(varargin)  
@@ -191,11 +192,15 @@ classdef calibrate3D_GUI_g<handle
             end      
             
                 obj.guihandles.spatialcalt=uicontrol('style','text','String','Spatially resolved calibration: ','Position',[xpos1,top-23*vsep,xw*4,fieldheight],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
-                obj.guihandles.spatialmode=uicontrol('style','popupmenu','String',{'none','horizontal split','vertical split','M x N tiles','coordinates'},'Position',[xpos1,top-24*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',{@spatialselect_callback,obj});
+                obj.guihandles.spatialmode=uicontrol('style','popupmenu','String',{'none','horizontal split','vertical split','M x N tiles','coordinates','circular ROI', 'interactive ROI'},'Position',[xpos1,top-24*vsep,xw*2,vsep],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',{@spatialselect_callback,obj});
                 obj.guihandles.spatial_xtext=uicontrol('style','text','String','xtext','Position',[xpos1,top-25*vsep,xw,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
                 obj.guihandles.spatial_xval=uicontrol('style','edit','String','','Position',[xpos1+xw,top-25*vsep,xw,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
                 obj.guihandles.spatial_ytext=uicontrol('style','text','String','ytext','Position',[xpos1+2*xw,top-25*vsep,xw,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');
                 obj.guihandles.spatial_yval=uicontrol('style','edit','String','','Position',[xpos1+3*xw,top-25*vsep,xw,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');   
+                obj.guihandles.spatial_getroi=uicontrol('style','pushbutton','String','get ROI','Position',[xpos1+2*xw,top-25*vsep,xw,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off','Callback',@obj.selectroi_callback);   
+                obj.guihandles.spatial_roimode=uicontrol('style','popupmenu','String',{'elliptical','rectangular','free'},'Position',[xpos1,top-25*vsep,2*xw,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha,'Visible','off');   
+                
+                
                 obj.guihandles.setframes=uicontrol('style','checkbox','String','set frames','Position',[xpos1+2*xw,top-24*vsep,xw*1,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha,'Callback',@obj.setframes_callback);
                 obj.guihandles.framerange=uicontrol('style','edit','String','50 250','Position',[xpos1+3*xw,top-24*vsep,xw,fieldheight],'FontSize',fontsize,'Visible','off');
                 
@@ -331,6 +336,31 @@ classdef calibrate3D_GUI_g<handle
             end
             obj.guihandles.framerange.Visible=v;     
         end
+        function selectroi_callback(obj,a,b)
+            fl=obj.guihandles.filelist.String;
+            if isempty(fl)
+                warndlg('please select files first')
+                return
+            end
+            p.smappos=obj.smappos;
+            img=readbeadimages(fl{1},p);
+            imgmax=max(img,[],3);
+            f=figure(198);
+            ax=gca;
+            imagesc(imgmax);
+            axis equal
+            switch obj.guihandles.spatial_roimode.String{obj.guihandles.spatial_roimode.Value}
+                case 'free'
+                    fun=@imfreehand;
+                case 'elliptical'
+                    fun=@imellipse;
+                case 'rectangular'
+                    fun=@imrect;
+            end
+            h=fun(ax);
+            position=wait(h);
+            obj.roimask=createMask(h);
+        end
         function out=run_callback(obj,a,b)
             p.filelist=obj.guihandles.filelist.String;
             p.outputfile=obj.guihandles.outputfile.String;
@@ -368,6 +398,7 @@ classdef calibrate3D_GUI_g<handle
 %                 p.files=obj.smappos.files;
             
                 %determine xrange, yrange for spatial calibration
+                p.roimask=[];
                 switch obj.guihandles.spatialmode.Value
                     case 1 %all
                         if isfield(obj.smappos,'xrange')
@@ -400,6 +431,22 @@ classdef calibrate3D_GUI_g<handle
                     case 5
                         p.xrange=str2num(obj.guihandles.spatial_xval.String);
                         p.yrange=str2num(obj.guihandles.spatial_yval.String);
+                    case 7%interactive ROI
+                        p.roimask=obj.roimask;
+
+                    case 6 %interactive ROI
+                        p.smappos=obj.smappos;
+                        img=readbeadimages(p.filelist{1},p);
+                        sim=size(img);
+                        xypos=str2num(obj.guihandles.spatial_yval.String);
+                        if isempty(xypos)||length(xypos<2)
+                            xypos=round(sim(1:2)/2);
+                        end
+                        radius=str2num(obj.guihandles.spatial_xval.String);
+                        [X,Y]=meshgrid(1:sim(2),1:sim(1));
+                        p.roimask=(X-xypos(1)).^2+(Y-xypos(2).^2)<=radius^2;
+                    
+                        
                 end
                 
                 p.emgain=obj.guihandles.emgain.Value;
@@ -419,12 +466,15 @@ classdef calibrate3D_GUI_g<handle
             p.Tform = obj.guihandles.tform.String{obj.guihandles.tform.Value};
             p.Tsplitpos=str2num(obj.guihandles.Tsplitpos.String);
             p.settingsfile4pi=obj.guihandles.settingsfile4pi.String;
+            
+
             if strcmp(p.modality,'4Pi')
                 calibrate_4pi(p);
             else
             
                 calibrate_globalworkflow(p);
             end
+            
 %             calibrate3D_g(p);
         end    
         function help_callback(obj,a,b)
@@ -440,7 +490,7 @@ end
 
 function spatialselect_callback(a,b,obj) %for SMAP extension and spatial calibration option: change visibility of controls
 xt='';xv='';yt='';yv='';
-xtv='off';xvv='off';ytv='off';yvv='off';
+xtv='off';xvv='off';ytv='off';yvv='off';pbv='off';
 switch obj.guihandles.spatialmode.Value
     case 1 %none
     case {2,3} % split
@@ -451,9 +501,16 @@ switch obj.guihandles.spatialmode.Value
     case 5 %coordinates
         xt='x coords'; xv='0:256:512'; xtv='on';xvv='on';
         yt='y coords'; yv='0:256:512'; ytv='on';yvv='on';  
+    case 6 %circular ROI
+        xt='radius'; xv='250';yt='center xy (opt)'; yv='';
+        xtv='on';xvv='on';
+        ytv='on';yvv='on'; 
+    case 7 %interactive
+        pbv='on';
 end
 obj.guihandles.spatial_xtext.String=xt;obj.guihandles.spatial_xtext.Visible=xtv;
 obj.guihandles.spatial_ytext.String=yt;obj.guihandles.spatial_ytext.Visible=ytv;
 obj.guihandles.spatial_xval.String=xv;obj.guihandles.spatial_xval.Visible=xvv;
 obj.guihandles.spatial_yval.String=yv;obj.guihandles.spatial_yval.Visible=yvv;
+obj.guihandles.spatial_getroi.Visible=pbv;obj.guihandles.spatial_roimode.Visible=pbv;
 end

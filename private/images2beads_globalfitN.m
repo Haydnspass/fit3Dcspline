@@ -68,6 +68,7 @@ for k=1:length(filelist)
     mim=max(imstack,[],3);
     mim=mean(imstack,3);
     mim=filter2(h,mim);
+
     imagesc(ax,mim);
     axis(ax,'equal');
     axis(ax,'off')
@@ -75,7 +76,9 @@ for k=1:length(filelist)
     if isfield(p,'beadpos') %passed on externally
         maxima=round(p.beadpos{k});
     else
-
+        if isfield(p,'roimask')&&~isempty(p.roimask)
+            mim=mim.*(p.roimask);
+        end
         maxima=maximumfindcall(mim);
         %XXXXXXXXXXX
 %         maxima(:,1)=(maxima(:,1)+2*round(rand(size(maxima,1),1)))-1; % for testing if positions match

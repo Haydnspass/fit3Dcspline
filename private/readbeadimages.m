@@ -59,4 +59,7 @@ pixelsize=100;
            
         imstack=imstack(:,:,fr);
     end
+%     if isfield(p,'roimask')&&~isempty(p.roimask)
+%         imstack=imstack.*uint16(p.roimask);
+%     end
 end
