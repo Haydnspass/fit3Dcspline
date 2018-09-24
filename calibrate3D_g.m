@@ -269,7 +269,7 @@ for X=1:length(p.xrange)-1
 end
 
     
-parameters=rmfield(p,{'tabgroup','status','ax_z','ax_sxsy','fileax'});
+parameters=myrmfield(p,{'tabgroup','status','ax_z','ax_sxsy','fileax'});
     
 p.status.String='save calibration';drawnow
 if ~isempty(p.outputfile)

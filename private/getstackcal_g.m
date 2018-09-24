@@ -131,7 +131,7 @@ sstack=size(beads(1).stack.image);
     rangex=x-dRx:x+dRx;
     rangey=y-dRx:y+dRx;
     z=midrange;%always same reference: z=f0
-    rangez=max(1,z-dzroi):min(size(corrPSFr,3),z+dzroi);
+    rangez=max(2,z-dzroi):min(size(corrPSFr,3)-1,z+dzroi); %first/last slice distorted by shifts...
     z0reference=find(rangez>=z,1,'first');
 
     %careful: like this each PSF is normalized individually. This might

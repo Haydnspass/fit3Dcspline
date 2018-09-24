@@ -108,9 +108,9 @@ for k=1:length(filelist)
                 end
             end
         end 
-        indgoodr=maxima(:,1)>p.xrange(1)&maxima(:,1)<p.xrange(end)&maxima(:,2)>p.yrange(1)&maxima(:,2)<p.yrange(end);
+       
 %         maxima=maxima(indgoodb,:);
-         maxima=maxima(indgoodb&indgoodr,:);
+         maxima=maxima(indgoodb,:);
     end 
     
   
@@ -152,7 +152,8 @@ for k=1:length(filelist)
         dxy=maximatargetf-maximatar;       
           
     else
-        
+        indgoodr=maxima(:,1)>p.xrange(1)&maxima(:,1)<p.xrange(end)&maxima(:,2)>p.yrange(1)&maxima(:,2)<p.yrange(end);
+        maxima=maxima(indgoodr,:);
         maximaref=maxima;
         maximatar=maxima;
         dxy=zeros(size(maximatar));
