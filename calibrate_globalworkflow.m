@@ -36,6 +36,7 @@ p.separator=p.Tsplitpos+parameters1.roi{1}(pr.roiind);
 % find transform
 % if p.makeT || isempty(p.Tfile)
     transform=transform_locs_simple(beadpos1{1},beadpos2{1},p);
+%     transform=makeglobalTransform(beadpos1{1},beadpos2{1},p);
 else
     l=load(p.Tfile);
     transform=l.transformation;
@@ -57,10 +58,12 @@ ph.tabgroup=  uitabgroup(t4);
 [S,beadpos,parameters_g]=calibrate3D_g(ph);
 
 if ~exist('S1','var') %take global one apart...
-    S1=S;
+    S1=S;%XXXXXX also take the right coefficients!!!
     S1.PSF=S1.PSF(1);
+    S1.cspline.coeff={S1.cspline.global.coeffrawref};
     S2=S;
     S2.PSF=S2.PSF(2);
+    S2.cspline.coeff={S2.cspline.global.coeffrawtar};
     S1.Xrange=pr.xrange1;S2.Xrange=pr.xrange2;
     S1.Yrange=pr.yrange1;S2.Yrange=pr.yrange2;
 end
@@ -88,6 +91,7 @@ if ~isempty(p.outputfile)
     end
     filefig=strrep(p.outputfile,'.mat','.fig');
     savefig(calibrationfigure,filefig,'compact');
+end
 end
 
 
@@ -169,4 +173,28 @@ switch p.Tmode
 %         XYpos=[2,1];
 %         split='rl';
 end
+end
+
+
+function transform=makeglobalTransform(bead1,bead2,ph)
+%calculate transformN
+pp=getranges(ph);
+transform=interfaces.LocTransformN;
+pt.mirror=[false false]; %ref
+pt.xrange=pp.xrange1;
+pt.yrange=pp.yrange1;
+pt.unit='pixel';
+pt.type='projective';
+transform.setTransform(1,pt)
+pt.mirror=[contains(pp.split,'rl') contains(pp.split,'ud')]; %ref
+pt.xrange=pp.xrange2;
+pt.yrange=pp.yrange2;
+transform.setTransform(2,pt)
+% th=uitab(ph.tabgroup,'Title','transform');
+ph.ax=axes(ph.tabgroup);
+
+[transform ,iAa,iBa]=transform_locs_simpleN(transform,1, bead1,2,bead2,ph); 
+
+end
+
 

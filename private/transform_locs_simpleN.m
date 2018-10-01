@@ -12,8 +12,8 @@ if isfield(p,'Tfile') && exist(p.Tfile,'file')
 %     mirrorinfo=Tinitial.tinfo.mirror;
 %     dx=0;dy=0;
 else %all initial estimation:
-    inforef=transform.tinfo{channelref};
-    infotarget=transform.tinfo{channeltarget};
+    inforef=transform.info{channelref};
+    infotarget=transform.info{channeltarget};
     locT(:,1)=loctarget(:,1)-infotarget.xrange(1);locT(:,2)=loctarget(:,2)-infotarget.yrange(1);
     locR(:,1)=locref(:,1)-inforef.xrange(1);locR(:,2)=locref(:,2)-inforef.yrange(1);
     

@@ -38,16 +38,19 @@ sstack=size(beads(1).stack.image);
             if ~p.mirror
                 allstackst(:,:,:,B)=beads(B).stack.imagetar;
                 shiftxy(B,1:2)=beads(B).shiftxy;
+                mirroraxis=0;
             else
                 if contains(p.Tmode,'up-down')
                 %this is for up down mirror. add also for right left mirror
                     allstackst(:,:,:,B)=beads(B).stack.imagetar(end:-1:1,:,:);
                     shiftxy(B,1:2)=beads(B).shiftxy;
                     shiftxy(B,2)=-shiftxy(B,2);
+                    mirroraxis=1;
                 else %right left
                     allstackst(:,:,:,B)=beads(B).stack.imagetar(:,end:-1:1,:);
                     shiftxy(B,1:2)=beads(B).shiftxy;
                     shiftxy(B,1)=-shiftxy(B,1);
+                    mirroraxis=2;
                 end
             end
         else
@@ -177,7 +180,7 @@ sstack=size(beads(1).stack.image);
         centpsft=corrPSFt(rangex,rangey,z-1:z+1);
         minPSFt=min(centpsft(:),[],'omitnan');
         corrPSFnt=corrPSFt-minPSFt;
-        intglobalt=mean(sum(sum(corrPSFnt(rangex,rangey,z-1:z+1),1,'omitnan'),2,'omitnan'),'omitnan');
+%         intglobalt=mean(sum(sum(corrPSFnt(rangex,rangey,z-1:z+1),1,'omitnan'),2,'omitnan'),'omitnan');
         %normalize also by the same as reference!
         intglobalt=intglobalr;
         corrPSFnt=corrPSFnt/intglobalt;
@@ -188,11 +191,24 @@ sstack=size(beads(1).stack.image);
         b3_0t=bsarray(double(corrPSFst),'lambda',lambda);
         corrPSFhdt = interp3_0(b3_0t,XX,YY,ZZ,0);
         coefft = Spline3D_interp(corrPSFhdt);
+        
+        switch mirroraxis
+            case 0
+                PSFtm=corrPSFhdt;
+            case 1
+                PSFtm=corrPSFhdt(end:-1:1,:,:);
+            case 2
+                PSFtm=corrPSFhdt(:,end:-1:1,:);
+        end
+        coefftnomirror=Spline3D_interp(PSFtm);
         %assemble output structure for saving
         bspline.bslpine={b3_0r,b3_0t};
         cspline.coeff={coeffr, coefft};
         splinefit.PSF={corrPSFr,corrPSFt};
         splinefit.PSFsmooth={corrPSFhdr,corrPSFhdt};
+        cspline.coeffrawref=coeffr;
+        cspline.coeffrawtar=coefftnomirror;
+        
     else
         bspline.bslpine={b3_0r};
         cspline.coeff={coeffr};    

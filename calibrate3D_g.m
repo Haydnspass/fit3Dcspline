@@ -226,6 +226,10 @@ for X=1:length(p.xrange)-1
         cspline.x0=csplinecal.cspline.x0;
         cspline.global.isglobal=p.isglobalfit;
         cspline.global.transformation=p.transformation;
+        if p.isglobalfit
+            cspline.global.coeffrawref=csplinecal.cspline.coeffrawref;
+            cspline.global.coeffrawtar=csplinecal.cspline.coeffrawtar;
+        end
         
         if contains(p.modality,'astig')
             photbead=10^5; %corr PSF normalized to 1. As MLE is used, this screws up statistics totally. Thus assign bright signal to bead.
