@@ -24,13 +24,15 @@ end
 ph.zstart= [-1 0 1]*30;
 % ph.zstart= 0;
 %segment beads
+ p.status.String=['load files'];drawnow
 [beads,ph]=images2beads_globalfit(ph); %later extend for transformN, dont use two versions of images2beads 
-
+ p.status.String=['register beads in x,y,z'];drawnow
 %register beads channel wise
 [allPSFs,shiftedstack,corrout]=PSFcorrelation(beads,ph);
 
 %get frequency and phases
 tab=(uitab(tgprefit,'Title','frequency'));ph.ax=axes(tab);
+ p.status.String=['Get phases'];drawnow
 [phaseh,ph.frequency]=getphaseshifts(allPSFs,ph.ax,ph);
 phaseshifts=[phaseh(1) phaseh(2) phaseh(1)+pi phaseh(2)+pi]; 
 phaseshifts=phaseshifts-phaseshifts(1)-pi;
@@ -48,7 +50,7 @@ phaseshifts=phaseshifts-phaseshifts(1)-pi;
 %consideration, look at mean z shift. This works, made it much mor robust.
 %also, consider doing some normalization, so not intensity but bead counts
 %in the average
-
+ p.status.String=['make spline model'];drawnow
 PSF=IABfrom4PiPSFfit(allPSFs, phaseshifts(2),ph.frequency,9,50,corrout.zshift0);
 [PSFspl,globalnorm]=makeIABspline(PSF.I,PSF.A,PSF.B,p);
 PSF=copyfields(PSF,PSFspl);
@@ -58,7 +60,7 @@ for k=1:corrout.numchannels
     corrout.beadtrue{k}(:,2)=corrout.beadtrue{k}(:,2)-PSF.dy(k);%shift2(k,1); %out.dy
     corrout.beadtrue{k}(:,3)=corrout.beadtrue{k}(:,3)-PSF.dz(k);%shift2(k,3)+corrout.zshift0(k); %  out.dz %not sure about sign %needed?
 end
-
+ p.status.String=['Calculate transformation'];drawnow
 ph.transformation=make4PiTransform(corrout.beadtrue,ph);
 out.transformation=ph.transformation;
 
@@ -72,7 +74,7 @@ droi=floor((fitroi-1)/2);
 ph.rangeh=mp-droi:mp+droi;
 ph.phi0=phaseshifts;
 
-
+ p.status.String=['Validate by fitting'];drawnow
 img=validatemodel(PSF,ph,'fit');
     plotI(:,:,:,1)=PSF.I;plotI(:,:,:,2)=PSF.A;plotI(:,:,:,3)=PSF.B;plotI(:,:,:,4)=PSF.PSF(:,:,:,1);
     tab=(uitab(tgprefit,'Title','IAB'));imageslicer(plotI,'Parent',tab)
@@ -150,7 +152,7 @@ if ~isempty(p.outputfile)
         save(p.outputfile,'-struct','out');
 end
 
-
+ p.status.String=['Calibration done.'];drawnow
 return
 
 
