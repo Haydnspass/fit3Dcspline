@@ -21,11 +21,12 @@ t=tic;
             p.status.String=['fitting test stacks: ' num2str(k/numstack,'%1.2f')];drawnow
             t=tic;
         end
-        if contains(p.modality,'2D')
-            fitmode=6;
+        if isfield(p,'PSF2D') && p.PSF2D
+            zst=500/p.dz*[-1 1];
         else
-            fitmode=5;
+            zst=0;
         end
+        fitmode=5;
         fitstack=single(squeeze(teststack(range,range,:,k,:)));
         coeffh(:,:,:,:,1)=single(coeff{1});
         iterations=150;
@@ -39,15 +40,15 @@ t=tic;
             dT(2,2,:)=shiftxy(k,1);           
             coeffh(:,:,:,:,2)=single(coeff{2});
             sharedA = repmat(shared,[1 size(fitstack,3)]);
-            if fitmode==6
-                zst=500/p.dz*[-1 1];
-            else
-                zst=0;
-            end
-             [P,CRLB, LL] =mleFit_LM_global(fitstack,int32(sharedA),iterations,coeffh,single(dT),1,0,zst);
+%             if fitmode==6
+%                 zst=500/p.dz*[-1 1];
+%             else
+%                 zst=0;
+%             end
+             [P,CRLB, LL] =mleFit_LM_global(fitstack,int32(sharedA),iterations,coeffh,single(dT),1,zst);
             zind=3;
         else
-            [P,CRLB, LL] =mleFit_LM(fitstack,fitmode,iterations,coeffh,0,1);
+            [P,CRLB, LL] =mleFit_LM(fitstack,fitmode,iterations,coeffh,0,1,zst);
             zind=5;
         end
         

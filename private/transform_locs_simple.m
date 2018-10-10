@@ -127,6 +127,7 @@ axh=axes(th);
 
  [xaa, yaa, zaa]=transform.transformCoordinatesInv((loctarget.x),(loctarget.y),(loctarget.z));
 plot(xaa,yaa,'+',locref.x,locref.y,'o')
+legend('target transformed back','reference')
 
 th=uitab(tg,'Title','cross-correlation');
 axh=axes(th);

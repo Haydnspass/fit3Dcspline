@@ -93,20 +93,23 @@ classdef calibrate3D_GUI_g<handle
           
             ha='right';
             obj.guihandles.csplinet=uicontrol('style','text','String','General parameters: ','Position',[xpos1,top-7*vsep,xw*4,fieldheight],'FontSize',fontsize,'HorizontalAlignment',hatitle,'FontWeight','bold');
-            obj.guihandles.dzt=uicontrol('style','text','String','Distance between frames (nm)','Position',[xpos1,top-9*vsep,xw*2.5,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.dz=uicontrol('style','edit','String','10','Position',[xpos1+2.5*xw,top-9*vsep,xw*1,fieldheight],'FontSize',fontsize);
+            obj.guihandles.dzt=uicontrol('style','text','String','Distance between frames (nm)','Position',[xpos1,top-9*vsep,xw*2,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.dz=uicontrol('style','edit','String','10','Position',[xpos1+2*xw,top-9*vsep,xw*0.5,fieldheight],'FontSize',fontsize);
             obj.guihandles.dz.TooltipString=sprintf('Distance in nm between frames. By convention, these are objective positions (not corrected for refractive index mismatch). \n A spacing between 10 nm and 50 nm works well ');
             obj.guihandles.dzt.TooltipString=obj.guihandles.dz.TooltipString;
             
-            obj.guihandles.modalityt=uicontrol('style','text','String','3D modality ','Position',[xpos1,top-8*vsep,xw*2.5,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha);
-            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'astigmatism','arbitrary','2D PSF','global 2 channel','4Pi'},'Value',2,'Position',[xpos1+2.5*xw,top-8*vsep,xw*1.5,fieldheight],'FontSize',fontsize,'Callback',@obj.modality_callback);
+            obj.guihandles.modalityt=uicontrol('style','text','String','3D modality ','Position',[xpos1,top-8*vsep,xw*2,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.modality=uicontrol('style','popupmenu','String',{'arbitrary','global 2 channel','4Pi'},'Value',1,'Position',[xpos1+2*xw,top-8*vsep,xw*1.5,fieldheight],'FontSize',fontsize,'Callback',@obj.modality_callback);
             obj.guihandles.modality.TooltipString='Select the kind of PSF. Astigmatic, arbitrary (e.g. saddle-point, double-helix), or unmodified 2D';
             obj.guihandles.modalityt.TooltipString=obj.guihandles.modality.TooltipString;
             
+            obj.guihandles.PSF2D=uicontrol('style','checkbox','String','2D','Value',0,'Position',[xpos1+3.5*xw,top-8*vsep,xw*.5,fieldheight],'FontSize',fontsize);
+            obj.guihandles.PSF2D.TooltipString='Unmodified 2D PSF';
+          
             
-            obj.guihandles.corrzt=uicontrol('style','text','String','Correct bead z-positions using ','Position',[xpos1,top-10*vsep,xw*2.5,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha);
+            obj.guihandles.corrzt=uicontrol('style','text','String','Correct bead z-positions using ','Position',[xpos1,top-10*vsep,xw*2,fieldheight],'FontSize',fontsize,'HorizontalAlignment',ha);
             obj.guihandles.corrzselect=uicontrol('style','popupmenu','String',{'none','cross-correlation','shape (astig)'},...
-                'Value',2,'Position',[xpos1+2.5*xw,top-10*vsep,xw*1.5,vsep],'FontSize',fontsize,'Callback',@obj.zcorr_callback);
+                'Value',2,'Position',[xpos1+2*xw,top-10*vsep,xw*2,vsep],'FontSize',fontsize,'Callback',@obj.zcorr_callback);
             obj.guihandles.corrzselect.TooltipString=sprintf('Way of correcting for different z positions (e.g. due to a z shift between data sets or tilted coverslip). \n none: use absolute original positions. \n cross-correlation: use 3D cross-correlation on a volume defined with the parameter: frames used for CC \n shape: for astigmatism only: determine z from the frame whare sigma_x=sigma_y');
             obj.guihandles.corrzt.TooltipString=obj.guihandles.corrzselect.TooltipString;
             
@@ -366,6 +369,7 @@ classdef calibrate3D_GUI_g<handle
             p.outputfile=obj.guihandles.outputfile.String;
             p.dz=str2double(obj.guihandles.dz.String);
             p.modality=obj.guihandles.modality.String{obj.guihandles.modality.Value};
+            p.PSF2D=obj.guihandles.PSF2D.Value;
             p.zcorr=obj.guihandles.corrzselect.String{obj.guihandles.corrzselect.Value};
             p.ROIxy=str2double(obj.guihandles.ROIxy.String);
             p.ROIz=str2double(obj.guihandles.ROIz.String);

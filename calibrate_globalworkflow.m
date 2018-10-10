@@ -175,26 +175,26 @@ switch p.Tmode
 end
 end
 
-
-function transform=makeglobalTransform(bead1,bead2,ph)
-%calculate transformN
-pp=getranges(ph);
-transform=interfaces.LocTransformN;
-pt.mirror=[false false]; %ref
-pt.xrange=pp.xrange1;
-pt.yrange=pp.yrange1;
-pt.unit='pixel';
-pt.type='projective';
-transform.setTransform(1,pt)
-pt.mirror=[contains(pp.split,'rl') contains(pp.split,'ud')]; %ref
-pt.xrange=pp.xrange2;
-pt.yrange=pp.yrange2;
-transform.setTransform(2,pt)
-% th=uitab(ph.tabgroup,'Title','transform');
-ph.ax=axes(ph.tabgroup);
-
-[transform ,iAa,iBa]=transform_locs_simpleN(transform,1, bead1,2,bead2,ph); 
-
-end
-
+% 
+% function transform=makeglobalTransform(bead1,bead2,ph)
+% %calculate transformN
+% pp=getranges(ph);
+% transform=interfaces.LocTransformN;
+% pt.mirror=[false false]; %ref
+% pt.xrange=pp.xrange1;
+% pt.yrange=pp.yrange1;
+% pt.unit='pixel';
+% pt.type='projective';
+% transform.setTransform(1,pt)
+% pt.mirror=[contains(pp.split,'rl') contains(pp.split,'ud')]; %ref
+% pt.xrange=pp.xrange2;
+% pt.yrange=pp.yrange2;
+% transform.setTransform(2,pt)
+% % th=uitab(ph.tabgroup,'Title','transform');
+% ph.ax=axes(ph.tabgroup);
+% 
+% [transform ,iAa,iBa]=transform_locs_simpleN(transform,1, bead1,2,bead2,ph); 
+% 
+% end
+% 
 
