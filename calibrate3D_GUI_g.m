@@ -172,11 +172,11 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.Tfile=uicontrol('style','edit','String','','Position',[xpos1+1.25*xw,top-20*vsep,xw*2.75,fieldheight],'FontSize',fontsize);
             
             obj.guihandles.makeT=uicontrol('style','checkbox','String','make T','Value',1,'Position',[xpos1,top-21*vsep,xw*1,fieldheight],'FontSize',fontsize,'Callback',@obj.modality_callback);
-            obj.guihandles.Tmode=uicontrol('style','popupmenu','String',{'up-down','up-down mirror','right-left','right-left mirror'},'Position',[xpos1+0.5*xw,top-22*vsep,xw*1.5,fieldheight],'FontSize',fontsize);
+            obj.guihandles.Tmode=uicontrol('style','popupmenu','String',{'up-down','up-down mirror','right-left','right-left mirror','2 cam','2 cam u-d mirror','2 cam r-l mirror'},'Position',[xpos1+0.5*xw,top-22*vsep,xw*1.5,fieldheight],'FontSize',fontsize,'Callback',@obj.changeTmode_callback);
             obj.guihandles.tform=uicontrol('style','popupmenu','String',{'projective','affine','polynomial','lwm','pwl','nonreflectivesimilarity'},'Position',[xpos1+2.5*xw,top-21*vsep,xw*1.5,fieldheight],'FontSize',fontsize,'Value',1);
             
-            obj.guihandles.Tsplitpost=uicontrol('style','text','String','Split at (pix):','Position',[xpos1+2*xw,top-22*vsep,xw*1,fieldheight],'FontSize',fontsize);
-            obj.guihandles.Tsplitpos=uicontrol('style','edit','String','255','Position',[xpos1+3*xw,top-22*vsep,xw*1,fieldheight],'FontSize',fontsize);
+            obj.guihandles.Tsplitpost=uicontrol('style','text','String','Split at (pix):','Position',[xpos1+2*xw,top-22*vsep,xw*1.5,fieldheight],'FontSize',fontsize);
+            obj.guihandles.Tsplitpos=uicontrol('style','edit','String','255','Position',[xpos1+3.5*xw,top-22*vsep,xw*.5,fieldheight],'FontSize',fontsize);
                    
             obj.guihandles.loadsettingsfile4pi=uicontrol('style','pushbutton','String','load 4Pi settings.txt','Position',[xpos1+0.5*xw,top-22*vsep,xw*1.5,fieldheight],'FontSize',fontsize,'Callback',@obj.loadsettings_callback);
             obj.guihandles.settingsfile4pi=uicontrol('style','edit','String','','Position',[xpos1+2*xw,top-22*vsep,xw*2,fieldheight],'FontSize',fontsize);
@@ -487,6 +487,19 @@ classdef calibrate3D_GUI_g<handle
             h=uicontrol('Parent',f,'Style','text','Units','normalized','Position',[0 0 1 1],'HorizontalAlignment','Left');
             h.String=textwrap(h,helpstring);
             
+        end
+        function changeTmode_callback(obj,a,b)
+            if contains(a.String{a.Value},'2 cam')
+                obj.guihandles.Tsplitpost.String='Initial scaling factor';
+                if strcmp(obj.guihandles.Tsplitpos.String,'255')
+                    obj.guihandles.Tsplitpos.String='1';
+                end
+            else
+                obj.guihandles.Tsplitpost.String='Split at (pix):';
+                if strcmp(obj.guihandles.Tsplitpos.String,'1')
+                    obj.guihandles.Tsplitpos.String='255';
+                end                
+            end
         end
     end
 end

@@ -20,11 +20,13 @@ ph.outputfile={};
 t1=uitab(tg,'Title','first channel');
 ph.tabgroup=  uitabgroup(t1);  
 ph.yrange=pr.yrange1;ph.xrange=pr.xrange1;
+ph.filechannel=1;
 [S1,beadpos1,parameters1]=calibrate3D_g(ph);
 
 t2=uitab(tg,'Title','second channel');
 ph.tabgroup=  uitabgroup(t2);  
 ph.yrange=pr.yrange2;ph.xrange=pr.xrange2;
+ph.filechannel=2;
 [S2,beadpos2,parameters2]=calibrate3D_g(ph);
 
 
@@ -160,6 +162,11 @@ switch p.Tmode
         
         pr.split='rl';
         pr.roiind=1;
+    case {'2 cam','2 cam u-d mirror','2 cam r-l mirror'}
+        pr.xrange1=p.xrange;pr.yrange1=p.yrange;
+        pr.xrange2=p.xrange;pr.yrange2=p.yrange;
+        
+        
 %         if max(p.xrange)<splitpos %defined only in upper part
 %             xrange1=p.xrange;
 %             xrange2=p.xrange+splitpos;xrange2(xrange2<splitpos)=splitpos;

@@ -73,6 +73,9 @@ end
 if ~isfield(p,'transformation')
     p.transformation=[];
 end
+if ~isfield(p,'filechannel')
+    p.filechannel=1;
+end
 
 %get bead positions
 p.status.String='Load files and segment beads';drawnow
