@@ -20,6 +20,7 @@ pixelsize=100;
              r=imageloaderAll(file,[],p.smappos.P);
 
              imstack=r.getmanyimages(1:r.metadata.numberOfFrames,'mat');
+             imstack=imstack-r.metadata.offset;
              roi=r.metadata.roi;
              pixelsize=r.metadata.cam_pixelsize_um;
              r.close;

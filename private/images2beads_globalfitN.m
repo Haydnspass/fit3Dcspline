@@ -115,6 +115,16 @@ for k=1:length(filelist)
             end
         end 
         indgoodr=maxima(:,1)>p.xrange(1)&maxima(:,1)<p.xrange(end)&maxima(:,2)>p.yrange(1)&maxima(:,2)<p.yrange(end);
+        if isfield(p,'settings_3D')
+           w=p.settings_3D.width4pi;
+           xm=mod(maxima(:,1),w);
+           xm(xm>w/2)=xm(xm>w/2)-w;
+           indgoodb(abs(xm)<p.mindistance/2)=false;
+       end
+       h=size(imstack,1);
+       ym=maxima(:,2);
+       ym(ym>h/2)=ym(ym>h/2)-h;
+       indgoodb(abs(ym)<p.mindistance/2)=false;
 %         maxima=maxima(indgoodb,:);
          maxima=maxima(indgoodb&indgoodr,:);
     end 
