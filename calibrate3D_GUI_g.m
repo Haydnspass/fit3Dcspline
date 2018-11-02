@@ -221,7 +221,13 @@ classdef calibrate3D_GUI_g<handle
             obj.guihandles.filelist.String=sf.filelist;
             obj.guihandles.filelist.Value=1;
 %             if isempty(obj.guihandles.outputfile.String)|| strcmp(obj.guihandles.outputfile.String,'bead_3dcal.mat')
-                [path,file]=fileparts(sf.filelist{1});
+                ind=strfind(sf.filelist{1},';');
+                if ~isempty(ind)
+                    fileh=sf.filelist{1}(1:ind-1);
+                else
+                    fileh=sf.filelist{1};
+                end
+                [path,file]=fileparts(fileh);
                 obj.guihandles.outputfile.String=[path filesep file '_3dcal.mat'];
                 
 %             end

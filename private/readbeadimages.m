@@ -2,7 +2,7 @@ function [imstack, roi, pixelsize,settings3D]=readbeadimages(file,p)
 [path,f,ext]=fileparts(file);
 indq=strfind(f,'_q');
 settings3D=[];
-multichannel=false;
+multichannel_4pi=false;
 if ~isempty(indq)
     allfiles=dir([path filesep f(1:indq+1)  '*' ext]);
     for k=1:length(allfiles)
@@ -10,7 +10,7 @@ if ~isempty(indq)
         disp(allfiles(k).name(indq:end))
     end
     file=files;
-    multichannel=true;
+    multichannel_4pi=true;
 end
 pixelsize=100;
     
@@ -32,7 +32,7 @@ pixelsize=100;
         if isempty(imstack)
             disp('using simple reader')
             warndlg('using simple reader, this might create problems if only part of the camera chip is used.','using simple reader','replace');
-            if multichannel
+            if multichannel_4pi
                 imstack=[];
                 for k=1:length(file)
                     imstack=horzcat(imstack,readfile_tif(file{k}));
@@ -47,7 +47,7 @@ pixelsize=100;
         imstack=readfile_tif(file);
         roi=[0 0 size(imstack,1) size(imstack,2)]; %check x,y
     end
-    if multichannel
+    if multichannel_4pi
         wx=size(imstack,2)/4;wy=size(imstack,1);
         settings3D=struct('y4pi',[0 0 0 0],'x4pi',[0 wx 2*wx 3*wx], 'width4pi',wx,'height4pi',wy,'mirror4pi',[0 0 0 0],'pixelsize_nm',100,'offset',100,'conversion',0.5);
     end

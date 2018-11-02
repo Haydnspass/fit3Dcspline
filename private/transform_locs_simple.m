@@ -3,6 +3,15 @@ df=10;
 locref=reducepos(locrefi,df);
 loctarget=reducepos(loctargeti,df);
 
+if isfield(p,'tabgroup')
+    axh=axes(p.tabgroup);
+else
+    figure(99);
+    axh=gca;
+end
+axes(axh);
+par=axh.Parent;
+tg=uitabgroup(par);
 
 tfile=p.Tfile;
  sepscale=2; %maximum separation measure
@@ -27,6 +36,7 @@ else
 end
    
     loctT=loctarget;
+    locrT=locref;
     separators=[2 2]*separator;
     switch p.Tmode
         case 'up-down'
@@ -49,11 +59,21 @@ end
             targetmirror='left-right';
             targetpos='right';
             separators(1)=separator;
+        case '2 cam'
+            %p.Tsplitpos is now the initial scaling factor
+            loctT.x=loctarget.x(:)*p.Tsplitpos-min(loctarget.x(:))+10;
+            loctT.y=loctarget.y(:)*p.Tsplitpos-min(loctarget.y(:))+10;
+            locrT.x=locref.x(:)-min(locref.x(:))+10;
+            locrT.y=locref.y(:)-min(locref.y(:))+10;
+            separator=max(vertcat(loctT.x(:),loctT.y(:),locrT.x(:),locrT.y(:)))/2;
+            sepscale=3;
+            targetmirror='no mirror';
+            targetpos='center';
     end
     mirrorinfo.targetmirror=targetmirror;
     %determine approximate shift
     xr=1:1:2*separator;yr=xr;
-    ht=histcounts2(locref.x,locref.y,xr,yr);
+    ht=histcounts2(locrT.x,locrT.y,xr,yr);
     hr=histcounts2(loctT.x,loctT.y,xr,yr);
     G=fftshift(ifft2(conj(fft2(ht)).*fft2(hr)));
     h=fspecial('gaussian',13,2*sepscale);
@@ -69,8 +89,12 @@ end
 end
 
 
-[iAa,iBa,na,nb,nseen]=matchlocsall(locref,loctT,-dx0,-dy0,4*sepscale,1e5);
+[iAa,iBa,na,nb,nseen]=matchlocsall(locrT,loctT,-dx0,-dy0,4*sepscale,1e5);
 
+
+th=uitab(tg,'Title','intial pos');
+axh=axes(th);
+plot(axh,locrT.x(iAa),locrT.y(iAa),'ro',loctT.x(iBa)-dx0,loctT.y(iBa)-dy0,'bo',locrT.x(na),locrT.y(na),'r.',loctT.x(nb)-dx0,loctT.y(nb)-dy0,'b.')
 transform=interfaces.LocTransform;
 
 t.type=p.Tform;
@@ -106,15 +130,7 @@ transform.findTransformZ(locref.x(iAa(goodind)),locref.y(iAa(goodind)),locref.z(
 end
 %    figure(88);plot(locref.x,locref.y,'b.',loctT.x-dx0,loctT.y-dy0,'r+',loctargeti.x,loctargeti.y,'rx',xa,ya,'cx') 
 %    
-if isfield(p,'tabgroup')
-    axh=axes(p.tabgroup);
-else
-    figure(99);
-    axh=gca;
-end
-axes(axh);
-par=axh.Parent;
-tg=uitabgroup(par);
+
 th=uitab(tg,'Title','dx,dy');
 axh=axes(th);
 dscatter(dx(goodind),dy(goodind))

@@ -16,14 +16,28 @@ ph=p;
 ph.isglobalfit=false;
 %set spatial calibration
 ph.outputfile={};
+if contains(p.filelist{1},';') %each channel in separate file
+    for k=1:length(p.filelist)
+        ind=strfind(p.filelist{k},';');
+        filelist1{k}=p.filelist{k}(1:ind-1);
+        filelist2{k}=p.filelist{k}(ind+1:end);
+    end
+else
+    filelist1=p.filelist; filelist2=p.filelist;
+end
+
 
 t1=uitab(tg,'Title','first channel');
+ph.filelist=filelist1;
 ph.tabgroup=  uitabgroup(t1);  
 ph.yrange=pr.yrange1;ph.xrange=pr.xrange1;
 ph.filechannel=1;
 [S1,beadpos1,parameters1]=calibrate3D_g(ph);
 
+
+
 t2=uitab(tg,'Title','second channel');
+ph.filelist=filelist2;
 ph.tabgroup=  uitabgroup(t2);  
 ph.yrange=pr.yrange2;ph.xrange=pr.xrange2;
 ph.filechannel=2;
@@ -57,6 +71,7 @@ ph.outputfile=p.outputfile;
 t4=uitab(tg,'Title','global cal');
 ph.tabgroup=  uitabgroup(t4);  
 % ph.yrange=yrange1;ph.xrange=xrange1;
+ph.filelist=p.filelist;
 [S,beadpos,parameters_g]=calibrate3D_g(ph);
 
 if ~exist('S1','var') %take global one apart...
@@ -165,8 +180,10 @@ switch p.Tmode
     case {'2 cam','2 cam u-d mirror','2 cam r-l mirror'}
         pr.xrange1=p.xrange;pr.yrange1=p.yrange;
         pr.xrange2=p.xrange;pr.yrange2=p.yrange;
-        
-        
+        pr.roiind=1;
+        pr.xrangeall=p.xrange; pr.yrangeall=p.yrange;
+        pr.XYpos=[1,1];
+        pr.split ='none';
 %         if max(p.xrange)<splitpos %defined only in upper part
 %             xrange1=p.xrange;
 %             xrange2=p.xrange+splitpos;xrange2(xrange2<splitpos)=splitpos;

@@ -25,12 +25,24 @@ else
     p.mirror=false;
 end
 
-
+p.multifile=false;
 for k=1:length(filelist)
     ax=axes(uitab(tg,'Title',num2str(k)));
 %     axis(ax,'image')
     p.fileax(k)=ax;
-    [imstack, p.roi{k}, p.pixelsize{k},settings3D]=readbeadimages(filelist{k},p);
+    if contains(filelist{k},';')
+        p.multifile=true;
+        ind=strfind(filelist{k},';');
+        filelisth=filelist{k}(1:ind-1);
+        filelisth2=filelist{k}(ind+1:end);
+        [imstack2, p.roi2{k}, p.pixelsize2{k},settings3D2]=readbeadimages(filelisth2,p);
+        [imstack, p.roi{k}, p.pixelsize{k},settings3D]=readbeadimages(filelisth,p);
+    else
+        filelisth=filelist{k};
+        [imstack, p.roi{k}, p.pixelsize{k},settings3D]=readbeadimages(filelisth,p);
+        p.roi2=p.roi;
+        imstack2=imstack;
+    end
     
     if is4pi
         if ~isempty(settings3D)
@@ -53,10 +65,11 @@ for k=1:length(filelist)
        
     if isfield(p,'framerangeuse')
         imstack=imstack(:,:,p.framerangeuse(1):p.framerangeuse(end));
+        imstack2=imstack2(:,:,p.framerangeuse(1):p.framerangeuse(end));
     end
     
     imstack=imstack-min(imstack(:)); %fast fix for offset;
-    
+    imstack2=imstack2-min(imstack2(:)); %fast fix for offset;
 %     imageslicer(imstack)%%%%%%%%XXXXXXX
     
     mim=max(imstack,[],3);
@@ -129,8 +142,10 @@ for k=1:length(filelist)
         
         if isfield(transform.tinfo,'units') &&strcmp(transform.tinfo.units,'pixels')
             pixfac=[1 1];
+            pixfac2=[1 1];
         else
             pixfac=[p.pixelsize{k}(1)*1000 p.pixelsize{k}(end)*1000];
+            pixfac2=[p.pixelsize2{k}(1)*1000 p.pixelsize2{k}(end)*1000];
         end
             maximanm(:,1)=maximanm(:,1)*pixfac(1);
             maximanm(:,2)=maximanm(:,2)*pixfac(end);
@@ -143,8 +158,8 @@ for k=1:length(filelist)
         %     [x,y]=transform.transformCoordinatesFwd(maximanm(indref,2),maximanm(indref,1));
 
             maximatargetf=[];
-            maximatargetf(:,1)=x/pixfac(1)-p.roi{k}(1);
-            maximatargetf(:,2)=y/pixfac(end)-p.roi{k}(2);
+            maximatargetf(:,1)=x/pixfac2(1)-p.roi2{k}(1); %now on target chip: use roi2
+            maximatargetf(:,2)=y/pixfac2(end)-p.roi2{k}(2);
     %     maximatargetf(:,2)=x/p.smappos.pixelsize{k}(1)/1000-p.smappos.roi{k}(1);
     %     maximatargetf(:,1)=y/p.smappos.pixelsize{k}(end)/1000-p.smappos.roi{k}(2);
 
@@ -180,7 +195,7 @@ for k=1:length(filelist)
         b(bind).shiftxy=dxy(l,:);
         try
             b(bind).stack.image=imstack(b(bind).pos(2)+rsr,b(bind).pos(1)+rsr,:);
-            b(bind).stack.imagetar=imstack(b(bind).postar(2)+rsr,b(bind).postar(1)+rsr,:);
+            b(bind).stack.imagetar=imstack2(b(bind).postar(2)+rsr,b(bind).postar(1)+rsr,:);
             b(bind).stack.framerange=1:numframes;
             b(bind).isstack=true;
             
@@ -190,12 +205,26 @@ for k=1:length(filelist)
         end
         
             b(bind).roi=p.roi{k};
+            b(bind).roi2=p.roi2{k};
         bind=bind-1;
     end
     fmax=max(fmax,numframes);
      hold (ax,'on')
     if p.isglobalfit
-        plot(ax,maximaref(:,1),maximaref(:,2),'ko',maximatar(:,1),maximatar(:,2),'kd') 
+        if p.multifile
+            plot(ax,maxima(:,1),maxima(:,2),'ko')
+            ax2=axes(uitab(tg,'Title',[num2str(k) 't']));
+            mim2=max(imstack2,[],3);
+            imagesc(ax2,mim2)
+            ax2.NextPlot='add';
+            axis(ax2,'image');
+            axis(ax2,'off')
+            plot(ax2,maximatar(:,1),maximatar(:,2),'md') 
+            hold(ax2,'off');
+            
+        else
+        plot(ax,maximaref(:,1),maximaref(:,2),'ko',maximatar(:,1),maximatar(:,2),'md') 
+        end
     else
         plot(ax,maxima(:,1),maxima(:,2),'ko')
     end
